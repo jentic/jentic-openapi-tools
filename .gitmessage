@@ -1,0 +1,30 @@
+
+# <type>(<scope>): <subject>
+#
+# <body>
+#
+# <footer>
+
+# Type should be one of the following:
+# * feat: A new feature
+# * fix: A bug fix
+# * docs: Documentation only changes
+# * style: Changes that do not affect the meaning of the code
+# * refactor: A code change that neither fixes a bug nor adds a feature
+# * perf: A code change that improves performance
+# * test: Adding missing tests or correcting existing tests
+# * build: Changes that affect the build system or external dependencies
+# * ci: Changes to our CI configuration files and scripts
+# * chore: Other changes that don't modify src or test files
+# * revert: Reverts a previous commit
+#
+# Scope should be the name of the package affected:
+# * parser
+# * transformer
+# * validator
+# * validator-spectral
+# * tools (for root package changes)
+#
+# Subject should use imperative mood and not end with period
+# Body should explain motivation for the change
+# Footer should contain any BREAKING CHANGES or issue references

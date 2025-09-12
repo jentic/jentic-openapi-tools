@@ -1,0 +1,94 @@
+# ==============================
+# OS junk
+# ==============================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ==============================
+# Python bytecode / caches
+# ==============================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ==============================
+# Virtual environments
+# (uv creates .venv by default on `uv sync`)
+# ==============================
+.venv/
+venv/
+.env/
+.env.*
+.python-version
+
+# ==============================
+# Packaging / build artifacts (all packages)
+# ==============================
+build/
+dist/
+.eggs/
+**/*.egg-info/
+*.egg
+wheels/
+
+# ==============================
+# Test & coverage artifacts
+# ==============================
+.pytest_cache/
+.coverage
+.coverage.*
+.cache/
+nosetests.xml
+coverage.xml
+htmlcov/
+junit*.xml
+test-results/
+
+# ==============================
+# Linters / Type checkers
+# ==============================
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyrightcache/
+
+# ==============================
+# Task runners
+# ==============================
+.nox/
+.tox/
+
+# ==============================
+# Editors / IDEs
+# ==============================
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# JetBrains (PyCharm/IntelliJ)
+.idea/
+
+# Vim / Emacs / etc.
+*~
+*.swp
+*.swo
+.#*
+*.orig
+
+# ==============================
+# Documentation tools
+# ==============================
+docs/_build/
+site/
+
+# ==============================
+# Logs & misc
+# ==============================
+*.log
+*.tmp
+*.temp
+~$*
+

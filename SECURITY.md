@@ -1,0 +1,20 @@
+# Security Policy
+
+If you believe you've found an exploitable security issue in jentic-openapi-tools,
+**please don't create a public issue**.
+
+## Supported versions
+
+### Jentic OpenAPI Tools
+This is the list of versions of `jentic-openapi-tools` which are
+currently being supported with security updates.
+
+| Version    | Supported          | Notes                           |
+|------------|--------------------|---------------------------------|
+| &gt;=0.1.x | :white_check_mark: |                       |
+
+## Reporting a vulnerability
+
+To report a vulnerability, please send an email with the details to [compliance@jentic.com](mailto:compliance@jentic.com).
+
+We'll acknowledge receipt of your report ASAP, and set expectations on how we plan to handle it.

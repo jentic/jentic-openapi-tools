@@ -1,0 +1,290 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_release:
+        description: 'Force release (for first release)'
+        required: false
+        default: false
+        type: boolean
+      dry_run:
+        description: 'Dry run mode (no actual changes)'
+        required: false
+        default: true  # Default to dry-run for safety
+        type: boolean
+
+# Set environment variable for dry-run mode
+env:
+  DRY_RUN: ${{ github.event.inputs.dry_run != 'false' }}  # True unless explicitly set to false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    concurrency: release
+    permissions:
+      contents: write
+      id-token: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Spectral CLI
+        run: npm install -g @stoplight/spectral-cli
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Dry Run Notice
+        if: env.DRY_RUN == 'true'
+        run: |
+          echo "🔍 DRY RUN MODE ENABLED"
+          echo "This workflow will simulate the release process without making changes"
+          echo "No commits, tags, releases, or publications will be made"
+
+      - name: Check if release is needed
+        id: check_release
+        run: |
+          # Check if this is a manual force release
+          if [ "${{ github.event.inputs.force_release }}" = "true" ]; then
+            echo "release_needed=true" >> $GITHUB_OUTPUT
+            echo "reason=forced" >> $GITHUB_OUTPUT
+          # Check if there are no existing tags (first release)
+          elif [ -z "$(git tag -l)" ]; then
+            echo "release_needed=true" >> $GITHUB_OUTPUT
+            echo "reason=first_release" >> $GITHUB_OUTPUT
+          # Check semantic release (dry-run)
+          elif uv run semantic-release --dry-run version --print 2>/dev/null; then
+            echo "release_needed=true" >> $GITHUB_OUTPUT
+            echo "reason=conventional_commits" >> $GITHUB_OUTPUT
+          else
+            echo "release_needed=false" >> $GITHUB_OUTPUT
+            echo "reason=no_changes" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get current version info
+        if: steps.check_release.outputs.release_needed == 'true'
+        id: version_info
+        run: |
+          CURRENT_VERSION=$(grep 'version = ' pyproject.toml | head -1 | sed 's/.*version = "\([^"]*\)".*/\1/')
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          
+          # Try to get what the next version would be
+          if [ "${{ steps.check_release.outputs.reason }}" = "first_release" ]; then
+            echo "next_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.check_release.outputs.reason }}" = "conventional_commits" ]; then
+            NEXT_VERSION=$(uv run semantic-release --dry-run version --print 2>/dev/null || echo "$CURRENT_VERSION")
+            echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "next_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Show release plan
+        if: steps.check_release.outputs.release_needed == 'true'
+        run: |
+          echo "📋 RELEASE PLAN"
+          echo "Current Version: ${{ steps.version_info.outputs.current_version }}"
+          echo "Next Version: ${{ steps.version_info.outputs.next_version }}"
+          echo "Release Reason: ${{ steps.check_release.outputs.reason }}"
+          echo "Dry Run: ${{ env.DRY_RUN }}"
+          echo ""
+          echo "🔍 Commits since last release:"
+          if [ -n "$(git tag -l)" ]; then
+            LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -n "$LAST_TAG" ]; then
+              git log ${LAST_TAG}..HEAD --oneline --pretty=format:"- %s (%h)"
+            else
+              echo "- No previous tags found"
+            fi
+          else
+            echo "- First release (no previous tags)"
+          fi
+
+      - name: Run tests
+        if: steps.check_release.outputs.release_needed == 'true'
+        run: |
+          echo "🧪 Running tests..."
+          uv run --package jentic-openapi-parser pytest packages/jentic-openapi-parser/tests -v
+          uv run --package jentic-openapi-transformer pytest packages/jentic-openapi-transformer/tests -v
+          uv run --package jentic-openapi-validator pytest packages/jentic-openapi-validator/tests -v
+          uv run --package jentic-openapi-validator-spectral pytest packages/jentic-openapi-validator-spectral/tests -v
+
+      - name: Simulate version bump (DRY RUN)
+        if: steps.check_release.outputs.release_needed == 'true' && env.DRY_RUN == 'true'
+        run: |
+          echo "🔍 DRY RUN: Would update version from ${{ steps.version_info.outputs.current_version }} to ${{ steps.version_info.outputs.next_version }}"
+          echo "🔍 DRY RUN: Would update these files:"
+          echo "  - pyproject.toml"
+          echo "  - packages/jentic-openapi-parser/pyproject.toml"
+          echo "  - packages/jentic-openapi-transformer/pyproject.toml"  
+          echo "  - packages/jentic-openapi-validator/pyproject.toml"
+          echo "  - packages/jentic-openapi-validator-spectral/pyproject.toml"
+          echo "🔍 DRY RUN: Would create git tag: v${{ steps.version_info.outputs.next_version }}"
+
+      - name: Handle first release (DRY RUN)
+        if: steps.check_release.outputs.release_needed == 'true' && steps.check_release.outputs.reason == 'first_release' && env.DRY_RUN == 'true'
+        run: |
+          echo "🔍 DRY RUN: Would create initial changelog for first release"
+          echo "🔍 DRY RUN: Would commit and tag as v${{ steps.version_info.outputs.next_version }}"
+
+      - name: Semantic release dry-run
+        if: steps.check_release.outputs.release_needed == 'true' && steps.check_release.outputs.reason == 'conventional_commits' && env.DRY_RUN == 'true'
+        run: |
+          echo "🔍 DRY RUN: Running semantic-release in dry-run mode..."
+          uv run semantic-release --dry-run version --print
+
+      # REAL OPERATIONS (only when DRY_RUN is false)
+      - name: Handle first release (REAL)
+        if: steps.check_release.outputs.release_needed == 'true' && steps.check_release.outputs.reason == 'first_release' && env.DRY_RUN == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚀 REAL: Creating first release..."
+          CURRENT_VERSION=$(grep 'version = ' pyproject.toml | head -1 | sed 's/.*version = "\([^"]*\)".*/\1/')
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create initial changelog
+          echo "# Changelog" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "## v${CURRENT_VERSION} ($(date +%Y-%m-%d))" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Packages" >> CHANGELOG.md
+          echo "- jentic-openapi-parser ${CURRENT_VERSION}" >> CHANGELOG.md
+          echo "- jentic-openapi-transformer ${CURRENT_VERSION}" >> CHANGELOG.md
+          echo "- jentic-openapi-validator ${CURRENT_VERSION}" >> CHANGELOG.md
+          echo "- jentic-openapi-validator-spectral ${CURRENT_VERSION}" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Features" >> CHANGELOG.md
+          echo "- Initial release of Jentic OpenAPI Tools" >> CHANGELOG.md
+          
+          git add CHANGELOG.md
+          git commit -m "chore: initial changelog for v${CURRENT_VERSION}"
+          git tag -a "v${CURRENT_VERSION}" -m "Release v${CURRENT_VERSION}"
+          git push origin main --tags
+
+      - name: Python Semantic Release (REAL)
+        if: steps.check_release.outputs.release_needed == 'true' && steps.check_release.outputs.reason == 'conventional_commits' && env.DRY_RUN == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚀 REAL: Running semantic release..."
+          uv run semantic-release version
+
+      - name: Forced release (REAL)
+        if: steps.check_release.outputs.release_needed == 'true' && steps.check_release.outputs.reason == 'forced' && env.DRY_RUN == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚀 REAL: Running forced release..."
+          uv run semantic-release version --force-level patch
+
+      - name: Build packages
+        if: steps.check_release.outputs.release_needed == 'true'
+        run: |
+          echo "📦 Building packages..."
+          uv build --package jentic-openapi-parser
+          uv build --package jentic-openapi-transformer
+          uv build --package jentic-openapi-validator
+          uv build --package jentic-openapi-validator-spectral
+
+      - name: Show build artifacts
+        if: steps.check_release.outputs.release_needed == 'true'
+        run: |
+          echo "📦 Built artifacts:"
+          ls -la dist/
+
+      - name: Simulate GitHub Release (DRY RUN)
+        if: steps.check_release.outputs.release_needed == 'true' && env.DRY_RUN == 'true'
+        run: |
+          echo "🔍 DRY RUN: Would create GitHub release v${{ steps.version_info.outputs.next_version }}"
+          echo "🔍 DRY RUN: Would upload build artifacts:"
+          ls -la dist/ | sed 's/^/  /'
+
+      - name: Simulate PyPI publish (DRY RUN)
+        if: steps.check_release.outputs.release_needed == 'true' && env.DRY_RUN == 'true'
+        run: |
+          echo "🔍 DRY RUN: Would publish to PyPI:"
+          echo "  - jentic-openapi-parser"
+          echo "  - jentic-openapi-transformer"
+          echo "  - jentic-openapi-validator"
+          echo "  - jentic-openapi-validator-spectral"
+
+      - name: Create GitHub Release (REAL)
+        if: steps.check_release.outputs.release_needed == 'true' && env.DRY_RUN == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚀 REAL: Creating GitHub release..."
+          VERSION=${{ steps.version_info.outputs.next_version }}
+          CHANGELOG_CONTENT="$(sed -n '/^## v'$VERSION'/,/^## /p' CHANGELOG.md 2>/dev/null | sed '$d')"
+          if [ -z "$CHANGELOG_CONTENT" ]; then
+            CHANGELOG_CONTENT="Release v$VERSION"
+          fi
+          
+          gh release create "v$VERSION" \
+            --title "Release v$VERSION" \
+            --notes "$CHANGELOG_CONTENT" \
+            dist/*.whl dist/*.tar.gz
+
+      - name: Publish to PyPI (REAL)
+        if: steps.check_release.outputs.release_needed == 'true' && env.DRY_RUN == 'false'
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          echo "🚀 REAL: Publishing to PyPI..."
+          uv publish --package jentic-openapi-parser
+          uv publish --package jentic-openapi-transformer
+          uv publish --package jentic-openapi-validator
+          uv publish --package jentic-openapi-validator-spectral
+
+      - name: Release Summary (DRY RUN)
+        if: steps.check_release.outputs.release_needed == 'true' && env.DRY_RUN == 'true'
+        run: |
+          echo "🔍 DRY RUN SUMMARY"
+          echo "Would have released version: ${{ steps.version_info.outputs.next_version }}"
+          echo "Would have published to PyPI: ✓"
+          echo "Would have created GitHub release: ✓"
+          echo "Would have updated changelog: ✓"
+          echo "Reason: ${{ steps.check_release.outputs.reason }}"
+          echo ""
+          echo "To enable real releases:"
+          echo "1. Add PYPI_API_TOKEN secret to repository"
+          echo "2. Run workflow with 'Dry run mode' set to false"
+
+      - name: Release Summary (REAL)
+        if: steps.check_release.outputs.release_needed == 'true' && env.DRY_RUN == 'false'
+        run: |
+          echo "🎉 REAL RELEASE COMPLETED"
+          echo "Released version: ${{ steps.version_info.outputs.next_version }}"
+          echo "Published to PyPI: ✓"
+          echo "GitHub release created: ✓"
+          echo "Changelog updated: ✓"
+          echo "Reason: ${{ steps.check_release.outputs.reason }}"
+
+      - name: No Release Needed
+        if: steps.check_release.outputs.release_needed == 'false'
+        run: |
+          echo "ℹ️ No release needed - no significant commits since last release"
+          echo "To trigger a release, make commits with conventional commit messages:"
+          echo "  feat: for new features (minor version bump)"
+          echo "  fix: for bug fixes (patch version bump)"
+          echo "  feat: with BREAKING CHANGE: for breaking changes (major version bump)"

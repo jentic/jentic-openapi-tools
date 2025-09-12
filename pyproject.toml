@@ -1,0 +1,108 @@
+[project]
+name = "jentic-openapi-tools"
+version = "0.1.0"
+description = "Workspace root for Jentic OpenAPI Tools"
+readme = "README.md"
+authors = [{ name = "Jentic", email = "hello@jentic.com" }]
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/jentic/jentic-openapi-tools"
+
+# Development-only dependencies (will not be published)
+[dependency-groups]
+dev = [
+  "pre-commit",
+  "ruff",
+  "pyright",
+  "pytest",
+  "python-semantic-release>=10.0.0",
+]
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[build-system]
+requires = ["uv_build>=0.8.15,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = [
+  "packages/jentic-openapi-parser/src",
+  "packages/jentic-openapi-transformer/src",
+  "packages/jentic-openapi-validator/src",
+  "packages/jentic-openapi-validator-spectral/src",
+]
+
+[tool.pyright]
+include = ["packages/*/src"]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+
+# Python Semantic Release Configuration
+[tool.semantic_release]
+# Enable monorepo mode
+monorepo = true
+# Use Angular style conventional commits
+commit_parser = "angular"
+# Version variables to update in files
+version_variables = []
+# Create changelog
+build_command = ""
+# Don't build here, we'll build separately
+upload_to_vcs_release = true
+# Enable GitHub releases
+changelog_file = "CHANGELOG.md"
+# Use semantic versioning
+major_on_zero = true
+# Branch configuration
+branch = "main"
+# Tag format
+tag_format = "v{version}"
+# Allow first release from current version
+allow_zero_version = true
+# Version pattern to match in files
+version_pattern = [
+    "pyproject.toml:version = \"{version}\"",
+    "packages/jentic-openapi-parser/pyproject.toml:version = \"{version}\"",
+    "packages/jentic-openapi-transformer/pyproject.toml:version = \"{version}\"",
+    "packages/jentic-openapi-validator/pyproject.toml:version = \"{version}\"",
+    "packages/jentic-openapi-validator-spectral/pyproject.toml:version = \"{version}\"",
+]
+
+# Commit message template for version commits
+[tool.semantic_release.commit_author]
+env = "GH_TOKEN"
+default = "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+
+# Define what constitutes breaking changes, features, and fixes
+[tool.semantic_release.changelog]
+template_dir = "templates"
+changelog_file = "CHANGELOG.md"
+exclude_commit_patterns = [
+    "^docs:",
+    "^style:",
+    "^refactor:",
+    "^test:",
+    "^build:",
+    "^ci:",
+]
+
+# Remote configuration
+[tool.semantic_release.remote]
+name = "origin"
+type = "github"
+
+# Branches configuration
+[tool.semantic_release.branches.main]
+match = "(main|master)"
+prerelease = false
+
+# Publishing configuration - disable built-in publishing since we use uv
+[tool.semantic_release.publish]
+dist_glob_patterns = ["dist/*.whl", "dist/*.tar.gz"]
+upload_to_vcs_release = true
