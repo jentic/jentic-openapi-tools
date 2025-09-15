@@ -7,6 +7,7 @@ from pathlib import Path
 import os
 import re
 import urllib.request
+import requests
 
 _WINDOWS_DRIVE_RE = re.compile(r"^[A-Za-z]:[\\/]")
 _WINDOWS_UNC_RE = re.compile(r"^(?:\\\\|//)[^\\/]+[\\/][^\\/]+")
@@ -180,3 +181,18 @@ def _resolve_path_like(value: str, base_uri: Optional[str]) -> str:
 
     p = Path(value)
     return str(p.resolve() if p.is_absolute() else (base_path / p).resolve())
+
+
+def load_uri(uri: str) -> str:
+    resolved_uri = resolve_to_absolute(uri)
+
+    if resolved_uri.startswith("http://") or uri.startswith("https://"):
+        content = requests.get(resolved_uri).text
+    elif resolved_uri.startswith("file://"):
+        with open(resolved_uri, "r", encoding="utf-8") as f:
+            content = f.read()
+    else:
+        # Treat as local file path
+        with open(resolved_uri, "r", encoding="utf-8") as f:
+            content = f.read()
+    return content

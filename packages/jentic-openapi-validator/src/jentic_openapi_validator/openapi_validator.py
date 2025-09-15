@@ -50,12 +50,12 @@ class OpenAPIValidator:
             is_text = not is_uri
 
             if is_text:
-                data = self.parser.parse_text(source)
+                data = self.parser.parse(source)
 
             if is_uri and self.has_non_uri_strategy():
                 text = self.parser.load_uri(source)
                 if not data:
-                    data = self.parser.parse_text(text)
+                    data = self.parser.parse(text)
         else:
             is_uri = False
             is_text = False
