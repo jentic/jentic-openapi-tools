@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: Common Library
+  version: 1.0.0
+
+components:
+  parameters:
+    TraceId:
+      name: X-Trace-Id
+      in: header
+      description: Correlates logs and traces for a request
+      required: false
+      schema:
+        type: string
+        maxLength: 64
+    Id:
+      name: id
+      in: path
+      required: true
+      description: Resource identifier
+      schema:
+        $ref: '#/components/schemas/Id'
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Id:
+      type: string
+      pattern: '^[a-zA-Z0-9_-]{6,32}$'
+
+    # Split base vs full to show composition in the root file
+    UserBase:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+      additionalProperties: false
+
+    Address:
+      type: object
+      required: [street, city, country]
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+      additionalProperties: false
+
+    # Full User builds on UserBase; includes nested external refs
+    User:
+      allOf:
+        - $ref: '#/components/schemas/UserBase'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              $ref: '#/components/schemas/Id'
+            address:
+              $ref: '#/components/schemas/Address'
+            roles:
+              type: array
+              items:
+                type: string
+                enum: [admin, editor, viewer]
+          additionalProperties: false
+
+    Paging:
+      type: object
+      required: [limit, offset, hasNext]
+      properties:
+        limit:
+          type: integer
+          minimum: 1
+        offset:
+          type: integer
+          minimum: 0
+        hasNext:
+          type: boolean
+      additionalProperties: false
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: BAD_REQUEST
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+              message:
+                type: string
+      additionalProperties: false

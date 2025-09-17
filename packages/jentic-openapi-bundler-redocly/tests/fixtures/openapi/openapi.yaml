@@ -1,0 +1,146 @@
+openapi: 3.0.3
+info:
+  title: Users API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com
+
+paths:
+  /users:
+    get:
+      summary: List users
+      description: Returns a paginated list of users.
+      parameters:
+        # External parameter
+        - $ref: ./parts/common.yaml#/components/parameters/TraceId
+        # Inline parameter (will be bundled inline)
+        - name: limit
+          in: query
+          description: Max results to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+      responses:
+        '200':
+          description: A page of users
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, pageInfo]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      # External schema ref
+                      $ref: ./parts/common.yaml#/components/schemas/User
+                  pageInfo:
+                    # Inline schema with allOf composition and external ref
+                    allOf:
+                      - $ref: ./parts/common.yaml#/components/schemas/Paging
+                      - type: object
+                        properties:
+                          totalCount:
+                            type: integer
+                additionalProperties: false
+        '400':
+          $ref: ./parts/common.yaml#/components/responses/BadRequest
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              # Compose inline + external to see how bundling behaves
+              allOf:
+                - $ref: ./parts/common.yaml#/components/schemas/UserBase
+                - $ref: '#/components/schemas/NewUser'  # inline in this file
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              description: URI of the newly created user
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: ./parts/common.yaml#/components/schemas/User
+        '400':
+          $ref: ./parts/common.yaml#/components/responses/BadRequest
+
+  /users/{id}:
+    parameters:
+      # Path-level external parameter
+      - $ref: ./parts/common.yaml#/components/parameters/Id
+    get:
+      summary: Get user by ID
+      parameters:
+        - $ref: ./parts/common.yaml#/components/parameters/TraceId
+      responses:
+        '200':
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: ./parts/common.yaml#/components/schemas/User
+        '404':
+          $ref: ./parts/common.yaml#/components/responses/NotFound
+    patch:
+      summary: Update user (partial)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              # Inline, demonstrates oneOf with external/inline branches
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                address:
+                  oneOf:
+                    - $ref: ./parts/common.yaml#/components/schemas/Address
+                    - type: 'null'
+              additionalProperties: false
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: ./parts/common.yaml#/components/schemas/User
+        '400':
+          $ref: ./parts/common.yaml#/components/responses/BadRequest
+        '404':
+          $ref: ./parts/common.yaml#/components/responses/NotFound
+
+components:
+  schemas:
+    # Inline schema used by POST /users payload (composed with UserBase)
+    NewUser:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        # Demonstrates inline map with $ref values
+        metadata:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: number
+              - $ref: ./parts/common.yaml#/components/schemas/Address
+      additionalProperties: false
