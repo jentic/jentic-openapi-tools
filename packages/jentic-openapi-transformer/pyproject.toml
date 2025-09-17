@@ -11,8 +11,13 @@ dependencies = ["jentic-openapi-parser"]
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
 
+[project.optional-dependencies]
+redocly = ["jentic-openapi-bundler-redocly"]
+
 [tool.uv.sources]
 jentic-openapi-parser = { workspace = true }
+jentic-openapi-bundler-redocly = { workspace = true }
+
 
 [build-system]
 requires = ["uv_build>=0.8.15,<0.9.0"]

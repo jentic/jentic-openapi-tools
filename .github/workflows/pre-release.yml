@@ -35,6 +35,9 @@ jobs:
       - name: Install Spectral CLI
         run: npm install -g @stoplight/spectral-cli
 
+      - name: Install Redocly CLI
+        run: npm install -g @redocly/cli@latest
+
       - name: Install dependencies
         run: uv sync
 
@@ -48,6 +51,7 @@ jobs:
           uv run --package jentic-openapi-transformer pytest packages/jentic-openapi-transformer/tests -v
           uv run --package jentic-openapi-validator pytest packages/jentic-openapi-validator/tests -v
           uv run --package jentic-openapi-validator-spectral pytest packages/jentic-openapi-validator-spectral/tests -v
+          uv run --package jentic-openapi-bundler-redocly pytest packages/jentic-openapi-bundler-redocly/tests -v
 
       - name: Get next version for pre-release
         id: next_version
@@ -64,6 +68,7 @@ jobs:
           uv build --package jentic-openapi-transformer
           uv build --package jentic-openapi-validator
           uv build --package jentic-openapi-validator-spectral
+          uv build --package jentic-openapi-bundler-redocly
 
       - name: Create pre-release
         env:
@@ -85,3 +90,4 @@ jobs:
           uv publish --package jentic-openapi-transformer
           uv publish --package jentic-openapi-validator
           uv publish --package jentic-openapi-validator-spectral
+          uv publish --package jentic-openapi-bundler-redocly

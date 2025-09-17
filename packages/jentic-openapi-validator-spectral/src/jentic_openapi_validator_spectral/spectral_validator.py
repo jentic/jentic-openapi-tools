@@ -5,10 +5,9 @@ import os
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
-from jentic_openapi_common.subprocess import SubprocessExecutionError
+from jentic_openapi_common import run_checked, SubprocessExecutionError
 from lsprotocol.types import Diagnostic, DiagnosticSeverity, Range, Position
 
-from jentic_openapi_common import run_checked
 from jentic_openapi_validator import ValidationResult
 from jentic_openapi_validator.strategies.base import BaseValidatorStrategy
 from importlib.resources import files
@@ -87,18 +86,6 @@ class SpectralValidator(BaseValidatorStrategy):
             ]
             result = run_checked(cmd)
 
-        except FileNotFoundError:
-            # Spectral not installed or not in PATH
-            err_msg = "Spectral CLI not found. Please install @stoplight/spectral (npm) and ensure 'spectral' is in PATH."
-            diagnostic = Diagnostic(
-                range=Range(start=Position(line=0, character=0), end=Position(line=0, character=0)),
-                message=err_msg,
-                severity=DiagnosticSeverity.Error,
-                code="0",
-                source="spectral-validator",
-            )
-            return ValidationResult([diagnostic])
-
         except SubprocessExecutionError as e:
             # only timeout and OS errors, as run_checked has default `fail_on_error = False`
             raise e
@@ -110,7 +97,6 @@ class SpectralValidator(BaseValidatorStrategy):
                     os.unlink(ruleset_temp_path)
                 except OSError:
                     pass  # Ignore cleanup errors
-
         if result.returncode not in (0, 1) or (result.stderr and not result.stdout):
             # According to Spectral docs, return code 2 might indicate lint errors found,
             # 0 means no issues, but let's not assume; we'll parse output.
@@ -118,7 +104,10 @@ class SpectralValidator(BaseValidatorStrategy):
             err = result.stderr.strip() or result.stdout.strip()
             msg = err or f"Spectral exited with code {result.returncode}"
             raise Exception(msg)
+
         output = result.stdout
+        output = output.replace("No results with a severity of 'error' found!", "")
+
         try:
             issues = json.loads(output)
         except json.JSONDecodeError:

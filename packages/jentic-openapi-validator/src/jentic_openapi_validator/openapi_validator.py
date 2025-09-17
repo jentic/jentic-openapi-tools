@@ -42,9 +42,8 @@ class OpenAPIValidator:
 
     def validate(self, source: str | dict) -> ValidationResult:
         text = source
-        data = text
         all_messages = []
-
+        data = None
         if isinstance(source, str):
             is_uri = self.parser.is_uri_like(source)
             is_text = not is_uri
@@ -54,11 +53,13 @@ class OpenAPIValidator:
 
             if is_uri and self.has_non_uri_strategy():
                 text = self.parser.load_uri(source)
-                if not data:
+                if not data or data is None:
                     data = self.parser.parse(text)
         else:
             is_uri = False
             is_text = False
+        if not data or data is None:
+            data = text
 
         for strat in self.strategies:
             document = None
