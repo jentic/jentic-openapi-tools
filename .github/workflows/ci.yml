@@ -25,6 +25,25 @@ jobs:
           uv run ruff format --check .
           uv run pyright
 
+  test_common:
+    name: Test (jentic-openapi-Common)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+      - name: Set up Python
+        run: uv python install ${{ matrix.python }}
+      - name: Install deps (with dev)
+        run: uv sync
+      - name: Install common package in editable mode
+        run: uv pip install -e jentic-openapi-common
+      - name: Pytest (parser)
+        run: uv run pytest jentic-openapi-common/tests -q
+
   test_parser:
     name: Test (jentic-openapi-parser)
     runs-on: ubuntu-latest

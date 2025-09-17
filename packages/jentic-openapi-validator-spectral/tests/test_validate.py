@@ -1,6 +1,7 @@
 import subprocess
 from pathlib import Path
 
+from jentic_openapi_common.subprocess import SubprocessExecutionError
 import pytest
 from jentic_openapi_validator_spectral import SpectralValidator
 
@@ -48,8 +49,5 @@ def test_spectral_validator_without_cli():
     """Test SpectralValidator behavior when spectral CLI is not available."""
     validator = SpectralValidator(spectral_path="nonexistent_spectral")
 
-    # This would need a file path, not a dict - the current implementation
-    # expects a file path to pass to spectral CLI
-    result = validator.validate("/some/test/file.yaml")
-    assert "Spectral CLI not found" in str(result.diagnostics[0].message)
-    pass
+    with pytest.raises(SubprocessExecutionError, match="'nonexistent_spectral"):
+        validator.validate("/some/test/file.yaml")

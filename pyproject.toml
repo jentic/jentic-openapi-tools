@@ -24,6 +24,9 @@ dev = [
 [tool.uv.workspace]
 members = ["packages/*"]
 
+[tool.uv.sources]
+jentic-openapi-common = { path = "jentic-openapi-common", editable = true }
+
 [build-system]
 requires = ["uv_build>=0.8.15,<0.9.0"]
 build-backend = "uv_build"
@@ -32,6 +35,7 @@ build-backend = "uv_build"
 target-version = "py312"
 line-length = 100
 src = [
+  "jentic-openapi-common/src",
   "packages/jentic-openapi-parser/src",
   "packages/jentic-openapi-transformer/src",
   "packages/jentic-openapi-validator/src",
@@ -39,7 +43,7 @@ src = [
 ]
 
 [tool.pyright]
-include = ["packages/*/src"]
+include = ["jentic-openapi-common/src", "packages/*/src"]
 pythonVersion = "3.12"
 typeCheckingMode = "standard"
 

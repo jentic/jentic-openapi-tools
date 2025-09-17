@@ -1,0 +1,19 @@
+[project]
+name = "jentic-openapi-common"
+version = "0.1.0"
+description = "Jentic OpenAPI Common"
+readme = "README.md"
+authors = [{ name = "Jentic", email = "hello@jentic.com" }]
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/jentic/jentic-openapi-tools"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jentic_openapi_common"]
