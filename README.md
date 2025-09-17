@@ -13,6 +13,7 @@ uv sync --all-packages
 ### run per-package tests (from root)
 
 ```bash
+uv run pytest jentic-openapi-common/tests -q
 uv run --package jentic-openapi-parser       pytest packages/jentic-openapi-parser/tests -q
 uv run --package jentic-openapi-transformer  pytest packages/jentic-openapi-transformer/tests -q
 uv run --package jentic-openapi-validator    pytest packages/jentic-openapi-validator/tests -q

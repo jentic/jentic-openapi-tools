@@ -38,8 +38,12 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
+      - name: Install common package in editable mode
+        run: uv pip install -e jentic-openapi-common
+
       - name: Run tests
         run: |
+          uv run pytest jentic-openapi-common/tests -v
           uv run --package jentic-openapi-parser pytest packages/jentic-openapi-parser/tests -v
           uv run --package jentic-openapi-transformer pytest packages/jentic-openapi-transformer/tests -v
           uv run --package jentic-openapi-validator pytest packages/jentic-openapi-validator/tests -v

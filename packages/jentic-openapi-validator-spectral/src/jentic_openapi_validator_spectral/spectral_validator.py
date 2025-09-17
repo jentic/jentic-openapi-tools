@@ -1,4 +1,3 @@
-import subprocess
 import json
 from typing import Optional
 import tempfile
@@ -6,8 +5,10 @@ import os
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
+from jentic_openapi_common.subprocess import SubprocessExecutionError
 from lsprotocol.types import Diagnostic, DiagnosticSeverity, Range, Position
 
+from jentic_openapi_common import run_checked
 from jentic_openapi_validator import ValidationResult
 from jentic_openapi_validator.strategies.base import BaseValidatorStrategy
 from importlib.resources import files
@@ -84,7 +85,7 @@ class SpectralValidator(BaseValidatorStrategy):
                 "-f",
                 "json",
             ]
-            completed = subprocess.run(cmd, check=False, capture_output=True, text=True)
+            result = run_checked(cmd)
 
         except FileNotFoundError:
             # Spectral not installed or not in PATH
@@ -97,6 +98,11 @@ class SpectralValidator(BaseValidatorStrategy):
                 source="spectral-validator",
             )
             return ValidationResult([diagnostic])
+
+        except SubprocessExecutionError as e:
+            # only timeout and OS errors, as run_checked has default `fail_on_error = False`
+            raise e
+
         finally:
             # Clean up temporary ruleset file if we created one
             if ruleset_temp_path and os.path.exists(ruleset_temp_path):
@@ -105,14 +111,14 @@ class SpectralValidator(BaseValidatorStrategy):
                 except OSError:
                     pass  # Ignore cleanup errors
 
-        if completed.returncode not in (0, 1) or (completed.stderr and not completed.stdout):
+        if result.returncode not in (0, 1) or (result.stderr and not result.stdout):
             # According to Spectral docs, return code 2 might indicate lint errors found,
             # 0 means no issues, but let's not assume; we'll parse output.
             # If returncode is something else, spectral encountered an execution error.
-            err = completed.stderr.strip() or completed.stdout.strip()
-            msg = err or f"Spectral exited with code {completed.returncode}"
+            err = result.stderr.strip() or result.stdout.strip()
+            msg = err or f"Spectral exited with code {result.returncode}"
             raise Exception(msg)
-        output = completed.stdout
+        output = result.stdout
         try:
             issues = json.loads(output)
         except json.JSONDecodeError:
