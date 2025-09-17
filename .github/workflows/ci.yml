@@ -104,3 +104,26 @@ jobs:
         run: uv sync
       - name: Pytest (validator-spectral)
         run: uv run --package jentic-openapi-validator-spectral pytest -q packages/jentic-openapi-validator-spectral/tests
+
+  test_bundler_redocly:
+    name: Test (jentic-openapi-bundler-redocly)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+      - name: Set up Python
+        run: uv python install ${{ matrix.python }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Redocly CLI
+        run: npm install -g @redocly/cli@latest
+      - name: Install deps (with dev)
+        run: uv sync
+      - name: Pytest (bundler-redocly)
+        run: uv run --package jentic-openapi-bundler-redocly -q pytest packages/jentic-openapi-bundler-redocly/tests

@@ -36,6 +36,7 @@ src = [
   "packages/jentic-openapi-transformer/src",
   "packages/jentic-openapi-validator/src",
   "packages/jentic-openapi-validator-spectral/src",
+  "packages/jentic-openapi-bundler-redocly/src",
 ]
 
 [tool.pyright]
@@ -72,6 +73,7 @@ version_pattern = [
     "packages/jentic-openapi-transformer/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-validator/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-validator-spectral/pyproject.toml:version = \"{version}\"",
+    "packages/jentic-openapi-bundler-redocly/pyproject.toml:version = \"{version}\"",
 ]
 
 # Commit message template for version commits

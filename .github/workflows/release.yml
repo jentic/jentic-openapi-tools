@@ -50,6 +50,9 @@ jobs:
       - name: Install Spectral CLI
         run: npm install -g @stoplight/spectral-cli
 
+      - name: Install Redocly CLI
+        run: npm install -g @redocly/cli@latest
+
       - name: Install dependencies
         run: uv sync
 
@@ -126,6 +129,7 @@ jobs:
           uv run --package jentic-openapi-transformer pytest packages/jentic-openapi-transformer/tests -v
           uv run --package jentic-openapi-validator pytest packages/jentic-openapi-validator/tests -v
           uv run --package jentic-openapi-validator-spectral pytest packages/jentic-openapi-validator-spectral/tests -v
+          uv run --package jentic-openapi-bundler-redocly pytest packages/jentic-openapi-bundler-redocly/tests -v
 
       - name: Simulate version bump (DRY RUN)
         if: steps.check_release.outputs.release_needed == 'true' && env.DRY_RUN == 'true'
@@ -137,6 +141,7 @@ jobs:
           echo "  - packages/jentic-openapi-transformer/pyproject.toml"  
           echo "  - packages/jentic-openapi-validator/pyproject.toml"
           echo "  - packages/jentic-openapi-validator-spectral/pyproject.toml"
+          echo "  - packages/jentic-openapi-bundler-redocly/pyproject.toml"
           echo "🔍 DRY RUN: Would create git tag: v${{ steps.version_info.outputs.next_version }}"
 
       - name: Handle first release (DRY RUN)
@@ -172,6 +177,7 @@ jobs:
           echo "- jentic-openapi-transformer ${CURRENT_VERSION}" >> CHANGELOG.md
           echo "- jentic-openapi-validator ${CURRENT_VERSION}" >> CHANGELOG.md
           echo "- jentic-openapi-validator-spectral ${CURRENT_VERSION}" >> CHANGELOG.md
+          echo "- jentic-openapi-bundler-redocly ${CURRENT_VERSION}" >> CHANGELOG.md
           echo "" >> CHANGELOG.md
           echo "### Features" >> CHANGELOG.md
           echo "- Initial release of Jentic OpenAPI Tools" >> CHANGELOG.md
@@ -205,6 +211,7 @@ jobs:
           uv build --package jentic-openapi-transformer
           uv build --package jentic-openapi-validator
           uv build --package jentic-openapi-validator-spectral
+          uv build --package jentic-openapi-bundler-redocly
 
       - name: Show build artifacts
         if: steps.check_release.outputs.release_needed == 'true'
@@ -227,6 +234,7 @@ jobs:
           echo "  - jentic-openapi-transformer"
           echo "  - jentic-openapi-validator"
           echo "  - jentic-openapi-validator-spectral"
+          echo "  - jentic-openapi-bundler-redocly"
 
       - name: Create GitHub Release (REAL)
         if: steps.check_release.outputs.release_needed == 'true' && env.DRY_RUN == 'false'
@@ -255,6 +263,7 @@ jobs:
           uv publish --package jentic-openapi-transformer
           uv publish --package jentic-openapi-validator
           uv publish --package jentic-openapi-validator-spectral
+          uv publish --package jentic-openapi-bundler-redocly
 
       - name: Release Summary (DRY RUN)
         if: steps.check_release.outputs.release_needed == 'true' && env.DRY_RUN == 'true'
