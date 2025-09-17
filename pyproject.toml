@@ -32,7 +32,7 @@ requires = ["uv_build>=0.8.15,<0.9.0"]
 build-backend = "uv_build"
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py311"
 line-length = 100
 src = [
   "jentic-openapi-common/src",
@@ -45,7 +45,7 @@ src = [
 
 [tool.pyright]
 include = ["jentic-openapi-common/src", "packages/*/src"]
-pythonVersion = "3.12"
+pythonVersion = "3.11"
 typeCheckingMode = "standard"
 
 # Python Semantic Release Configuration
