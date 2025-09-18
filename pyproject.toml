@@ -24,9 +24,6 @@ dev = [
 [tool.uv.workspace]
 members = ["packages/*"]
 
-[tool.uv.sources]
-jentic-openapi-common = { path = "jentic-openapi-common", editable = true }
-
 [build-system]
 requires = ["uv_build>=0.8.15,<0.9.0"]
 build-backend = "uv_build"
@@ -35,7 +32,7 @@ build-backend = "uv_build"
 target-version = "py311"
 line-length = 100
 src = [
-  "jentic-openapi-common/src",
+  "packages/jentic-openapi-common/src",
   "packages/jentic-openapi-parser/src",
   "packages/jentic-openapi-transformer/src",
   "packages/jentic-openapi-validator/src",
@@ -44,7 +41,7 @@ src = [
 ]
 
 [tool.pyright]
-include = ["jentic-openapi-common/src", "packages/*/src"]
+include = ["packages/*/src"]
 pythonVersion = "3.11"
 typeCheckingMode = "standard"
 
@@ -73,6 +70,7 @@ allow_zero_version = true
 # Version pattern to match in files
 version_pattern = [
     "pyproject.toml:version = \"{version}\"",
+    "packages/jentic-openapi-common/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-parser/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-transformer/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-validator/pyproject.toml:version = \"{version}\"",

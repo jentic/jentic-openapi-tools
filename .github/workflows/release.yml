@@ -56,9 +56,6 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Install common package in editable mode
-        run: uv pip install -e jentic-openapi-common
-
       - name: Dry Run Notice
         if: env.DRY_RUN == 'true'
         run: |
@@ -128,7 +125,7 @@ jobs:
         if: steps.check_release.outputs.release_needed == 'true'
         run: |
           echo "🧪 Running tests..."
-          uv run pytest jentic-openapi-common/tests -v
+          uv run --package jentic-openapi-common pytest packages/jentic-openapi-common/tests -v
           uv run --package jentic-openapi-parser pytest packages/jentic-openapi-parser/tests -v
           uv run --package jentic-openapi-transformer pytest packages/jentic-openapi-transformer/tests -v
           uv run --package jentic-openapi-validator pytest packages/jentic-openapi-validator/tests -v
@@ -141,6 +138,7 @@ jobs:
           echo "🔍 DRY RUN: Would update version from ${{ steps.version_info.outputs.current_version }} to ${{ steps.version_info.outputs.next_version }}"
           echo "🔍 DRY RUN: Would update these files:"
           echo "  - pyproject.toml"
+          echo "  - packages/jentic-openapi-common/pyproject.toml"
           echo "  - packages/jentic-openapi-parser/pyproject.toml"
           echo "  - packages/jentic-openapi-transformer/pyproject.toml"  
           echo "  - packages/jentic-openapi-validator/pyproject.toml"
@@ -177,6 +175,7 @@ jobs:
           echo "## v${CURRENT_VERSION} ($(date +%Y-%m-%d))" >> CHANGELOG.md
           echo "" >> CHANGELOG.md
           echo "### Packages" >> CHANGELOG.md
+          echo "- jentic-openapi-common ${CURRENT_VERSION}" >> CHANGELOG.md
           echo "- jentic-openapi-parser ${CURRENT_VERSION}" >> CHANGELOG.md
           echo "- jentic-openapi-transformer ${CURRENT_VERSION}" >> CHANGELOG.md
           echo "- jentic-openapi-validator ${CURRENT_VERSION}" >> CHANGELOG.md
@@ -211,6 +210,7 @@ jobs:
         if: steps.check_release.outputs.release_needed == 'true'
         run: |
           echo "📦 Building packages..."
+          uv build --package jentic-openapi-common
           uv build --package jentic-openapi-parser
           uv build --package jentic-openapi-transformer
           uv build --package jentic-openapi-validator
@@ -234,6 +234,7 @@ jobs:
         if: steps.check_release.outputs.release_needed == 'true' && env.DRY_RUN == 'true'
         run: |
           echo "🔍 DRY RUN: Would publish to PyPI:"
+          echo "  - jentic-openapi-common"
           echo "  - jentic-openapi-parser"
           echo "  - jentic-openapi-transformer"
           echo "  - jentic-openapi-validator"
@@ -263,6 +264,7 @@ jobs:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           echo "🚀 REAL: Publishing to PyPI..."
+          uv publish --package jentic-openapi-common
           uv publish --package jentic-openapi-parser
           uv publish --package jentic-openapi-transformer
           uv publish --package jentic-openapi-validator
