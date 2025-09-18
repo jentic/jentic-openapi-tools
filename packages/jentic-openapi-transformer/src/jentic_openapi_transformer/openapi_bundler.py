@@ -1,5 +1,5 @@
 import importlib.metadata
-from typing import Any, TypeVar, cast, overload, Mapping, Sequence
+from typing import Any, TypeVar, cast, overload, Mapping, Sequence, Type
 import json
 
 from jentic_openapi_parser import OpenAPIParser
@@ -14,48 +14,47 @@ class OpenAPIBundler:
     Provides a bundler for OpenAPI specifications using customizable strategies.
 
     This class is designed to facilitate the bundling of OpenAPI documents.
-    It supports multiple strategies and can be extended through plugins.
-    When multiple strategies are used, the returned value is the result from the last strategy of the list that succeeds.
-    This mechanism is designed to allow passing multiple strategies to the bundler and concur to the validation process
-    by reporting the errors and success status from all strategies.
+    It supports one strategy at a time and can be extended through plugins.
 
     Attributes:
-        strategies (list[BaseParserStrategy]): List of strategies used by the bundler,
-        each implementing the BaseBundlerStrategy interface.
+        strategy: Strategy used by the parser implementing the BaseBundlerStrategy interface.
     """
 
-    def __init__(self, strategies: list | None = None, parser: OpenAPIParser | None = None):
+    def __init__(
+        self,
+        strategy: str | BaseBundlerStrategy | Type[BaseBundlerStrategy] | None = None,
+        parser: OpenAPIParser | None = None,
+    ):
         if not parser:
             parser = OpenAPIParser()
         self.parser = parser
-        # If no strategies specified, use default
-        if not strategies:
-            strategies = ["default"]
-        self.strategies = []  # list of BaseBundlerStrategy instances
+        # If no strategy specified, use default
+        if not strategy:
+            strategy = "default"
+        self.strategy = None
 
         # Discover entry points for bundler plugins
         # (This could be a one-time load stored at class level to avoid doing it every time)
         eps = importlib.metadata.entry_points(group="jentic.openapi_bundler_strategies")
         plugin_map = {ep.name: ep for ep in eps}
 
-        for strat in strategies:
-            if isinstance(strat, str):
-                name = strat
-                if name == "default":
-                    # Use built-in default bundler (TODO NOOP atm)
-                    self.strategies.append(DefaultOpenAPIBundler())
-                elif name in plugin_map:
-                    plugin_class = plugin_map[name].load()  # loads the class
-                    self.strategies.append(plugin_class())
-                else:
-                    raise ValueError(f"No bundler plugin named '{name}' found")
-            elif isinstance(strat, BaseBundlerStrategy):
-                self.strategies.append(strat)
-            elif hasattr(strat, "__call__") and issubclass(strat, BaseBundlerStrategy):
-                # if a class (not instance) is passed
-                self.strategies.append(strat())
+        if isinstance(strategy, str):
+            name = strategy
+            if name == "default":
+                # Use built-in default bundler (TODO NOOP atm)
+                self.strategy = DefaultOpenAPIBundler()
+            elif name in plugin_map:
+                plugin_class = plugin_map[name].load()  # loads the class
+                self.strategy = plugin_class()
             else:
-                raise TypeError("Invalid strategy type: must be name or strategy class/instance")
+                raise ValueError(f"No bundler plugin named '{name}' found")
+        elif isinstance(strategy, BaseBundlerStrategy):
+            self.strategy = strategy
+        elif hasattr(strategy, "__call__") and issubclass(strategy, BaseBundlerStrategy):
+            # if a class (not instance) is passed
+            self.strategy = strategy()
+        else:
+            raise TypeError("Invalid strategy type: must be name or strategy class/instance")
 
     @overload
     def bundle(
@@ -144,36 +143,33 @@ class OpenAPIBundler:
         if not data or data is None:
             data = text
 
-        for strat in self.strategies:
-            document = None
-            if is_uri and "uri" in strat.accepts():
-                document = source
-            elif is_uri and "text" in strat.accepts():
-                document = text
-            elif is_uri and "dict" in strat.accepts():
-                document = data
-            elif not is_uri and "text" in strat.accepts():
-                document = text
-            elif not is_uri and "dict" in strat.accepts():
-                document = data
+        document = None
+        if is_uri and "uri" in self.strategy.accepts():
+            document = source
+        elif is_uri and "text" in self.strategy.accepts():
+            document = text
+        elif is_uri and "dict" in self.strategy.accepts():
+            document = data
+        elif not is_uri and "text" in self.strategy.accepts():
+            document = text
+        elif not is_uri and "dict" in self.strategy.accepts():
+            document = data
 
-            if document is not None:
-                try:
-                    result = strat.bundle(document)
-                except Exception as e:
-                    # TODO add to parser/validation chain result
-                    print(f"Error parsing document: {e}")
+        if document is not None:
+            try:
+                result = self.strategy.bundle(document)
+            except Exception as e:
+                # TODO add to parser/validation chain result
+                print(f"Error parsing document: {e}")
+
         if result is None:
             raise ValueError("No valid document found")
         return result
 
     def has_non_uri_strategy(self) -> bool:
         """Check if any strategy accepts 'text' or 'dict' but not 'uri'."""
-        for strat in self.strategies:
-            accepted = strat.accepts()
-            if ("text" in accepted or "dict" in accepted) and "uri" not in accepted:
-                return True
-        return False
+        accepted = self.strategy.accepts()
+        return ("text" in accepted or "dict" in accepted) and "uri" not in accepted
 
     def _to_plain(self, obj: Any) -> Any:
         # Mapping?

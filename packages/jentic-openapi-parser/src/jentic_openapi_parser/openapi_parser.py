@@ -1,5 +1,5 @@
 import importlib.metadata
-from typing import Any, TypeVar, cast, Optional, overload, Mapping, Sequence
+from typing import Any, TypeVar, cast, Optional, overload, Mapping, Sequence, Type
 
 from .uri import is_uri_like, load_uri
 from .strategies.base import BaseParserStrategy
@@ -15,51 +15,46 @@ class OpenAPIParser:
     Provides a parser for OpenAPI specifications using customizable strategies.
 
     This class is designed to facilitate the parsing of OpenAPI documents.
-    It supports multiple strategies and can be extended through plugins.
-    When multiple strategies are used, the returned value is the result from the last strategy of the list that succeeds.
-    This mechanism is designed to allow passing multiple strategies to the parser and concur to the validation process
-    by reporting the errors and success status from all strategies.
+    It supports one strategy at a time and can be extended through plugins.
 
     Attributes:
-        strategies (list[BaseParserStrategy]): List of strategies used by the parser,
-        each implementing the BaseParserStrategy interface.
+        strategy: Strategy used by the parser implementing the BaseParserStrategy interface.
     """
 
-    def __init__(self, strategies: list | None = None):
-        # If no strategies specified, use default
-        if not strategies:
-            strategies = ["default"]
-        self.strategies = []  # list of BaseParserStrategy instances
+    def __init__(self, strategy: str | BaseParserStrategy | Type[BaseParserStrategy] | None = None):
+        # If no strategy specified, use default
+        if not strategy:
+            strategy = "default"
+        self.strategy = None
 
         # Discover entry points for parser plugins
         # (This could be a one-time load stored at class level to avoid doing it every time)
         eps = importlib.metadata.entry_points(group="jentic.openapi_parser_strategies")
         plugin_map = {ep.name: ep for ep in eps}
 
-        for strat in strategies:
-            if isinstance(strat, str):
-                name = strat
-                if name == "default":
-                    # Use built-in default parser
-                    self.strategies.append(DefaultOpenAPIParser())
-                elif name == "ruamel":
-                    # Use built-in ruamel parser
-                    self.strategies.append(RuamelOpenAPIParser())
-                elif name == "ruamel-rt":
-                    # Use built-in ruamel roundtrip parser
-                    self.strategies.append(RuamelRoundTripOpenAPIParser())
-                elif name in plugin_map:
-                    plugin_class = plugin_map[name].load()  # loads the class
-                    self.strategies.append(plugin_class())
-                else:
-                    raise ValueError(f"No parser plugin named '{name}' found")
-            elif isinstance(strat, BaseParserStrategy):
-                self.strategies.append(strat)
-            elif hasattr(strat, "__call__") and issubclass(strat, BaseParserStrategy):
-                # if a class (not instance) is passed
-                self.strategies.append(strat())
+        if isinstance(strategy, str):
+            name = strategy
+            if name == "default":
+                # Use built-in default parser
+                self.strategy = DefaultOpenAPIParser()
+            elif name == "ruamel":
+                # Use built-in ruamel parser
+                self.strategy = RuamelOpenAPIParser()
+            elif name == "ruamel-rt":
+                # Use built-in ruamel roundtrip parser
+                self.strategy = RuamelRoundTripOpenAPIParser()
+            elif name in plugin_map:
+                plugin_class = plugin_map[name].load()  # loads the class
+                self.strategy = plugin_class()
             else:
-                raise TypeError("Invalid strategy type: must be name or strategy class/instance")
+                raise ValueError(f"No parser plugin named '{name}' found")
+        elif isinstance(strategy, BaseParserStrategy):
+            self.strategy = strategy
+        elif hasattr(strategy, "__call__") and issubclass(strategy, BaseParserStrategy):
+            # if a class (not instance) is passed
+            self.strategy = strategy()
+        else:
+            raise TypeError("Invalid strategy type: must be name or strategy class/instance")
 
     @overload
     def parse(self, source: str) -> dict[str, Any]: ...
@@ -89,32 +84,30 @@ class OpenAPIParser:
         result = None
         if is_uri and self.has_non_uri_strategy():
             text = self.load_uri(source)
-        for strat in self.strategies:
-            document = None
-            if is_uri and "uri" in strat.accepts():
-                document = source
-            elif is_uri and "text" in strat.accepts():
-                document = text
-            elif not is_uri and "text" in strat.accepts():
-                document = text
 
-            if document is not None:
-                try:
-                    result = strat.parse(document)
-                except Exception as e:
-                    # TODO add to parser/validation chain result
-                    print(f"Error parsing document: {e}")
+        document = None
+        if is_uri and "uri" in self.strategy.accepts():
+            document = source
+        elif is_uri and "text" in self.strategy.accepts():
+            document = text
+        elif not is_uri and "text" in self.strategy.accepts():
+            document = text
+
+        if document is not None:
+            try:
+                result = self.strategy.parse(document)
+            except Exception as e:
+                # TODO add to parser/validation chain result
+                print(f"Error parsing document: {e}")
+
         if result is None:
             raise ValueError("No valid document found")
         return result
 
     def has_non_uri_strategy(self) -> bool:
         """Check if any strategy accepts 'text' but not 'uri'."""
-        for strat in self.strategies:
-            accepted = strat.accepts()
-            if "text" in accepted and "uri" not in accepted:
-                return True
-        return False
+        accepted = self.strategy.accepts()
+        return "text" in accepted and "uri" not in accepted
 
     def _to_plain(self, obj: Any) -> Any:
         # Mapping?
