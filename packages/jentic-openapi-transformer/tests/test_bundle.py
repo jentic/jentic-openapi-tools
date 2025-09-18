@@ -36,12 +36,10 @@ def test_parse_json_string():
 
 def test_parse_default_strategy():
     """Test that the strategy mechanism works."""
-    bundler = OpenAPIBundler(["default"])
-    assert len(bundler.strategies) == 1
-
+    bundler = OpenAPIBundler("default")
     # Verify the strategy types
-    strategy_names = [type(s).__name__ for s in bundler.strategies]
-    assert "DefaultOpenAPIBundler" in strategy_names
+    strategy_name = type(bundler.strategy).__name__
+    assert strategy_name == "DefaultOpenAPIBundler"
     doc = bundler.bundle(
         '{"openapi":"3.1.0","info":{"title":"x","version":"1.0.0"}}', return_type=dict
     )

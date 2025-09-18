@@ -34,13 +34,10 @@ def test_redocly_plugin_discovery():
     """Test that the redocly plugin can be discovered via entry points."""
     try:
         # This should work if jentic-openapi-bundler-redocly is installed
-        bundler = OpenAPIBundler(["default", "redocly"])
-        assert len(bundler.strategies) == 2
-
+        bundler = OpenAPIBundler("redocly")
         # Verify the strategy types
-        strategy_names = [type(s).__name__ for s in bundler.strategies]
-        assert "DefaultOpenAPIBundler" in strategy_names
-        assert "RedoclyBundler" in strategy_names
+        strategy_name = type(bundler.strategy).__name__
+        assert strategy_name == "RedoclyBundler"
 
     except ValueError as e:
         if "No bundler plugin named 'redocly' found" in str(e):
@@ -56,14 +53,13 @@ def test_redocly_plugin_discovery():
 def test_redocly_only_strategy(sample_openapi_file):
     """Test using only the redocly strategy."""
     try:
-        bundler = OpenAPIBundler(["redocly"])
+        bundler = OpenAPIBundler("redocly")
         result = bundler.bundle(sample_openapi_file, return_type=str)
 
         # With real redocly CLI, we should get actual validation results
         assert result is not None and isinstance(result, str) and len(result) > 0
 
-        assert len(bundler.strategies) == 1
-        assert type(bundler.strategies[0]).__name__ == "RedoclyBundler"
+        assert type(bundler.strategy).__name__ == "RedoclyBundler"
 
     except ValueError as e:
         if "No bundler plugin named 'redocly' found" in str(e):
@@ -79,7 +75,7 @@ def test_redocly_only_strategy(sample_openapi_file):
 def test_invalid_strategy_name():
     """Test that invalid strategy names raise appropriate errors."""
     with pytest.raises(ValueError, match="No bundler plugin named 'nonexistent' found"):
-        OpenAPIBundler(["nonexistent"])
+        OpenAPIBundler("nonexistent")
 
 
 @pytest.mark.skipif(
@@ -89,7 +85,7 @@ def test_invalid_strategy_name():
 def test_redocly_with_real_cli(sample_openapi_file):
     """Test redocly integration when the actual redocly CLI is available."""
     try:
-        bundler = OpenAPIBundler(["redocly"])
+        bundler = OpenAPIBundler("redocly")
         result = bundler.bundle(sample_openapi_file, return_type=str)
 
         # With real redocly CLI, we should get actual validation results
