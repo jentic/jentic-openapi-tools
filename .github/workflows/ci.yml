@@ -26,7 +26,7 @@ jobs:
           uv run pyright
 
   test_common:
-    name: Test (jentic-openapi-Common)
+    name: Test (jentic-openapi-common)
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -39,10 +39,8 @@ jobs:
         run: uv python install ${{ matrix.python }}
       - name: Install deps (with dev)
         run: uv sync
-      - name: Install common package in editable mode
-        run: uv pip install -e jentic-openapi-common
       - name: Pytest (parser)
-        run: uv run pytest jentic-openapi-common/tests -q
+        run: uv run --package jentic-openapi-common pytest -q packages/jentic-openapi-common/tests
 
   test_parser:
     name: Test (jentic-openapi-parser)

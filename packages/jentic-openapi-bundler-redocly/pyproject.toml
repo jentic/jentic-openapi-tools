@@ -16,6 +16,7 @@ dependencies = [
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
 
 [tool.uv.sources]
+jentic-openapi-common = { workspace = true }
 jentic-openapi-transformer = { workspace = true }
 
 [build-system]

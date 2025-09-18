@@ -41,12 +41,9 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Install common package in editable mode
-        run: uv pip install -e jentic-openapi-common
-
       - name: Run tests
         run: |
-          uv run pytest jentic-openapi-common/tests -v
+          uv run --package jentic-openapi-common pytest packages/jentic-openapi-common/tests -v
           uv run --package jentic-openapi-parser pytest packages/jentic-openapi-parser/tests -v
           uv run --package jentic-openapi-transformer pytest packages/jentic-openapi-transformer/tests -v
           uv run --package jentic-openapi-validator pytest packages/jentic-openapi-validator/tests -v
@@ -64,6 +61,7 @@ jobs:
 
       - name: Build packages
         run: |
+          uv build --package jentic-openapi-common
           uv build --package jentic-openapi-parser
           uv build --package jentic-openapi-transformer
           uv build --package jentic-openapi-validator
@@ -86,6 +84,7 @@ jobs:
           UV_PUBLISH_URL: https://test.pypi.org/legacy/
           UV_PUBLISH_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
         run: |
+          uv publish --package jentic-openapi-common
           uv publish --package jentic-openapi-parser
           uv publish --package jentic-openapi-transformer
           uv publish --package jentic-openapi-validator
