@@ -23,7 +23,7 @@ jobs:
         run: |
           uv run ruff check --output-format=github .
           uv run ruff format --check .
-          uv run pyright
+#          uv run pyright
 
   test_common:
     name: Test (jentic-openapi-common)

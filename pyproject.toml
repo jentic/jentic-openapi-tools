@@ -4,12 +4,14 @@ version = "0.1.0"
 description = "Workspace root for Jentic OpenAPI Tools"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
+
 
 # Development-only dependencies (will not be published)
 [dependency-groups]
@@ -19,6 +21,27 @@ dev = [
   "pyright",
   "pytest",
   "python-semantic-release>=10.0.0",
+  "poethepoet>=0.37.0",
+]
+
+[tool.poe.tasks]
+[tool.poe.tasks.lint]
+sequence = [
+  { cmd = "ruff check" },
+  { cmd = "ruff format --check --diff"}
+]
+[tool.poe.tasks."lint:fix"]
+sequence = [
+  { cmd = "ruff check --fix" },
+  { cmd = "ruff format" },
+]
+[tool.poe.tasks.typecheck]
+sequence = [
+  { cmd = "pyright" }
+]
+[tool.poe.tasks.test]
+sequence = [
+  { cmd = "uv run --all-packages pytest" }
 ]
 
 [tool.uv.workspace]
@@ -32,6 +55,7 @@ build-backend = "uv_build"
 target-version = "py311"
 line-length = 100
 src = [
+  "src",
   "packages/jentic-openapi-common/src",
   "packages/jentic-openapi-parser/src",
   "packages/jentic-openapi-transformer/src",
@@ -41,7 +65,7 @@ src = [
 ]
 
 [tool.pyright]
-include = ["packages/*/src"]
+include = ["src", "packages/*/src/**"]
 pythonVersion = "3.11"
 typeCheckingMode = "standard"
 
