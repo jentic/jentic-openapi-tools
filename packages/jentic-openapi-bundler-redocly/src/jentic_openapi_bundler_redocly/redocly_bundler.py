@@ -8,12 +8,12 @@ from jentic_openapi_common import run_checked, SubprocessExecutionError
 
 
 class RedoclyBundler(BaseBundlerStrategy):
-    def __init__(self, redocly_path: str = "npx redocly"):
+    def __init__(self, redocly_path: str = "npx @redocly/cli"):
         """
         Initialize the RedoclyBundler.
 
         Args:
-            redocly_path: Path to the redocly CLI executable (default: "npx redocly")
+            redocly_path: Path to the redocly CLI executable (default: "npx @redocly/cli")
         """
         self.redocly_path = redocly_path
 

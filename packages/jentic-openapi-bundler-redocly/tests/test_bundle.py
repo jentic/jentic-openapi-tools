@@ -10,7 +10,7 @@ SNAPSHOTS_DIR = Path(__file__).parent / "fixtures" / "snapshots"
 
 
 @pytest.mark.skipif(
-    subprocess.run(["npx", "redocly", "--version"], capture_output=True).returncode != 0,
+    subprocess.run(["npx", "@redocly/cli", "--version"], capture_output=True).returncode != 0,
     reason="Redocly CLI not available",
 )
 def test_redocly_bundler_ok():
@@ -21,14 +21,14 @@ def test_redocly_bundler_ok():
 
     bundler = RedoclyBundler()
     assert bundler is not None
-    assert bundler.redocly_path == "npx redocly"
+    assert bundler.redocly_path == "npx @redocly/cli"
     result = bundler.bundle(spec_uri)
     assert result == expected
     # assert "Redocly CLI not found" in str(result.diagnostics[0].message)
 
 
 @pytest.mark.skipif(
-    subprocess.run(["npx", "redocly", "--version"], capture_output=True).returncode != 0,
+    subprocess.run(["npx", "@redocly/cli", "--version"], capture_output=True).returncode != 0,
     reason="Redocly CLI not available",
 )
 def test_redocly_bundler_failure():
@@ -37,7 +37,7 @@ def test_redocly_bundler_failure():
 
     bundler = RedoclyBundler()
     assert bundler is not None
-    assert bundler.redocly_path == "npx redocly"
+    assert bundler.redocly_path == "npx @redocly/cli"
     with pytest.raises(Exception, match="Failed to parse API"):
         bundler.bundle(spec_uri)
 
