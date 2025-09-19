@@ -15,7 +15,9 @@ from importlib.resources import files
 
 class SpectralValidator(BaseValidatorStrategy):
     def __init__(
-        self, spectral_path: str = "npx @stoplight/spectral-cli", ruleset_path: Optional[str] = None
+        self,
+        spectral_path: str = "npx @stoplight/spectral-cli@^6.15.0",
+        ruleset_path: Optional[str] = None,
     ):
         """
         Initialize the SpectralValidator.
