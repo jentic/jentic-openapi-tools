@@ -44,7 +44,7 @@ class UriResolutionError(ValueError):
 
 
 def is_uri_like(s: Optional[str]) -> bool:
-    """
+    r"""
     Heuristic check: is `s` a URI-like reference or absolute/relative path?
     - Accepts http(s)://, file://
     - Accepts absolute POSIX (/...) and Windows (\\..., \..., C:\..., C:/...) paths
