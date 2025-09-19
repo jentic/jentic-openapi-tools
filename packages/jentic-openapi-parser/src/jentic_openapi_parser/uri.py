@@ -1,6 +1,7 @@
 # uri_resolution.py
 from __future__ import annotations
 
+import logging
 from typing import Optional
 from urllib.parse import urlparse, urljoin, urlsplit, urlunsplit
 from pathlib import Path
@@ -183,16 +184,29 @@ def _resolve_path_like(value: str, base_uri: Optional[str]) -> str:
     return str(p.resolve() if p.is_absolute() else (base_path / p).resolve())
 
 
-def load_uri(uri: str) -> str:
+def load_uri(
+    uri: str, connTimeout: int, readTimeout: int, logger: logging.Logger | None = None
+) -> str:
+    logger = logger or logging.getLogger(__name__)
+
     resolved_uri = resolve_to_absolute(uri)
 
     if resolved_uri.startswith("http://") or uri.startswith("https://"):
-        content = requests.get(resolved_uri).text
+        logger.info("Starting download of %s", resolved_uri)
+        resp = requests.get(resolved_uri, timeout=(connTimeout, readTimeout))
+        logger.info(
+            "Download completed, status: %s, content length: %s",
+            resp.status_code,
+            len(resp.content),
+        )
+        content = resp.text
     elif resolved_uri.startswith("file://"):
+        logger.info("Using local file: %s", resolved_uri)
         with open(resolved_uri, "r", encoding="utf-8") as f:
             content = f.read()
     else:
         # Treat as local file path
+        logger.info("Using local file: %s", resolved_uri)
         with open(resolved_uri, "r", encoding="utf-8") as f:
             content = f.read()
     return content

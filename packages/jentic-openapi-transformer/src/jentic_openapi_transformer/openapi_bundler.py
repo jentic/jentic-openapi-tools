@@ -31,7 +31,6 @@ class OpenAPIBundler:
         # If no strategy specified, use default
         if not strategy:
             strategy = "default"
-        self.strategy = None
 
         # Discover entry points for bundler plugins
         # (This could be a one-time load stored at class level to avoid doing it every time)

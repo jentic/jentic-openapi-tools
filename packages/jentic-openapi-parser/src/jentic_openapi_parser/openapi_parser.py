@@ -1,4 +1,5 @@
 import importlib.metadata
+import logging
 from typing import Any, TypeVar, cast, Optional, overload, Mapping, Sequence, Type
 
 from .uri import is_uri_like, load_uri
@@ -21,11 +22,21 @@ class OpenAPIParser:
         strategy: Strategy used by the parser implementing the BaseParserStrategy interface.
     """
 
-    def __init__(self, strategy: str | BaseParserStrategy | Type[BaseParserStrategy] | None = None):
+    def __init__(
+        self,
+        strategy: str | BaseParserStrategy | Type[BaseParserStrategy] | None = None,
+        *,
+        logger: logging.Logger | None = None,
+        connTimeout: int = 5,
+        readTimeout: int = 10,
+    ):
+        logger = logger or logging.getLogger(__name__)
         # If no strategy specified, use default
         if not strategy:
             strategy = "default"
-        self.strategy = None
+        self.logger = logger
+        self.connTimeout = connTimeout
+        self.readTimeout = readTimeout
 
         # Discover entry points for parser plugins
         # (This could be a one-time load stored at class level to avoid doing it every time)
@@ -36,24 +47,32 @@ class OpenAPIParser:
             name = strategy
             if name == "default":
                 # Use built-in default parser
+                logger.debug("using default parser")
                 self.strategy = DefaultOpenAPIParser()
             elif name == "ruamel":
                 # Use built-in ruamel parser
+                logger.debug("using ruamel parser")
                 self.strategy = RuamelOpenAPIParser()
             elif name == "ruamel-rt":
                 # Use built-in ruamel roundtrip parser
+                logger.debug("using ruamel roundtrip parser")
                 self.strategy = RuamelRoundTripOpenAPIParser()
             elif name in plugin_map:
+                logger.debug(f"using parser plugin '{name}'")
                 plugin_class = plugin_map[name].load()  # loads the class
                 self.strategy = plugin_class()
             else:
+                logger.error(f"No parser plugin named '{name}' found")
                 raise ValueError(f"No parser plugin named '{name}' found")
         elif isinstance(strategy, BaseParserStrategy):
+            logger.debug(f"using strategy '{type[strategy]}'")
             self.strategy = strategy
         elif hasattr(strategy, "__call__") and issubclass(strategy, BaseParserStrategy):
             # if a class (not instance) is passed
             self.strategy = strategy()
+            logger.debug(f"using strategy '{type[strategy]}'")
         else:
+            logger.error("Invalid strategy type: must be name or strategy class/instance")
             raise TypeError("Invalid strategy type: must be name or strategy class/instance")
 
     @overload
@@ -72,15 +91,15 @@ class OpenAPIParser:
 
         if strict:
             if not isinstance(raw, return_type):
-                raise TypeError(
-                    f"Expected {getattr(return_type, '__name__', return_type)}, "
-                    f"got {type(raw).__name__}"
-                )
+                msg = f"Expected {getattr(return_type, '__name__', return_type)}, got {type(raw).__name__}"
+                self.logger.error(msg)
+                raise TypeError(msg)
         return cast(T, raw)
 
     def _parse(self, source: str) -> Any:
         text = source
         is_uri = is_uri_like(source)
+        self.logger.debug(f"parsing a '{'uri' if is_uri else 'text'}'")
         result = None
         if is_uri and self.has_non_uri_strategy():
             text = self.load_uri(source)
@@ -95,13 +114,15 @@ class OpenAPIParser:
 
         if document is not None:
             try:
-                result = self.strategy.parse(document)
+                result = self.strategy.parse(document, self.logger)
             except Exception as e:
                 # TODO add to parser/validation chain result
-                print(f"Error parsing document: {e}")
+                self.logger.error(f"Error parsing document: {e}")
 
         if result is None:
-            raise ValueError("No valid document found")
+            msg = "No valid document found"
+            self.logger.error(msg)
+            raise ValueError(msg)
         return result
 
     def has_non_uri_strategy(self) -> bool:
@@ -126,4 +147,4 @@ class OpenAPIParser:
         return is_uri_like(s)
 
     def load_uri(self, uri: str) -> str:
-        return load_uri(uri)
+        return load_uri(uri, self.connTimeout, self.readTimeout, self.logger)
