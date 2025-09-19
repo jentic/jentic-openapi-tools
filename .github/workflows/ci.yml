@@ -18,7 +18,7 @@ jobs:
         run: uv python install ${{ matrix.python }}
       # dev group included by default -> ruff/pyright available
       - name: Install deps (with dev)
-        run: uv sync
+        run: uv sync --all-packages
       - name: Ruff + Pyright
         run: |
           uv run poe lint
