@@ -68,8 +68,6 @@ src = [
 include = ["src", "packages/*/src/**"]
 pythonVersion = "3.11"
 typeCheckingMode = "standard"
-venvPath = "."
-venv = ".venv"
 
 # Python Semantic Release Configuration
 [tool.semantic_release]
