@@ -41,7 +41,7 @@ sequence = [
 ]
 [tool.poe.tasks.test]
 sequence = [
-  { cmd = "uv run --all-packages pytest" }
+  { cmd = "uv run --all-packages pytest --import-mode=importlib" }
 ]
 
 [tool.uv.workspace]

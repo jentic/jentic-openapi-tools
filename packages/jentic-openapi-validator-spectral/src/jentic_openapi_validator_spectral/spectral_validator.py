@@ -14,12 +14,12 @@ from importlib.resources import files
 
 
 class SpectralValidator(BaseValidatorStrategy):
-    def __init__(self, spectral_path: str = "spectral", ruleset_path: Optional[str] = None):
+    def __init__(self, spectral_path: str = "npx spectral", ruleset_path: Optional[str] = None):
         """
         Initialize the SpectralValidator.
 
         Args:
-            spectral_path: Path to the spectral CLI executable (default: "spectral")
+            spectral_path: Path to the spectral CLI executable (default: "npx spectral")
             ruleset_path: Path to a custom ruleset file. If None, uses bundled default ruleset.
         """
         self.spectral_path = spectral_path
@@ -75,15 +75,7 @@ class SpectralValidator(BaseValidatorStrategy):
                 ruleset_temp_path = ruleset_path
 
             # Build spectral command
-            cmd = [
-                self.spectral_path,
-                "lint",
-                doc_path,
-                "-r",
-                ruleset_path,  # Use the ruleset
-                "-f",
-                "json",
-            ]
+            cmd = [*self.spectral_path.split(), "lint", doc_path, "-r", ruleset_path, "-f", "json"]
             result = run_checked(cmd)
 
         except SubprocessExecutionError as e:

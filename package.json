@@ -1,0 +1,20 @@
+{
+  "name": "jentic-openapi-tools",
+  "version": "0.1.0",
+  "description": "Workspace root for Jentic OpenAPI Tools",
+  "private": true,
+  "workspaces": [
+    "packages/jentic-openapi-validator-spectral",
+    "packages/jentic-openapi-bundler-redocly"
+  ],
+  "engines": {
+    "node": ">=24.8.0",
+    "npm": ">=11.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jentic/jentic-openapi-tools.git"
+  },
+  "author": "Jentic <hello@jentic.com>",
+  "license": "Apache-2.0"
+}

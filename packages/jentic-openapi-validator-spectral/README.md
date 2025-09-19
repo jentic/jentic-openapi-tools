@@ -1,6 +1,7 @@
 # jentic-openapi-validator-spectral
 
 ## Running the tests
+
 To run these integration tests, you would need both packages installed. You can test this setup by:
 
 1. **Installing both packages in development mode:**

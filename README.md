@@ -5,7 +5,9 @@
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 uv sync --all-packages
+nvm install && npm install
 ```
 
 Optional setup:
