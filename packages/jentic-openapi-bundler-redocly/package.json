@@ -1,0 +1,9 @@
+{
+  "name": "@jentic/openapi-bundler-redocly",
+  "version": "0.1.0",
+  "description": "OpenAPI bundler using Redocly CLI for jentic-openapi-tools",
+  "private": true,
+  "dependencies": {
+    "@redocly/cli": "^2.1.5"
+  }
+}
