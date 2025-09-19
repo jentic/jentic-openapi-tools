@@ -27,7 +27,7 @@ dev = [
 [tool.poe.tasks]
 [tool.poe.tasks.lint]
 sequence = [
-  { cmd = "ruff check" },
+  { shell = "ruff check ${GITHUB_ACTIONS:+--output-format=github}" },
   { cmd = "ruff format --check --diff"}
 ]
 [tool.poe.tasks."lint:fix"]
