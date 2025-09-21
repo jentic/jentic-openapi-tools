@@ -1,147 +1,46 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 jobs:
-  lint_typecheck:
-    name: Lint / Typecheck
+  ci:
+    name: CI
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ["3.11", "3.12"]
+        python: ["3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Install uv
         uses: astral-sh/setup-uv@v4
+
       - name: Set up Python
         run: uv python install ${{ matrix.python }}
-      # dev group included by default -> ruff/pyright available
-      - name: Install deps (with dev)
-        run: uv sync --all-packages
-      - name: Ruff + Pyright
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+
+      - name: Install dependencies
         run: |
-          uv run poe lint
-          uv run poe typecheck
+          uv sync --all-packages
+          npm install
 
-  test_common:
-    name: Test (jentic-openapi-common)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python: ["3.11", "3.12"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-      - name: Set up Python
-        run: uv python install ${{ matrix.python }}
-      - name: Install deps (with dev)
-        run: uv sync
-      - name: Pytest (parser)
-        run: uv run --package jentic-openapi-common pytest -q packages/jentic-openapi-common/tests
+      - name: Lint code
+        run: uv run poe lint
 
-  test_parser:
-    name: Test (jentic-openapi-parser)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python: ["3.11", "3.12"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-      - name: Set up Python
-        run: uv python install ${{ matrix.python }}
-      - name: Install deps (with dev)
-        run: uv sync
-      - name: Pytest (parser)
-        run: uv run --package jentic-openapi-parser pytest -q packages/jentic-openapi-parser/tests
+      - name: Typecheck code
+        run: uv run poe typecheck
 
-  test_transformer:
-    name: Test (jentic-openapi-transformer)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python: ["3.11", "3.12"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-      - name: Set up Python
-        run: uv python install ${{ matrix.python }}
-      - name: Install Redocly CLI
-        run: npm install -g @redocly/cli@latest
-      - name: Install deps (with dev)
-        run: uv sync
-      - name: Pytest (transformer)
-        run: uv run --package jentic-openapi-transformer pytest -q packages/jentic-openapi-transformer/tests
-
-  test_validator:
-    name: Test (jentic-openapi-validator)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python: ["3.11", "3.12"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-      - name: Set up Python
-        run: uv python install ${{ matrix.python }}
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Install Spectral CLI
-        run: npm install -g @stoplight/spectral-cli
-      - name: Install deps (with dev)
-        run: uv sync
-      - name: Pytest (validator)
-        run: uv run --package jentic-openapi-validator pytest -q packages/jentic-openapi-validator/tests
-
-  test_validator_spectral:
-    name: Test (jentic-openapi-validator-spectral)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python: ["3.11", "3.12"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-      - name: Set up Python
-        run: uv python install ${{ matrix.python }}
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Install Spectral CLI
-        run: npm install -g @stoplight/spectral-cli
-      - name: Install deps (with dev)
-        run: uv sync
-      - name: Pytest (validator-spectral)
-        run: uv run --package jentic-openapi-validator-spectral pytest -q packages/jentic-openapi-validator-spectral/tests
-
-  test_bundler_redocly:
-    name: Test (jentic-openapi-bundler-redocly)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python: ["3.11", "3.12"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-      - name: Set up Python
-        run: uv python install ${{ matrix.python }}
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Install Redocly CLI
-        run: npm install -g @redocly/cli@latest
-      - name: Install deps (with dev)
-        run: uv sync
-      - name: Pytest (bundler-redocly)
-        run: uv run --package jentic-openapi-bundler-redocly -q pytest packages/jentic-openapi-bundler-redocly/tests
+      - name: Run tests
+        run: uv run poe test
