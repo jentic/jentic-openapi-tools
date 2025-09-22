@@ -73,8 +73,8 @@ typeCheckingMode = "standard"
 [tool.semantic_release]
 # Enable monorepo mode
 monorepo = true
-# Use Angular style conventional commits
-commit_parser = "angular"
+# Use conventional commits
+commit_parser = "conventional"
 # Version variables to update in files
 version_variables = []
 # Create changelog
@@ -82,7 +82,6 @@ build_command = ""
 # Don't build here, we'll build separately
 upload_to_vcs_release = true
 # Enable GitHub releases
-changelog_file = "CHANGELOG.md"
 # Use semantic versioning
 major_on_zero = true
 # Branch configuration
@@ -102,15 +101,13 @@ version_pattern = [
     "packages/jentic-openapi-bundler-redocly/pyproject.toml:version = \"{version}\"",
 ]
 
+# Commit author for version commits
+commit_author = "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
 # Commit message template for version commits
-[tool.semantic_release.commit_author]
-env = "GH_TOKEN"
-default = "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+commit_message = "chore(release): cut the v{version} release"
 
 # Define what constitutes breaking changes, features, and fixes
 [tool.semantic_release.changelog]
-template_dir = "templates"
-changelog_file = "CHANGELOG.md"
 exclude_commit_patterns = [
     "^docs:",
     "^style:",
@@ -119,6 +116,9 @@ exclude_commit_patterns = [
     "^build:",
     "^ci:",
 ]
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md"
 
 # Remote configuration
 [tool.semantic_release.remote]
