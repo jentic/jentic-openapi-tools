@@ -52,7 +52,10 @@ def test_spectral_plugin_discovery():
 
 
 @pytest.mark.skipif(
-    subprocess.run(["spectral", "--version"], capture_output=True).returncode != 0,
+    subprocess.run(
+        ["npx", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
+    ).returncode
+    != 0,
     reason="Spectral CLI not available",
 )
 def test_spectral_validation_integration(sample_openapi_file):
@@ -91,7 +94,10 @@ def test_spectral_validation_integration(sample_openapi_file):
 
 
 @pytest.mark.skipif(
-    subprocess.run(["spectral", "--version"], capture_output=True).returncode != 0,
+    subprocess.run(
+        ["npx", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
+    ).returncode
+    != 0,
     reason="Spectral CLI not available",
 )
 def test_spectral_only_strategy(sample_openapi_file):
@@ -114,7 +120,10 @@ def test_spectral_only_strategy(sample_openapi_file):
 
 
 @pytest.mark.skipif(
-    subprocess.run(["spectral", "--version"], capture_output=True).returncode != 0,
+    subprocess.run(
+        ["npx", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
+    ).returncode
+    != 0,
     reason="Spectral CLI not available",
 )
 def test_invalid_strategy_name():
@@ -124,7 +133,10 @@ def test_invalid_strategy_name():
 
 
 @pytest.mark.skipif(
-    subprocess.run(["spectral", "--version"], capture_output=True).returncode != 0,
+    subprocess.run(
+        ["npx", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
+    ).returncode
+    != 0,
     reason="Spectral CLI not available",
 )
 def test_spectral_with_real_cli(sample_openapi_file):

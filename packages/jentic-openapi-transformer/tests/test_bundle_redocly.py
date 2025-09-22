@@ -47,7 +47,8 @@ def test_redocly_plugin_discovery():
 
 
 @pytest.mark.skipif(
-    subprocess.run(["redocly", "--version"], capture_output=True).returncode != 0,
+    subprocess.run(["npx", "@redocly/cli@^2.1.5", "--version"], capture_output=True).returncode
+    != 0,
     reason="Redocly CLI not available",
 )
 def test_redocly_only_strategy(sample_openapi_file):
@@ -69,7 +70,8 @@ def test_redocly_only_strategy(sample_openapi_file):
 
 
 @pytest.mark.skipif(
-    subprocess.run(["redocly", "--version"], capture_output=True).returncode != 0,
+    subprocess.run(["npx", "@redocly/cli@^2.1.5", "--version"], capture_output=True).returncode
+    != 0,
     reason="Redocly CLI not available",
 )
 def test_invalid_strategy_name():
@@ -79,7 +81,8 @@ def test_invalid_strategy_name():
 
 
 @pytest.mark.skipif(
-    subprocess.run(["redocly", "--version"], capture_output=True).returncode != 0,
+    subprocess.run(["npx", "@redocly/cli@^2.1.5", "--version"], capture_output=True).returncode
+    != 0,
     reason="Redocly CLI not available",
 )
 def test_redocly_with_real_cli(sample_openapi_file):
