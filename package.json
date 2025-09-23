@@ -5,7 +5,7 @@
   "private": true,
   "workspaces": [
     "packages/jentic-openapi-validator-spectral",
-    "packages/jentic-openapi-bundler-redocly"
+    "packages/jentic-openapi-transformer-redocly"
   ],
   "engines": {
     "node": ">=24.8.0",

@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from urllib.parse import urlparse
 import pytest
-from jentic_openapi_parser import UriResolutionError, resolve_to_absolute
+from jentic.apitools.openapi.parser.core import UriResolutionError, resolve_to_absolute
 
 
 # -----------------------

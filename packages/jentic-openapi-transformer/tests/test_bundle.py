@@ -1,5 +1,5 @@
 from pathlib import Path
-from jentic_openapi_transformer import OpenAPIBundler
+from jentic.apitools.openapi.transformer.core import OpenAPIBundler
 
 # Get the fixtures directory
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "openapi"
