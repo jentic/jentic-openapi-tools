@@ -1,6 +1,6 @@
 import subprocess
 import pytest
-from jentic_openapi_validator import OpenAPIValidator
+from jentic.apitools.openapi.validator.core import OpenAPIValidator
 
 
 @pytest.fixture

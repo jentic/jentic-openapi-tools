@@ -1,6 +1,6 @@
 import subprocess
 import pytest
-from jentic_openapi_transformer import OpenAPIBundler
+from jentic.apitools.openapi.transformer.core import OpenAPIBundler
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ paths:
 def test_redocly_plugin_discovery():
     """Test that the redocly plugin can be discovered via entry points."""
     try:
-        # This should work if jentic-openapi-bundler-redocly is installed
+        # This should work if jentic-openapi-transformer-redocly is installed
         bundler = OpenAPIBundler("redocly")
         # Verify the strategy types
         strategy_name = type(bundler.strategy).__name__
@@ -41,7 +41,9 @@ def test_redocly_plugin_discovery():
 
     except ValueError as e:
         if "No bundler plugin named 'redocly' found" in str(e):
-            pytest.skip("jentic-openapi-bundler-redocly not installed - skipping integration test")
+            pytest.skip(
+                "jentic-openapi-transformer-redocly not installed - skipping integration test"
+            )
         else:
             raise
 
@@ -64,7 +66,9 @@ def test_redocly_only_strategy(sample_openapi_file):
 
     except ValueError as e:
         if "No bundler plugin named 'redocly' found" in str(e):
-            pytest.skip("jentic-openapi-bundler-redocly not installed - skipping integration test")
+            pytest.skip(
+                "jentic-openapi-transformer-redocly not installed - skipping integration test"
+            )
         else:
             raise
 
@@ -96,6 +100,6 @@ def test_redocly_with_real_cli(sample_openapi_file):
 
     except ValueError as e:
         if "No bundler plugin named 'redocly' found" in str(e):
-            pytest.skip("jentic-openapi-bundler-redocly not installed")
+            pytest.skip("jentic-openapi-transformer-redocly not installed")
         else:
             raise

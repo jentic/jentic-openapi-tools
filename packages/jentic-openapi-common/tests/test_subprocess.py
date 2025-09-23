@@ -2,7 +2,7 @@ import sys
 import unittest
 import platform
 
-from jentic_openapi_common.subprocess import (
+from jentic.apitools.openapi.common import (
     run_checked,
     SubprocessExecutionResult,
     SubprocessExecutionError,

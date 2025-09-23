@@ -1,4 +1,4 @@
-from jentic_openapi_validator import OpenAPIValidator
+from jentic.apitools.openapi.validator.core import OpenAPIValidator
 
 
 def test_validator_ok():

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from jentic_openapi_parser import OpenAPIParser
+from jentic.apitools.openapi.parser.core import OpenAPIParser
 from ruamel.yaml import CommentedMap
 
 # Get the fixtures directory

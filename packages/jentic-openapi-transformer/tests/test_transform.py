@@ -1,4 +1,4 @@
-from jentic_openapi_transformer import normalize
+from jentic.apitools.openapi.transformer.core import normalize
 
 
 def test_normalize_adds_marker():

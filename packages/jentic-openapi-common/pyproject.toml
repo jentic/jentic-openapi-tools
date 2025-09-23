@@ -8,6 +8,12 @@ license = { text = "Apache-2.0" }
 requires-python = ">=3.11"
 dependencies = []
 
+[tool.uv]
+package = true
+
+[tool.uv.build-backend]
+namespace = true
+
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
 

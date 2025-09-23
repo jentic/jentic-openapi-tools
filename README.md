@@ -26,7 +26,7 @@ uv run --package jentic-openapi-parser       pytest packages/jentic-openapi-pars
 uv run --package jentic-openapi-transformer  pytest packages/jentic-openapi-transformer/tests -q
 uv run --package jentic-openapi-validator    pytest packages/jentic-openapi-validator/tests -q
 uv run --package jentic-openapi-validator-spectral    pytest packages/jentic-openapi-validator-spectral/tests -q
-uv run --package jentic-openapi-bundler-redocly    pytest packages/jentic-openapi-bundler-redocly/tests -q
+uv run --package jentic-openapi-transformer-redocly    pytest packages/jentic-openapi-transformer-redocly/tests -q
 ```
 
 ### Run linting
@@ -50,7 +50,7 @@ uv build --package jentic-openapi-parser
 uv build --package jentic-openapi-transformer
 uv build --package jentic-openapi-validator
 uv build --package jentic-openapi-validator-spectral
-uv build --package jentic-openapi-bundler-redocly
+uv build --package jentic-openapi-transformer-redocly
 ```
 
 ### Conventional Commits
