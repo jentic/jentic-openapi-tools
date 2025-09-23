@@ -8,7 +8,7 @@ from jentic_openapi_common import run_checked, SubprocessExecutionError
 
 
 class RedoclyBundler(BaseBundlerStrategy):
-    def __init__(self, redocly_path: str = "npx @redocly/cli@^2.1.5"):
+    def __init__(self, redocly_path: str = "npx --yes @redocly/cli@^2.1.5"):
         """
         Initialize the RedoclyBundler.
 
@@ -31,7 +31,9 @@ class RedoclyBundler(BaseBundlerStrategy):
     def _bundle(self, document: str, base_url: str | None = None) -> str:
         try:
             parsed_doc_url = urlparse(document)
-            doc_path = url2pathname(parsed_doc_url.path)
+            doc_path = document
+            if parsed_doc_url.scheme == "file":
+                doc_path = url2pathname(parsed_doc_url.path)
             # Build redocly command
             cmd = [
                 *self.redocly_path.split(),

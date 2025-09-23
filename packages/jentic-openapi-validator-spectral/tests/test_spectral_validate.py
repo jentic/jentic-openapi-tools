@@ -10,7 +10,7 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures" / "openapi"
 
 @pytest.mark.skipif(
     subprocess.run(
-        ["npx", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
+        ["npx", "--yes", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
     ).returncode
     != 0,
     reason="Spectral CLI not available",
@@ -21,7 +21,7 @@ def test_spectral_validator_ok():
 
     validator = SpectralValidator()
     assert validator is not None
-    assert validator.spectral_path == "npx @stoplight/spectral-cli@^6.15.0"
+    assert validator.spectral_path == "npx --yes @stoplight/spectral-cli@^6.15.0"
     result = validator.validate(spec_uri)
     assert result.valid is True
     # assert "Spectral CLI not found" in str(result.diagnostics[0].message)
@@ -29,7 +29,7 @@ def test_spectral_validator_ok():
 
 @pytest.mark.skipif(
     subprocess.run(
-        ["npx", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
+        ["npx", "--yes", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
     ).returncode
     != 0,
     reason="Spectral CLI not available",
@@ -40,7 +40,7 @@ def test_spectral_validator_failure():
 
     validator = SpectralValidator()
     assert validator is not None
-    assert validator.spectral_path == "npx @stoplight/spectral-cli@^6.15.0"
+    assert validator.spectral_path == "npx --yes @stoplight/spectral-cli@^6.15.0"
     result = validator.validate(spec_uri)
     assert result.valid is False
 

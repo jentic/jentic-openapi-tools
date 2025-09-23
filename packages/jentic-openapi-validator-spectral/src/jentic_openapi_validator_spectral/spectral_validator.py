@@ -16,7 +16,7 @@ from importlib.resources import files
 class SpectralValidator(BaseValidatorStrategy):
     def __init__(
         self,
-        spectral_path: str = "npx @stoplight/spectral-cli@^6.15.0",
+        spectral_path: str = "npx --yes @stoplight/spectral-cli@^6.15.0",
         ruleset_path: Optional[str] = None,
     ):
         """
@@ -146,6 +146,10 @@ class SpectralValidator(BaseValidatorStrategy):
                 code=issue.get("code"),
                 source="spectral-validator",
             )
+            if issue.get("path"):
+                diagnostic.data = {"fixable": True, "path": issue.get("path")}
+            else:
+                diagnostic.data = {"fixable": True, "path": []}
 
             messages.append(diagnostic)
         return ValidationResult(messages)

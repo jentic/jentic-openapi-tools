@@ -1,15 +1,21 @@
 from lsprotocol import types as lsp
-from openapi_spec_validator import validate
-from .base import BaseValidatorStrategy
-from ..diagnostics import ValidationResult
+
+from ..base import BaseValidatorStrategy
+from ...diagnostics import ValidationResult
+from .structural_validator import validate as validate_structural
+from .server_validator import validate as validate_servers
+from .security_usage_validator import validate as validate_security_usage
 
 
 class DefaultOpenAPIValidator(BaseValidatorStrategy):
     def validate(self, document: str | dict) -> ValidationResult:
-        # Use openapi_spec_validator to check spec validity
+        diagnostics: list[lsp.Diagnostic] = []
         try:
             assert isinstance(document, dict)
-            validate(document)  # TODO use base url..
+
+            diagnostics.extend(validate_structural(document))
+            diagnostics.extend(validate_servers(document))
+            diagnostics.extend(validate_security_usage(document))
         except Exception as e:
             msg = str(e)
             diag = lsp.Diagnostic(
@@ -18,15 +24,14 @@ class DefaultOpenAPIValidator(BaseValidatorStrategy):
                     end=lsp.Position(line=0, character=12),
                 ),
                 severity=lsp.DiagnosticSeverity.Error,
-                code="OAS1001",
-                # code_description=lsp.CodeDescription(href="https://example.com/rules/OAS1001"),
-                source="openapi_spec_validator",
+                code="default-validator-error",
+                source="default-validator",
                 message=msg,
-            )  # ,tags=[lsp.DiagnosticTag.Unnecessary])
+            )
 
             return ValidationResult([diag])
         # If no exception, it's valid
-        return ValidationResult([])
+        return ValidationResult(diagnostics)
 
     def accepts(self) -> list[str]:
         return ["dict"]

@@ -1,9 +1,10 @@
 import importlib.metadata
 
 from jentic_openapi_parser import OpenAPIParser
+from .strategies.openapi_spec_validator_strategy import OpenAPISpecValidator
 from .diagnostics import ValidationResult
 from .strategies.base import BaseValidatorStrategy
-from .strategies.default_strategy import DefaultOpenAPIValidator
+from .strategies.default.default_strategy import DefaultOpenAPIValidator
 
 
 class OpenAPIValidator:
@@ -27,6 +28,8 @@ class OpenAPIValidator:
                 if name == "default":
                     # Use built-in default validator
                     self.strategies.append(DefaultOpenAPIValidator())
+                elif name == "openapi-spec-validator":
+                    self.strategies.append(OpenAPISpecValidator())
                 elif name in plugin_map:
                     plugin_class = plugin_map[name].load()  # loads the class
                     self.strategies.append(plugin_class())
