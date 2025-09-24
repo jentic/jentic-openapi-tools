@@ -4,7 +4,8 @@ version = "0.1.0"
 description = "Jentic OpenAPI Common"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = []
 
@@ -13,6 +14,8 @@ package = true
 
 [tool.uv.build-backend]
 namespace = true
+module-name = "jentic.apitools.openapi.common"
+module-root = "src/"
 
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"

@@ -4,7 +4,7 @@ from urllib.request import url2pathname
 
 from jentic.apitools.openapi.transformer.strategies.base import BaseBundlerStrategy
 
-from jentic.apitools.openapi.common import run_checked, SubprocessExecutionError
+from jentic.apitools.openapi.common.subproc import run_subprocess, SubprocessExecutionError
 
 
 class RedoclyBundler(BaseBundlerStrategy):
@@ -44,9 +44,9 @@ class RedoclyBundler(BaseBundlerStrategy):
                 "--force",
                 # "--remove-unused-components", # TODO, raises errors in redocly for some reason
             ]
-            result = run_checked(cmd)
+            result = run_subprocess(cmd)
         except SubprocessExecutionError as e:
-            # only timeout and OS errors, as run_checked has default `fail_on_error = False`
+            # only timeout and OS errors, as run_subprocess has default `fail_on_error = False`
             raise e
 
         if result.stdout:
