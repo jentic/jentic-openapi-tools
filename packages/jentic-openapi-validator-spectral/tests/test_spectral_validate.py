@@ -2,7 +2,7 @@ import subprocess
 import pytest
 from pathlib import Path
 
-from jentic.apitools.openapi.common import SubprocessExecutionError
+from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
 from jentic.apitools.openapi.validator.spectral import SpectralValidator
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "openapi"

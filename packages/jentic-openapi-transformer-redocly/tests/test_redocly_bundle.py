@@ -3,7 +3,7 @@ import pytest
 from pathlib import Path
 
 from jentic.apitools.openapi.transformer.redocly import RedoclyBundler
-from jentic.apitools.openapi.common import SubprocessExecutionError
+from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "openapi"
 SNAPSHOTS_DIR = Path(__file__).parent / "fixtures" / "snapshots"

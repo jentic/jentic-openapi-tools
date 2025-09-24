@@ -5,7 +5,7 @@ import os
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
-from jentic.apitools.openapi.common import run_checked, SubprocessExecutionError
+from jentic.apitools.openapi.common.subproc import run_subprocess, SubprocessExecutionError
 from lsprotocol.types import Diagnostic, DiagnosticSeverity, Range, Position
 
 from jentic.apitools.openapi.validator.core import ValidationResult
@@ -80,10 +80,10 @@ class SpectralValidator(BaseValidatorStrategy):
 
             # Build spectral command
             cmd = [*self.spectral_path.split(), "lint", doc_path, "-r", ruleset_path, "-f", "json"]
-            result = run_checked(cmd)
+            result = run_subprocess(cmd)
 
         except SubprocessExecutionError as e:
-            # only timeout and OS errors, as run_checked has default `fail_on_error = False`
+            # only timeout and OS errors, as run_subprocess has default `fail_on_error = False`
             raise e
 
         finally:
