@@ -33,11 +33,6 @@ jentic-openapi-validator = { workspace = true }
 requires = ["uv_build>=0.8.15,<0.9.0"]
 build-backend = "uv_build"
 
-[dependency-groups]
-dev = [
-    "build>=1.3.0",
-]
-
 [project.entry-points."jentic.apitools.openapi.validator.strategies"]
 spectral = "jentic.apitools.openapi.validator.spectral:SpectralValidator"
 
