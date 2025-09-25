@@ -5,6 +5,9 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 
+__all__ = ["run_subprocess", "SubprocessExecutionResult", "SubprocessExecutionError"]
+
+
 @dataclass
 class SubprocessExecutionResult:
     """Returned by a subprocess."""
@@ -108,6 +111,3 @@ def run_subprocess(
     return SubprocessExecutionResult(
         completed_process.returncode, completed_process.stdout, completed_process.stderr
     )
-
-
-__all__ = ["run_subprocess", "SubprocessExecutionResult", "SubprocessExecutionError"]

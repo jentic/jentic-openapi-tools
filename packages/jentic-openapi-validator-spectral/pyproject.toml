@@ -4,7 +4,8 @@ version = "0.1.0"
 description = "Jentic OpenAPI Spectral Validator Strategy"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
   "jentic-openapi-common",
@@ -21,6 +22,8 @@ package = true
 
 [tool.uv.build-backend]
 namespace = true
+module-name = "jentic.apitools.openapi.validator.spectral"
+module-root = "src/"
 
 [tool.uv.sources]
 jentic-openapi-common = { workspace = true }
@@ -29,6 +32,11 @@ jentic-openapi-validator = { workspace = true }
 [build-system]
 requires = ["uv_build>=0.8.15,<0.9.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "build>=1.3.0",
+]
 
 [project.entry-points."jentic.apitools.openapi.validator.strategies"]
 spectral = "jentic.apitools.openapi.validator.spectral:SpectralValidator"
