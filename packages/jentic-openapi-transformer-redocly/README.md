@@ -1,18 +1,143 @@
 # jentic-openapi-transformer-redocly
 
-## Running the tests
-To run these integration tests, you would need both packages installed. You can test this setup by:
+A Python library that provides OpenAPI document bundling functionality using [Redocly CLI](https://redocly.com/docs/cli/). This package is part of the Jentic OpenAPI Tools ecosystem and implements the transformer strategy pattern for bundling OpenAPI documents by resolving external references.
 
-1. **Installing both packages in development mode:**
+## Features
 
-```
-# From the project root
-uv run pip install -e packages/jentic-openapi-transformer
-uv run pip install -e packages/jentic-openapi-transformer-redocly
+- **Multiple Input Formats**: Support for file paths, URIs, and Python dictionaries
+- **External Reference Resolution**: Automatically resolves `$ref` references across multiple files
+- **Robust Error Handling**: Comprehensive error reporting with detailed messages
+- **Timeout Configuration**: Configurable timeout for long-running bundling operations
+- **Type Safety**: Full type hints and comprehensive documentation
+
+
+## Installation
+
+```bash
+pip install jentic-openapi-validator-redocly
 ```
 
-2. **Running the integration test:**
+**Prerequisites:**
+- Node.js and npm (for Spectral CLI)
+- Python 3.11+
 
+The Redocly CLI will be automatically downloaded via npx on first use, or you can install it globally:
+
+```bash
+npm install -g @redocly/cli
 ```
-uv run --package jentic-openapi-transformer pytest packages/jentic-openapi-transformer/tests/test_bundle_redocly.py -v
+
+## Quick Start
+
+### Basic Usage
+
+```python
+from jentic.apitools.openapi.transformer.redocly import RedoclyBundler
+
+# Create a bundler instance
+bundler = RedoclyBundler()
+
+# Bundle an OpenAPI document from a file path
+result = bundler.bundle("/path/to/your/openapi.yaml")
+print(result)  # Bundled OpenAPI document as JSON string
 ```
+
+### Using with Dictionary Input
+
+```python
+# Bundle an OpenAPI document from a Python dictionary
+openapi_dict = {
+    "openapi": "3.0.3",
+    "info": {"title": "My API", "version": "1.0.0"},
+    "paths": {
+        "/users": {
+            "get": {
+                "responses": {"200": {"description": "Success"}}
+            }
+        }
+    }
+}
+
+result = bundler.bundle(openapi_dict)
+parsed_result = json.loads(result)
+```
+
+### Custom Configuration
+
+```python
+# Custom Redocly CLI path and timeout
+bundler = RedoclyBundler(
+    redocly_path="redocly",  # Use global redocly installation
+    timeout=60.0  # 60 second timeout
+)
+
+result = bundler.bundle("https://petstore3.swagger.io/api/v3/openapi.json")
+```
+
+## Advanced Usage
+
+## Error Handling
+
+The bundler provides detailed error reporting for various failure scenarios:
+
+```python
+from jentic.apitools.openapi.transformer.redocly import RedoclyBundler
+from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
+
+bundler = RedoclyBundler()
+
+try:
+    result = bundler.bundle("/path/to/openapi.yaml")
+except TypeError as e:
+    print(f"Unsupported document type: {e}")
+except SubprocessExecutionError as e:
+    print(f"Redocly CLI execution failed: {e}")
+except RuntimeError as e:
+    print(f"Bundling failed: {e}")
+```
+
+### Supported Input Formats
+
+The bundler accepts the following input formats (returned by `accepts()` method):
+
+- **`"uri"`**: File paths or URIs pointing to OpenAPI documents
+- **`"dict"`**: Python dictionaries containing OpenAPI document data
+
+## Testing
+
+### Integration Tests
+
+The integration tests require Redocly CLI to be available. They will be automatically skipped if Spectral is not installed.
+
+**Run the integration test:**
+
+```bash
+uv run --package jentic-openapi-transformer-redocly pytest packages/jentic-openapi-transformer-redocly -v
+```
+
+## API Reference
+
+### RedoclyBundler
+
+```python
+class RedoclyBundler(BaseBundlerStrategy):
+    def __init__(
+        self,
+        redocly_path: str = "npx @redocly/cli@^2.1.5",
+        timeout: float = 30.0,
+    ) -> None
+```
+
+**Parameters:**
+- `redocly_path`: Path to Redocly CLI executable
+- `timeout`: Maximum execution time in seconds
+
+**Methods:**
+
+- `accepts() -> list[str]`: Returns supported document format identifiers
+- `bundle(document: str | dict, base_url: str | None = None) -> str`: Bundles an OpenAPI document
+
+**Exceptions:**
+- `TypeError`: Document type is not supported
+- `RuntimeError`: Redocly execution fails or produces invalid output
+- `SubprocessExecutionError`: Redocly times out or fails to start

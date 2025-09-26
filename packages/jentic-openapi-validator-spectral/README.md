@@ -180,7 +180,7 @@ The integration tests require Spectral CLI to be available. They will be automat
 **Run the integration test:**
 
 ```bash
-uv run --package jentic-openapi-validator pytest packages/jentic-openapi-validator -v
+uv run --package jentic-openapi-validator-spectral pytest packages/jentic-openapi-validator-spectral -v
 ```
 
 ## API Reference

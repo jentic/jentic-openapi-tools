@@ -1,61 +1,134 @@
-import subprocess
+"""Tests for RedoclyBundler functionality."""
+
 import pytest
-from pathlib import Path
 
 from jentic.apitools.openapi.transformer.redocly import RedoclyBundler
 from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
 
-FIXTURES_DIR = Path(__file__).parent / "fixtures" / "openapi"
-SNAPSHOTS_DIR = Path(__file__).parent / "fixtures" / "snapshots"
+
+class TestRedoclyBundlerIntegration:
+    """Integration tests that require Redocly CLI to be available."""
+
+    @pytest.mark.requires_redocly_cli
+    def test_bundle_valid_openapi_document(
+        self,
+        redocly_bundler: RedoclyBundler,
+        valid_openapi_uri: str,
+        expected_bundled_content: str,
+    ):
+        """Test successful bundling of a valid OpenAPI document."""
+        result = redocly_bundler.bundle(valid_openapi_uri)
+        assert result == expected_bundled_content
+
+    @pytest.mark.requires_redocly_cli
+    def test_bundle_malformed_openapi_document(
+        self,
+        redocly_bundler: RedoclyBundler,
+        malformed_openapi_uri: str,
+    ):
+        """Test bundling of a malformed OpenAPI document raises RuntimeError."""
+        with pytest.raises(RuntimeError, match="Failed to parse API"):
+            redocly_bundler.bundle(malformed_openapi_uri)
+
+    @pytest.mark.requires_redocly_cli
+    def test_bundle_with_custom_timeout(
+        self,
+        redocly_bundler_with_custom_timeout: RedoclyBundler,
+        valid_openapi_uri: str,
+        expected_bundled_content: str,
+    ):
+        """Test bundling with custom timeout configuration."""
+        result = redocly_bundler_with_custom_timeout.bundle(valid_openapi_uri)
+        assert result == expected_bundled_content
+
+    @pytest.mark.requires_redocly_cli
+    def test_bundle_dict_document(
+        self,
+        redocly_bundler: RedoclyBundler,
+        expected_bundled_content: str,
+    ):
+        """Test bundling of a dict OpenAPI document."""
+        # Simple OpenAPI document as dict
+        openapi_dict = {
+            "openapi": "3.0.3",
+            "info": {"title": "Test API", "version": "1.0.0"},
+            "paths": {"/test": {"get": {"responses": {"200": {"description": "OK"}}}}},
+        }
+
+        result = redocly_bundler.bundle(openapi_dict)
+        # Should return valid JSON (can be parsed)
+        import json
+
+        parsed_result = json.loads(result)
+        assert parsed_result["openapi"] == "3.0.3"
+        assert parsed_result["info"]["title"] == "Test API"
 
 
-@pytest.mark.skipif(
-    subprocess.run(["npx", "@redocly/cli@^2.1.5", "--version"], capture_output=True).returncode
-    != 0,
-    reason="Redocly CLI not available",
-)
-def test_redocly_bundler_ok():
-    spec_file = FIXTURES_DIR / "openapi.yaml"
-    spec_uri = spec_file.as_uri()
+class TestRedoclyBundlerUnit:
+    """Unit tests that don't require external dependencies."""
 
-    expected = (SNAPSHOTS_DIR / "openapi-bundled.json").read_text(encoding="utf-8")
+    def test_init_with_defaults(self):
+        """Test RedoclyBundler initialization with default values."""
+        bundler = RedoclyBundler()
+        assert bundler.redocly_path == "npx @redocly/cli@^2.1.5"
+        assert bundler.timeout == 30.0
 
-    bundler = RedoclyBundler()
-    assert bundler is not None
-    assert bundler.redocly_path == "npx @redocly/cli@^2.1.5"
-    result = bundler.bundle(spec_uri)
-    assert result == expected
-    # assert "Redocly CLI not found" in str(result.diagnostics[0].message)
+    def test_init_with_custom_path(self, redocly_bundler_with_custom_path: RedoclyBundler):
+        """Test RedoclyBundler initialization with custom redocly path."""
+        assert redocly_bundler_with_custom_path.redocly_path == "/custom/path/to/redocly"
 
+    def test_init_with_custom_timeout(self, redocly_bundler_with_custom_timeout: RedoclyBundler):
+        """Test RedoclyBundler initialization with custom timeout."""
+        assert redocly_bundler_with_custom_timeout.timeout == 60.0
 
-@pytest.mark.skipif(
-    subprocess.run(["npx", "@redocly/cli@^2.1.5", "--version"], capture_output=True).returncode
-    != 0,
-    reason="Redocly CLI not available",
-)
-def test_redocly_bundler_failure():
-    spec_file = FIXTURES_DIR / "simple_openapi_not_well_formed.json"
-    spec_uri = spec_file.as_uri()
+    def test_accepts_returns_correct_formats(self, redocly_bundler: RedoclyBundler):
+        """Test that accepts() returns the correct supported formats."""
+        formats = redocly_bundler.accepts()
+        assert formats == ["uri", "dict"]
+        assert isinstance(formats, list)
 
-    bundler = RedoclyBundler()
-    assert bundler is not None
-    assert bundler.redocly_path == "npx @redocly/cli@^2.1.5"
-    with pytest.raises(Exception, match="Failed to parse API"):
-        bundler.bundle(spec_uri)
+    def test_bundle_with_unsupported_document_type(self, redocly_bundler: RedoclyBundler):
+        """Test that bundle() raises TypeError for unsupported document types."""
+        with pytest.raises(TypeError, match="Unsupported document type"):
+            redocly_bundler.bundle(42)  # type: ignore
 
+        with pytest.raises(TypeError, match="Unsupported document type"):
+            redocly_bundler.bundle(None)  # type: ignore
 
-def test_redocly_bundler_custom_path():
-    """Test RedoclyBundler with custom redocly path."""
-    bundler = RedoclyBundler(redocly_path="/custom/path/to/redocly")
-    assert bundler.redocly_path == "/custom/path/to/redocly"
+        with pytest.raises(TypeError, match="Unsupported document type"):
+            redocly_bundler.bundle([])  # type: ignore
 
 
-def test_redocly_bundler_without_cli():
-    """Test RedoclyBundler behavior when redocly CLI is not available."""
-    bundler = RedoclyBundler(redocly_path="nonexistent_redocly")
-    # This would need a file path, not a dict - the current implementation
-    # expects a file path to pass to redocly CLI
-    try:
-        bundler.bundle("/some/test/file.yaml")
-    except SubprocessExecutionError as e:
-        assert "[Errno 2] No such file or directory: 'nonexistent_redocly'" in str(e.stderr)
+class TestRedoclyBundlerErrorHandling:
+    """Tests for error handling scenarios."""
+
+    def test_bundle_with_nonexistent_cli(self):
+        """Test behavior when redocly CLI is not available."""
+        bundler = RedoclyBundler(redocly_path="nonexistent_redocly")
+
+        with pytest.raises(SubprocessExecutionError):
+            bundler.bundle("/some/test/file.yaml")
+
+    def test_bundle_with_invalid_file_path(self, redocly_bundler: RedoclyBundler):
+        """Test bundling with invalid file path."""
+        with pytest.raises(RuntimeError, match="does not exist"):
+            redocly_bundler.bundle("/nonexistent/path/to/file.yaml")
+
+    def test_bundle_with_timeout_configuration(self):
+        """Test that timeout is properly configured."""
+        bundler = RedoclyBundler(timeout=1.0)  # Very short timeout
+        assert bundler.timeout == 1.0
+
+    def test_bundle_empty_string_input(self, redocly_bundler: RedoclyBundler):
+        """Test bundling with empty string input."""
+        with pytest.raises(RuntimeError, match="Path cannot be empty"):
+            redocly_bundler.bundle("")
+
+    @pytest.mark.requires_redocly_cli
+    def test_bundle_invalid_dict_input(self, redocly_bundler: RedoclyBundler):
+        """Test bundling with invalid dict input."""
+        invalid_dict = {"invalid": "not an openapi document"}
+
+        # Should fail because it's not a valid OpenAPI document
+        with pytest.raises(RuntimeError):
+            redocly_bundler.bundle(invalid_dict)
