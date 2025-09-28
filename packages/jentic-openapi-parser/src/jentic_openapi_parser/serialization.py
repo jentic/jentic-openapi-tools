@@ -12,7 +12,7 @@ import attrs
 
 def dump_json(data: Any, indent: int | None = None) -> str:
     return json.dumps(
-        data, indent=indent, ensure_ascii=False, allow_nan=False, sort_keys=True, cls=CustomEncoder
+        data, indent=indent, ensure_ascii=False, allow_nan=False, sort_keys=False, cls=CustomEncoder
     )
 
 
@@ -26,6 +26,8 @@ class CustomEncoder(json.JSONEncoder):
             return float(obj)
         if isinstance(obj, Enum):
             return obj.value
+        if isinstance(obj, set):
+            return list(obj)
         if attrs.has(obj):
             return attrs.asdict(obj)
         return super().default(obj)

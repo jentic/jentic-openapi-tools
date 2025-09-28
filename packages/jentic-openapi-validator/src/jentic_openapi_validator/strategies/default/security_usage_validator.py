@@ -1,10 +1,12 @@
 from typing import Dict, List, Set
-from ...paths import escape_token
 from lsprotocol import types as lsp
 
+from ...paths import escape_token
+from ...diagnostics import JenticDiagnostic
 
-def validate(spec_data: Dict) -> List[lsp.Diagnostic]:
-    issues: List[lsp.Diagnostic] = []
+
+def validate(spec_data: Dict, target: str | None = None) -> List[JenticDiagnostic]:
+    issues: List[JenticDiagnostic] = []
     components = spec_data.get("components", {})
     security_schemes = components.get("securitySchemes", {})
     defined_schemes: Set[str] = (
@@ -20,17 +22,18 @@ def validate(spec_data: Dict) -> List[lsp.Diagnostic]:
                 referenced_schemes.update(sec_req.keys())
                 for scheme in sec_req.keys():
                     if scheme not in defined_schemes:
-                        diag = lsp.Diagnostic(
+                        diag = JenticDiagnostic(
                             range=lsp.Range(
                                 start=lsp.Position(line=0, character=0),
                                 end=lsp.Position(line=0, character=0),
                             ),
                             severity=lsp.DiagnosticSeverity.Error,
                             code="UNDEFINED_SECURITY_SCHEME_REFERENCE",
-                            source="default_validator",
+                            source="default-validator",
                             message=f"Global security requirement references undefined scheme '{scheme}'.",
                         )
-                        diag.data = {"fixable": True, "path": ["security"]}
+                        diag.set_target(target)
+                        diag.set_path(["security"])
                         issues.append(diag)
 
     # Check operation-level security
@@ -58,39 +61,40 @@ def validate(spec_data: Dict) -> List[lsp.Diagnostic]:
                             referenced_schemes.update(sec_req.keys())
                             for scheme in sec_req.keys():
                                 if scheme not in defined_schemes:
-                                    diag = lsp.Diagnostic(
+                                    diag = JenticDiagnostic(
                                         range=lsp.Range(
                                             start=lsp.Position(line=0, character=0),
                                             end=lsp.Position(line=0, character=0),
                                         ),
                                         severity=lsp.DiagnosticSeverity.Error,
                                         code="UNDEFINED_SECURITY_SCHEME_REFERENCE",
-                                        source="default_validator",
+                                        source="default-validator",
                                         message=f"Operation '{method.upper()}' at path '{path_str}' references undefined scheme '{scheme}'.",
                                     )
-                                    diag.data = {
-                                        "fixable": True,
-                                        "path": [
+                                    diag.set_target(target)
+                                    diag.set_path(
+                                        [
                                             "paths",
-                                            {escape_token(path_str)},
-                                            {escape_token(method)},
+                                            escape_token(path_str),
+                                            escape_token(method),
                                             "security",
-                                        ],
-                                    }
+                                        ]
+                                    )
                                     issues.append(diag)
     # Unused scheme detection
     unused = defined_schemes - referenced_schemes
     for scheme in unused:
-        diag = lsp.Diagnostic(
+        diag = JenticDiagnostic(
             range=lsp.Range(
                 start=lsp.Position(line=0, character=0),
                 end=lsp.Position(line=0, character=0),
             ),
             severity=lsp.DiagnosticSeverity.Warning,
             code="UNUSED_SECURITY_SCHEME_DEFINED",
-            source="default_validator",
+            source="default-validator",
             message=f"Security scheme '{scheme}' is defined in components.securitySchemes but not used in any security requirement.",
         )
-        diag.data = {"fixable": True, "path": ["components", "securitySchemes"]}
+        diag.set_target(target)
+        diag.set_path(["components", "securitySchemes"])
         issues.append(diag)
     return issues

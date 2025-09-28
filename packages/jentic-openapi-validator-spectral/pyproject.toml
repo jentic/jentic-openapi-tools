@@ -26,6 +26,7 @@ build-backend = "uv_build"
 
 [project.entry-points."jentic.openapi_validator_strategies"]
 spectral = "jentic_openapi_validator_spectral.spectral_validator:SpectralValidator"
+redocly = "jentic_openapi_validator_spectral.redocly_validator:RedoclyValidator"
 
 [tool.setuptools.package-data]
 "jentic_openapi_validator_spectral" = ["rulesets/*.yaml", "rulesets/*.yml"]

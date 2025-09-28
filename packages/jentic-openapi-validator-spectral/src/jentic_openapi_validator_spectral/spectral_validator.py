@@ -1,14 +1,14 @@
 import json
-from typing import Optional
+from typing import Optional, Literal
 import tempfile
 import os
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
 from jentic_openapi_common import run_checked, SubprocessExecutionError
-from lsprotocol.types import Diagnostic, DiagnosticSeverity, Range, Position
+from lsprotocol.types import DiagnosticSeverity, Range, Position
 
-from jentic_openapi_validator import ValidationResult
+from jentic_openapi_validator import ValidationResult, JenticDiagnostic
 from jentic_openapi_validator.strategies.base import BaseValidatorStrategy
 from importlib.resources import files
 
@@ -29,7 +29,8 @@ class SpectralValidator(BaseValidatorStrategy):
         self.spectral_path = spectral_path
         self.ruleset_path = ruleset_path
 
-    def accepts(self) -> list[str]:
+    @staticmethod
+    def accepts() -> list[Literal["uri", "text", "dict"]]:
         return ["uri"]
 
     def _get_ruleset_path(self) -> str:
@@ -54,7 +55,9 @@ class SpectralValidator(BaseValidatorStrategy):
         except (ImportError, FileNotFoundError) as e:
             raise RuntimeError(f"Could not load bundled ruleset: {e}")
 
-    def validate(self, document: str | dict) -> ValidationResult:
+    def validate(
+        self, document: str | dict, *, base_url: str | None = None, target: str | None = None
+    ) -> ValidationResult:
         """
         Validate an OpenAPI document using Spectral.
 
@@ -65,11 +68,12 @@ class SpectralValidator(BaseValidatorStrategy):
             ValidationResult containing any validation issues found
         """
         ruleset_temp_path = None
-
         try:
             assert isinstance(document, str)
             parsed_doc_url = urlparse(document)
-            doc_path = url2pathname(parsed_doc_url.path)
+            doc_path = document
+            if parsed_doc_url.scheme == "file":
+                doc_path = url2pathname(parsed_doc_url.path)
 
             # Get ruleset path (may create temporary file)
             ruleset_path = self._get_ruleset_path()
@@ -79,7 +83,7 @@ class SpectralValidator(BaseValidatorStrategy):
                 ruleset_temp_path = ruleset_path
 
             # Build spectral command
-            cmd = [*self.spectral_path.split(), "lint", doc_path, "-r", ruleset_path, "-f", "json"]
+            cmd = [*self.spectral_path.split(), "lint", "-r", ruleset_path, "-f", "json", doc_path]
             result = run_checked(cmd)
 
         except SubprocessExecutionError as e:
@@ -103,7 +107,6 @@ class SpectralValidator(BaseValidatorStrategy):
 
         output = result.stdout
         output = output.replace("No results with a severity of 'error' found!", "")
-
         try:
             issues = json.loads(output)
         except json.JSONDecodeError:
@@ -136,7 +139,7 @@ class SpectralValidator(BaseValidatorStrategy):
             end_line = range_info.get("end", {}).get("line", start_line)
             end_char = range_info.get("end", {}).get("character", start_char)
             # TODO add jsonpath and other details to message if needed
-            diagnostic = Diagnostic(
+            diagnostic = JenticDiagnostic(
                 range=Range(
                     start=Position(line=start_line, character=start_char),
                     end=Position(line=end_line, character=end_char),
@@ -146,10 +149,8 @@ class SpectralValidator(BaseValidatorStrategy):
                 code=issue.get("code"),
                 source="spectral-validator",
             )
-            if issue.get("path"):
-                diagnostic.data = {"fixable": True, "path": issue.get("path")}
-            else:
-                diagnostic.data = {"fixable": True, "path": []}
+            diagnostic.set_target(target)
+            diagnostic.set_path(issue.get("path"))
 
             messages.append(diagnostic)
         return ValidationResult(messages)

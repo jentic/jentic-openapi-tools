@@ -156,7 +156,7 @@ class OpenAPIBundler:
 
         if document is not None:
             try:
-                result = self.strategy.bundle(document)
+                result = self.strategy.bundle(document, base_url)
             except Exception as e:
                 # TODO add to parser/validation chain result
                 print(f"Error parsing document: {e}")

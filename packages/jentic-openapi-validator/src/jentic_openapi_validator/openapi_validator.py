@@ -43,7 +43,9 @@ class OpenAPIValidator:
             else:
                 raise TypeError("Invalid strategy type: must be name or strategy class/instance")
 
-    def validate(self, source: str | dict) -> ValidationResult:
+    def validate(
+        self, source: str | dict, *, base_url: str | None = None, target: str | None = None
+    ) -> ValidationResult:
         text = source
         all_messages = []
         data = None
@@ -78,7 +80,7 @@ class OpenAPIValidator:
                 document = data
 
             if document is not None:
-                result = strat.validate(document)
+                result = strat.validate(document, base_url=base_url, target=target)
                 all_messages.extend(result.diagnostics)
 
         return ValidationResult(all_messages)
@@ -90,3 +92,12 @@ class OpenAPIValidator:
             if ("text" in accepted or "dict" in accepted) and "uri" not in accepted:
                 return True
         return False
+
+    @staticmethod
+    def list_strategies() -> list[str]:
+        strategies = ["default", "openapi-spec-validator"]
+        eps = importlib.metadata.entry_points(group="jentic.openapi_validator_strategies")
+        plugin_map = {ep.name: ep for ep in eps}
+        for plugin_name, entry_point in plugin_map.items():
+            strategies.append(plugin_name)
+        return strategies

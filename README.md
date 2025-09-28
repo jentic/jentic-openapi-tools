@@ -29,6 +29,19 @@ uv run --package jentic-openapi-validator-spectral    pytest packages/jentic-ope
 uv run --package jentic-openapi-bundler-redocly    pytest packages/jentic-openapi-bundler-redocly/tests -q
 ```
 
+### run pattern base tests (from root)
+
+```bash
+uv run pytest packages/**/tests -s -v -k test_references 2>&1 | tee output.log
+```
+
+### run single test (from root)
+
+```bash
+uv run --package jentic-openapi-validator pytest -s packages/jentic-openapi-validator/tests/test_validate_unbundled.py::TestValidateUnbundled
+```
+
+
 ### Run linting
 
 ```bash
