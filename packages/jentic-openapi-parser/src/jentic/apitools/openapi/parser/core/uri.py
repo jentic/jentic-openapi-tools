@@ -10,6 +10,8 @@ import re
 import urllib.request
 import requests
 
+from .exceptions import DocumentLoadError
+
 _WINDOWS_DRIVE_RE = re.compile(r"^[A-Za-z]:[\\/]")
 _WINDOWS_UNC_RE = re.compile(r"^(?:\\\\|//)[^\\/]+[\\/][^\\/]+")
 
@@ -188,25 +190,29 @@ def load_uri(
     uri: str, connTimeout: int, readTimeout: int, logger: logging.Logger | None = None
 ) -> str:
     logger = logger or logging.getLogger(__name__)
-
     resolved_uri = resolve_to_absolute(uri)
+    content = ""
 
-    if resolved_uri.startswith("http://") or uri.startswith("https://"):
-        logger.info("Starting download of %s", resolved_uri)
-        resp = requests.get(resolved_uri, timeout=(connTimeout, readTimeout))
-        logger.info(
-            "Download completed, status: %s, content length: %s",
-            resp.status_code,
-            len(resp.content),
-        )
-        content = resp.text
-    elif resolved_uri.startswith("file://"):
-        logger.info("Using local file: %s", resolved_uri)
-        with open(resolved_uri, "r", encoding="utf-8") as f:
-            content = f.read()
-    else:
-        # Treat as local file path
-        logger.info("Using local file: %s", resolved_uri)
-        with open(resolved_uri, "r", encoding="utf-8") as f:
-            content = f.read()
+    try:
+        if resolved_uri.startswith("http://") or uri.startswith("https://"):
+            logger.info("Starting download of %s", resolved_uri)
+            resp = requests.get(resolved_uri, timeout=(connTimeout, readTimeout))
+            logger.info(
+                "Download completed, status: %s, content length: %s",
+                resp.status_code,
+                len(resp.content),
+            )
+            content = resp.text
+        elif resolved_uri.startswith("file://"):
+            logger.info("Using local file: %s", resolved_uri)
+            with open(resolved_uri, "r", encoding="utf-8") as f:
+                content = f.read()
+        else:
+            # Treat as local file path
+            logger.info("Using local file: %s", resolved_uri)
+            with open(resolved_uri, "r", encoding="utf-8") as f:
+                content = f.read()
+    except Exception as e:
+        raise DocumentLoadError(f"Failed to load URI '{uri}': {e}") from e
+
     return content
