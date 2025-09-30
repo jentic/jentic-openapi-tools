@@ -1,49 +1,21 @@
-import subprocess
+"""Integration tests for Spectral backend discovery and usage."""
+
 import pytest
+
 from jentic.apitools.openapi.validator.core import OpenAPIValidator
 
 
-@pytest.fixture
-def sample_openapi_file(tmp_path):
-    """Create a temporary OpenAPI file for testing."""
-    openapi_content = """
-openapi: 3.1.0
-info:
-  title: Test API
-  version: 1.0.0
-paths:
-  /users:
-    get:
-      summary: Get users
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-"""
-    openapi_file = tmp_path / "test_api.yaml"
-    openapi_file.write_text(openapi_content.strip())
-    return str(openapi_file)
-
-
-def test_spectral_plugin_discovery():
-    """Test that the spectral plugin can be discovered via entry points."""
+def test_spectral_backend_discovery():
+    """Test that the spectral backend can be discovered via entry points."""
     try:
-        # This should work if jentic-openapi-validator-spectral is installed
-        validator = OpenAPIValidator(["default", "spectral"])
-        assert len(validator.strategies) == 2
+        validator = OpenAPIValidator(backends=["default", "spectral"])
+        assert len(validator.backends) == 2
 
-        # Verify the strategy types
-        strategy_names = [type(s).__name__ for s in validator.strategies]
-        assert "DefaultOpenAPIValidator" in strategy_names
-        assert "SpectralValidator" in strategy_names
-
+        backend_names = [type(b).__name__ for b in validator.backends]
+        assert "DefaultValidatorBackend" in backend_names
+        assert "SpectralValidatorBackend" in backend_names
     except ValueError as e:
-        if "No validator plugin named 'spectral' found" in str(e):
+        if "No validator backend named 'spectral' found" in str(e):
             pytest.skip(
                 "jentic-openapi-validator-spectral not installed - skipping integration test"
             )
@@ -51,41 +23,17 @@ def test_spectral_plugin_discovery():
             raise
 
 
-@pytest.mark.skipif(
-    subprocess.run(
-        ["npx", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
-    ).returncode
-    != 0,
-    reason="Spectral CLI not available",
-)
-def test_spectral_validation_integration(sample_openapi_file):
-    """Test that spectral validation works end-to-end as a user would experience it."""
+@pytest.mark.requires_spectral_cli
+def test_spectral_validation_integration(sample_openapi_yaml):
+    """Test that spectral validation works end-to-end."""
     try:
-        # Test the exact usage pattern from your example
-        validator = OpenAPIValidator(["default", "spectral"])
-        result = validator.validate(sample_openapi_file)
+        validator = OpenAPIValidator(backends=["default", "spectral"])
+        result = validator.validate(str(sample_openapi_yaml))
 
-        # The validation should complete without errors
-        # (though it might have warnings/info from spectral)
         assert result is not None
         assert hasattr(result, "diagnostics")
-
-        # If spectral CLI is not available, the spectral strategy should
-        # return an appropriate error message
-        spectral_diagnostics = [
-            d
-            for d in result.diagnostics
-            if hasattr(d, "source") and "spectral" in str(d.source).lower()
-        ]
-
-        print(f"Total diagnostics: {len(spectral_diagnostics)}")
-        for diag in result.diagnostics:
-            print(
-                f"  - {getattr(diag, 'severity', 'unknown')}: {getattr(diag, 'message', str(diag))}"
-            )
-
     except ValueError as e:
-        if "No validator plugin named 'spectral' found" in str(e):
+        if "No validator backend named 'spectral' found" in str(e):
             pytest.skip(
                 "jentic-openapi-validator-spectral not installed - skipping integration test"
             )
@@ -93,25 +41,18 @@ def test_spectral_validation_integration(sample_openapi_file):
             raise
 
 
-@pytest.mark.skipif(
-    subprocess.run(
-        ["npx", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
-    ).returncode
-    != 0,
-    reason="Spectral CLI not available",
-)
-def test_spectral_only_strategy(sample_openapi_file):
-    """Test using only the spectral strategy."""
+@pytest.mark.requires_spectral_cli
+def test_spectral_only_backend(sample_openapi_yaml):
+    """Test using only the spectral backend."""
     try:
-        validator = OpenAPIValidator(["spectral"])
-        result = validator.validate(sample_openapi_file)
+        validator = OpenAPIValidator(backends=["spectral"])
+        result = validator.validate(str(sample_openapi_yaml))
 
         assert result is not None
-        assert len(validator.strategies) == 1
-        assert type(validator.strategies[0]).__name__ == "SpectralValidator"
-
+        assert len(validator.backends) == 1
+        assert type(validator.backends[0]).__name__ == "SpectralValidatorBackend"
     except ValueError as e:
-        if "No validator plugin named 'spectral' found" in str(e):
+        if "No validator backend named 'spectral' found" in str(e):
             pytest.skip(
                 "jentic-openapi-validator-spectral not installed - skipping integration test"
             )
@@ -119,38 +60,24 @@ def test_spectral_only_strategy(sample_openapi_file):
             raise
 
 
-@pytest.mark.skipif(
-    subprocess.run(
-        ["npx", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
-    ).returncode
-    != 0,
-    reason="Spectral CLI not available",
-)
-def test_invalid_strategy_name():
-    """Test that invalid strategy names raise appropriate errors."""
-    with pytest.raises(ValueError, match="No validator plugin named 'nonexistent' found"):
-        OpenAPIValidator(["nonexistent"])
+@pytest.mark.requires_spectral_cli
+def test_invalid_backend_name():
+    """Test that invalid backend names raise appropriate errors."""
+    with pytest.raises(ValueError, match="No validator backend named 'nonexistent' found"):
+        OpenAPIValidator(backends=["nonexistent"])
 
 
-@pytest.mark.skipif(
-    subprocess.run(
-        ["npx", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
-    ).returncode
-    != 0,
-    reason="Spectral CLI not available",
-)
-def test_spectral_with_real_cli(sample_openapi_file):
+@pytest.mark.requires_spectral_cli
+def test_spectral_with_real_cli(sample_openapi_yaml):
     """Test spectral integration when the actual spectral CLI is available."""
     try:
-        validator = OpenAPIValidator(["spectral"])
-        result = validator.validate(sample_openapi_file)
+        validator = OpenAPIValidator(backends=["spectral"])
+        result = validator.validate(str(sample_openapi_yaml))
 
-        # With real spectral CLI, we should get actual validation results
         assert result is not None
-        print(f"Spectral found {len(result.diagnostics)} issues")
-
+        assert len(result) >= 0  # May have diagnostics or not
     except ValueError as e:
-        if "No validator plugin named 'spectral' found" in str(e):
+        if "No validator backend named 'spectral' found" in str(e):
             pytest.skip("jentic-openapi-validator-spectral not installed")
         else:
             raise

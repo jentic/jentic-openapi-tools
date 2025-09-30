@@ -1,6 +1,6 @@
 # jentic-openapi-validator-spectral
 
-A [Spectral](https://github.com/stoplightio/spectral) validator strategy for the Jentic OpenAPI Tools ecosystem. This package provides OpenAPI document validation using Stoplight's Spectral CLI with comprehensive error reporting and flexible configuration options.
+A [Spectral](https://github.com/stoplightio/spectral) validator backend for the Jentic OpenAPI Tools ecosystem. This package provides OpenAPI document validation using Stoplight's Spectral CLI with comprehensive error reporting and flexible configuration options.
 
 ## Features
 
@@ -31,10 +31,10 @@ npm install -g @stoplight/spectral-cli
 ### Basic Usage
 
 ```python
-from jentic.apitools.openapi.validator.spectral import SpectralValidator
+from jentic.apitools.openapi.validator.backends.spectral import SpectralValidatorBackend
 
 # Create validator with defaults
-validator = SpectralValidator()
+validator = SpectralValidatorBackend()
 
 # Validate from file URI
 result = validator.validate("file:///path/to/openapi.yaml")
@@ -66,17 +66,17 @@ print(f"Document is valid: {result.valid}")
 
 ```python
 # Use local Spectral installation
-validator = SpectralValidator(spectral_path="/usr/local/bin/spectral")
+validator = SpectralValidatorBackend(spectral_path="/usr/local/bin/spectral")
 
 # Use specific version via npx
-validator = SpectralValidator(spectral_path="npx @stoplight/spectral-cli@^6.15.0")
+validator = SpectralValidatorBackend(spectral_path="npx @stoplight/spectral-cli@^6.15.0")
 ```
 
 ### Custom Rulesets
 
 ```python
 # Use custom ruleset file
-validator = SpectralValidator(ruleset_path="/path/to/custom-rules.yaml")
+validator = SpectralValidatorBackend(ruleset_path="/path/to/custom-rules.yaml")
 
 # The validator automatically falls back to bundled rulesets if no custom path is provided
 ```
@@ -85,13 +85,13 @@ validator = SpectralValidator(ruleset_path="/path/to/custom-rules.yaml")
 
 ```python
 # Short timeout for CI/CD (10 seconds)
-validator = SpectralValidator(timeout=10.0)
+validator = SpectralValidatorBackend(timeout=10.0)
 
 # Extended timeout for large documents (2 minutes)
-validator = SpectralValidator(timeout=120.0)
+validator = SpectralValidatorBackend(timeout=120.0)
 
 # Combined configuration (45 seconds)
-validator = SpectralValidator(
+validator = SpectralValidatorBackend(
     spectral_path="/usr/local/bin/spectral",
     ruleset_path="/path/to/strict-rules.yaml",
     timeout=45.0
@@ -167,7 +167,7 @@ rules:
 Use it with the validator:
 
 ```python
-validator = SpectralValidator(ruleset_path="./custom-rules.yaml")
+validator = SpectralValidatorBackend(ruleset_path="./custom-rules.yaml")
 result = validator.validate("file:///path/to/openapi.yaml")
 ```
 
@@ -188,7 +188,7 @@ uv run --package jentic-openapi-validator-spectral pytest packages/jentic-openap
 ### SpectralValidator
 
 ```python
-class SpectralValidator(BaseValidatorStrategy):
+class SpectralValidatorBackend(BaseValidatorBackend):
     def __init__(
         self,
         spectral_path: str = "npx @stoplight/spectral-cli@^6.15.0",

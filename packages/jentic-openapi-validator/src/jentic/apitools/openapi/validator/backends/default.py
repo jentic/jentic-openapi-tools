@@ -1,10 +1,10 @@
 from lsprotocol import types as lsp
 from openapi_spec_validator import validate
-from .base import BaseValidatorStrategy
-from ..core.diagnostics import ValidationResult
+from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
+from jentic.apitools.openapi.validator.core.diagnostics import ValidationResult
 
 
-class DefaultOpenAPIValidator(BaseValidatorStrategy):
+class DefaultValidatorBackend(BaseValidatorBackend):
     def validate(self, document: str | dict) -> ValidationResult:
         # Use openapi_spec_validator to check spec validity
         try:

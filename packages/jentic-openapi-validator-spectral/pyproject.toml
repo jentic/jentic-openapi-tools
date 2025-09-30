@@ -1,7 +1,7 @@
 [project]
 name = "jentic-openapi-validator-spectral"
 version = "0.1.0"
-description = "Jentic OpenAPI Spectral Validator Strategy"
+description = "Jentic OpenAPI Spectral Validator Backend"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
 license = "Apache-2.0"
@@ -22,7 +22,7 @@ package = true
 
 [tool.uv.build-backend]
 namespace = true
-module-name = "jentic.apitools.openapi.validator.spectral"
+module-name = "jentic.apitools.openapi.validator.backends.spectral"
 module-root = "src/"
 
 [tool.uv.sources]
@@ -33,8 +33,8 @@ jentic-openapi-validator = { workspace = true }
 requires = ["uv_build>=0.8.15,<0.9.0"]
 build-backend = "uv_build"
 
-[project.entry-points."jentic.apitools.openapi.validator.strategies"]
-spectral = "jentic.apitools.openapi.validator.spectral:SpectralValidator"
+[project.entry-points."jentic.apitools.openapi.validator.backends"]
+spectral = "jentic.apitools.openapi.validator.backends.spectral:SpectralValidatorBackend"
 
 [tool.setuptools.package-data]
-"jentic.apitools.openapi.validator.spectral" = ["rulesets/*.yaml", "rulesets/*.yml"]
+"jentic.apitools.openapi.validator.backends.spectral" = ["rulesets/*.yaml", "rulesets/*.yml"]

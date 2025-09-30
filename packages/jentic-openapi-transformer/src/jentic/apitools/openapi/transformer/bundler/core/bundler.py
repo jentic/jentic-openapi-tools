@@ -27,7 +27,7 @@ class OpenAPIBundler:
         self.parser = parser if parser else OpenAPIParser()
         backend = backend if backend else "default"
 
-        # Discover entry points for bundler plugins
+        # Discover entry points for bundler backends
         eps = importlib.metadata.entry_points(
             group="jentic.apitools.openapi.transformer.bundler.backends"
         )

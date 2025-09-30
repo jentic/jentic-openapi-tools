@@ -17,11 +17,15 @@ namespace = true
 module-name = "jentic.apitools.openapi.transformer"
 module-root = "src/"
 
+[project.optional-dependencies]
+redocly = ["jentic-openapi-transformer-redocly"]
+
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
 
 [tool.uv.sources]
 jentic-openapi-parser = { workspace = true }
+jentic-openapi-transformer-redocly = { workspace = true }
 
 
 [build-system]
