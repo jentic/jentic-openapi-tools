@@ -298,17 +298,8 @@ dependencies = [
     { name = "jentic-openapi-parser" },
 ]
 
-[package.optional-dependencies]
-redocly = [
-    { name = "jentic-openapi-transformer-redocly" },
-]
-
 [package.metadata]
-requires-dist = [
-    { name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" },
-    { name = "jentic-openapi-transformer-redocly", marker = "extra == 'redocly'", editable = "packages/jentic-openapi-transformer-redocly" },
-]
-provides-extras = ["redocly"]
+requires-dist = [{ name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" }]
 
 [[package]]
 name = "jentic-openapi-transformer-redocly"

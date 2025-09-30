@@ -1,6 +1,6 @@
 # jentic-openapi-transformer-redocly
 
-A Python library that provides OpenAPI document bundling functionality using [Redocly CLI](https://redocly.com/docs/cli/). This package is part of the Jentic OpenAPI Tools ecosystem and implements the transformer strategy pattern for bundling OpenAPI documents by resolving external references.
+A Python library that provides OpenAPI document bundling functionality using [Redocly CLI](https://redocly.com/docs/cli/). This package is part of the Jentic OpenAPI Tools ecosystem and implements the transformer backend pattern for bundling OpenAPI documents by resolving external references.
 
 ## Features
 
@@ -32,10 +32,10 @@ npm install -g @redocly/cli
 ### Basic Usage
 
 ```python
-from jentic.apitools.openapi.transformer.redocly import RedoclyBundler
+from jentic.apitools.openapi.transformer.bundler.backends.redocly import RedoclyBundlerBackend
 
 # Create a bundler instance
-bundler = RedoclyBundler()
+bundler = RedoclyBundlerBackend()
 
 # Bundle an OpenAPI document from a file path
 result = bundler.bundle("/path/to/your/openapi.yaml")
@@ -66,7 +66,7 @@ parsed_result = json.loads(result)
 
 ```python
 # Custom Redocly CLI path and timeout
-bundler = RedoclyBundler(
+bundler = RedoclyBundlerBackend(
     redocly_path="redocly",  # Use global redocly installation
     timeout=60.0  # 60 second timeout
 )
@@ -81,10 +81,10 @@ result = bundler.bundle("https://petstore3.swagger.io/api/v3/openapi.json")
 The bundler provides detailed error reporting for various failure scenarios:
 
 ```python
-from jentic.apitools.openapi.transformer.redocly import RedoclyBundler
+from jentic.apitools.openapi.transformer.bundler.backends.redocly import RedoclyBundlerBackend
 from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
 
-bundler = RedoclyBundler()
+bundler = RedoclyBundlerBackend()
 
 try:
     result = bundler.bundle("/path/to/openapi.yaml")
@@ -120,7 +120,7 @@ uv run --package jentic-openapi-transformer-redocly pytest packages/jentic-opena
 ### RedoclyBundler
 
 ```python
-class RedoclyBundler(BaseBundlerStrategy):
+class RedoclyBundlerBackend(BaseBundlerBackend):
     def __init__(
         self,
         redocly_path: str = "npx @redocly/cli@^2.1.5",

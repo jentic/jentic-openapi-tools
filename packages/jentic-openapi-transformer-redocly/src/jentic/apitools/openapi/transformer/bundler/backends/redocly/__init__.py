@@ -4,14 +4,14 @@ from pathlib import Path
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
-from jentic.apitools.openapi.transformer.strategies.base import BaseBundlerStrategy
+from jentic.apitools.openapi.transformer.bundler.backends.base import BaseBundlerBackend
 from jentic.apitools.openapi.common.subproc import run_subprocess
 
 
-__all__ = ["RedoclyBundler"]
+__all__ = ["RedoclyBundlerBackend"]
 
 
-class RedoclyBundler(BaseBundlerStrategy):
+class RedoclyBundlerBackend(BaseBundlerBackend):
     def __init__(self, redocly_path: str = "npx @redocly/cli@^2.1.5", timeout: float = 30.0):
         """
         Initialize the RedoclyBundler.
@@ -33,7 +33,7 @@ class RedoclyBundler(BaseBundlerStrategy):
         """
         return ["uri", "dict"]
 
-    def bundle(self, document: str | dict, base_url: str | None = None) -> str:
+    def bundle(self, document: str | dict, *, base_url: str | None = None) -> str:
         """
         Bundle an OpenAPI document using Redocly CLI.
 

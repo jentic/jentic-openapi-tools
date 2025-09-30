@@ -1,46 +1,18 @@
-import subprocess
+"""Integration tests for Redocly backend discovery and usage."""
+
 import pytest
-from jentic.apitools.openapi.transformer.core import OpenAPIBundler
+
+from jentic.apitools.openapi.transformer.bundler.core import OpenAPIBundler
 
 
-@pytest.fixture
-def sample_openapi_file(tmp_path):
-    """Create a temporary OpenAPI file for testing."""
-    openapi_content = """
-openapi: 3.1.0
-info:
-  title: Test API
-  version: 1.0.0
-paths:
-  /users:
-    get:
-      summary: Get users
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-"""
-    openapi_file = tmp_path / "test_api.yaml"
-    openapi_file.write_text(openapi_content.strip())
-    return str(openapi_file)
-
-
-def test_redocly_plugin_discovery():
-    """Test that the redocly plugin can be discovered via entry points."""
+def test_redocly_backend_discovery():
+    """Test that the redocly backend can be discovered via entry points."""
     try:
-        # This should work if jentic-openapi-transformer-redocly is installed
         bundler = OpenAPIBundler("redocly")
-        # Verify the strategy types
-        strategy_name = type(bundler.strategy).__name__
-        assert strategy_name == "RedoclyBundler"
-
+        backend_name = type(bundler.backend).__name__
+        assert backend_name == "RedoclyBundlerBackend"
     except ValueError as e:
-        if "No bundler plugin named 'redocly' found" in str(e):
+        if "No bundler backend named 'redocly' found" in str(e):
             pytest.skip(
                 "jentic-openapi-transformer-redocly not installed - skipping integration test"
             )
@@ -48,24 +20,17 @@ def test_redocly_plugin_discovery():
             raise
 
 
-@pytest.mark.skipif(
-    subprocess.run(["npx", "@redocly/cli@^2.1.5", "--version"], capture_output=True).returncode
-    != 0,
-    reason="Redocly CLI not available",
-)
-def test_redocly_only_strategy(sample_openapi_file):
-    """Test using only the redocly strategy."""
+@pytest.mark.requires_redocly_cli
+def test_redocly_only_backend(sample_openapi_yaml):
+    """Test using only the redocly backend."""
     try:
         bundler = OpenAPIBundler("redocly")
-        result = bundler.bundle(sample_openapi_file, return_type=str)
+        result = bundler.bundle(str(sample_openapi_yaml), return_type=str)
 
-        # With real redocly CLI, we should get actual validation results
         assert result is not None and isinstance(result, str) and len(result) > 0
-
-        assert type(bundler.strategy).__name__ == "RedoclyBundler"
-
+        assert type(bundler.backend).__name__ == "RedoclyBundlerBackend"
     except ValueError as e:
-        if "No bundler plugin named 'redocly' found" in str(e):
+        if "No bundler backend named 'redocly' found" in str(e):
             pytest.skip(
                 "jentic-openapi-transformer-redocly not installed - skipping integration test"
             )
@@ -73,33 +38,23 @@ def test_redocly_only_strategy(sample_openapi_file):
             raise
 
 
-@pytest.mark.skipif(
-    subprocess.run(["npx", "@redocly/cli@^2.1.5", "--version"], capture_output=True).returncode
-    != 0,
-    reason="Redocly CLI not available",
-)
-def test_invalid_strategy_name():
-    """Test that invalid strategy names raise appropriate errors."""
-    with pytest.raises(ValueError, match="No bundler plugin named 'nonexistent' found"):
+@pytest.mark.requires_redocly_cli
+def test_invalid_backend_name():
+    """Test that invalid backend names raise appropriate errors."""
+    with pytest.raises(ValueError, match="No bundler backend named 'nonexistent' found"):
         OpenAPIBundler("nonexistent")
 
 
-@pytest.mark.skipif(
-    subprocess.run(["npx", "@redocly/cli@^2.1.5", "--version"], capture_output=True).returncode
-    != 0,
-    reason="Redocly CLI not available",
-)
-def test_redocly_with_real_cli(sample_openapi_file):
+@pytest.mark.requires_redocly_cli
+def test_redocly_with_real_cli(sample_openapi_yaml):
     """Test redocly integration when the actual redocly CLI is available."""
     try:
         bundler = OpenAPIBundler("redocly")
-        result = bundler.bundle(sample_openapi_file, return_type=str)
+        result = bundler.bundle(str(sample_openapi_yaml), return_type=str)
 
-        # With real redocly CLI, we should get actual validation results
         assert result is not None and isinstance(result, str) and len(result) > 0
-
     except ValueError as e:
-        if "No bundler plugin named 'redocly' found" in str(e):
+        if "No bundler backend named 'redocly' found" in str(e):
             pytest.skip("jentic-openapi-transformer-redocly not installed")
         else:
             raise
