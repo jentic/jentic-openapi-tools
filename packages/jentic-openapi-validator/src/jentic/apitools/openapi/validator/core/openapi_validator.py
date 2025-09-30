@@ -1,89 +1,152 @@
+import json
 import importlib.metadata
+from typing import Type
+from lsprotocol.types import Diagnostic
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
+
 from .diagnostics import ValidationResult
-from ..strategies.base import BaseValidatorStrategy
-from ..strategies.default_strategy import DefaultOpenAPIValidator
 
 
 class OpenAPIValidator:
-    def __init__(self, strategies: list | None = None, parser: OpenAPIParser | None = None):
-        if not parser:
-            parser = OpenAPIParser()
-        self.parser = parser
-        # If no strategies specified, use default
-        if not strategies:
-            strategies = ["default"]
-        self.strategies = []  # list of BaseValidatorStrategy instances
+    """
+    Validates OpenAPI documents using pluggable validator backends.
 
-        # Discover entry points for validator plugins
-        # (This could be a one-time load stored at class level to avoid doing it every time)
-        eps = importlib.metadata.entry_points(group="jentic.apitools.openapi.validator.strategies")
-        plugin_map = {ep.name: ep for ep in eps}
+    This class provides a flexible validation framework that can use multiple
+    validator backends simultaneously. Backends can be specified by name (via
+    entry points), as class instances, or as class types.
 
-        for strat in strategies:
-            if isinstance(strat, str):
-                name = strat
-                if name == "default":
-                    # Use built-in default validator
-                    self.strategies.append(DefaultOpenAPIValidator())
-                elif name in plugin_map:
-                    plugin_class = plugin_map[name].load()  # loads the class
-                    self.strategies.append(plugin_class())
+    Attributes:
+        parser: OpenAPIParser instance for parsing and loading documents
+        backends: List of validator backend instances to use for validation
+    """
+
+    def __init__(
+        self,
+        backends: list[str | BaseValidatorBackend | Type[BaseValidatorBackend]] | None = None,
+        parser: OpenAPIParser | None = None,
+    ):
+        """
+        Initialize the OpenAPI validator.
+
+        Args:
+            backends: List of validator backends to use. Each item can be:
+                - str: Name of a backend registered via entry points (e.g., "default", "spectral")
+                - BaseValidatorBackend: Instance of a validator backend
+                - Type[BaseValidatorBackend]: Class of a validator backend (will be instantiated)
+                Defaults to ["default"] if None.
+            parser: Custom OpenAPIParser instance. If None, creates a default parser.
+
+        Raises:
+            ValueError: If a backend name is not found in registered entry points
+            TypeError: If a backend is not a valid type (str, instance, or class)
+        """
+        self.parser = parser if parser else OpenAPIParser()
+        self.backends: list[BaseValidatorBackend] = []
+        backends = ["default"] if not backends else backends
+
+        # Discover entry points for validator backends
+        eps = importlib.metadata.entry_points(group="jentic.apitools.openapi.validator.backends")
+        available_backends = {ep.name: ep for ep in eps}
+
+        for backend in backends:
+            if isinstance(backend, str):
+                if backend in available_backends:
+                    backend_class = available_backends[backend].load()  # loads the class
+                    self.backends.append(backend_class())
                 else:
-                    raise ValueError(f"No validator plugin named '{name}' found")
-            elif isinstance(strat, BaseValidatorStrategy):
-                self.strategies.append(strat)
-            elif hasattr(strat, "__call__") and issubclass(strat, BaseValidatorStrategy):
-                # if a class (not instance) is passed
-                self.strategies.append(strat())
+                    raise ValueError(f"No validator backend named '{backend}' found")
+            elif isinstance(backend, BaseValidatorBackend):
+                self.backends.append(backend)
+            elif isinstance(backend, type) and issubclass(backend, BaseValidatorBackend):
+                # Class (not instance) is passed
+                self.backends.append(backend())
             else:
-                raise TypeError("Invalid strategy type: must be name or strategy class/instance")
+                raise TypeError("Invalid backend type: must be name or backend class/instance")
 
     def validate(self, source: str | dict) -> ValidationResult:
-        text = source
-        all_messages = []
-        data = None
+        """
+        Validate an OpenAPI document using all configured backends.
+
+        This method accepts OpenAPI documents in multiple formats and automatically
+        converts them to the format(s) required by each backend. All diagnostics
+        from all backends are aggregated into a single ValidationResult.
+
+        Args:
+            source: OpenAPI document in one of the following formats:
+                - File URI (e.g., "file:///path/to/openapi.yaml")
+                - JSON/YAML string representation
+                - Python dictionary
+
+        Returns:
+            ValidationResult containing aggregated diagnostics from all backends.
+            The result's `valid` property indicates if validation passed.
+
+        Raises:
+            TypeError: If source is not a str or dict
+        """
+
+        diagnostics: list[Diagnostic] = []
+        source_is_uri: bool = False
+        source_text: str = ""
+        source_dict: dict | None = None
+
+        # Determine an input type and prepare different representations
         if isinstance(source, str):
-            is_uri = self.parser.is_uri_like(source)
-            is_text = not is_uri
+            source_is_uri = self.parser.is_uri_like(source)
 
-            if is_text:
-                data = self.parser.parse(source)
-
-            if is_uri and self.has_non_uri_strategy():
-                text = self.parser.load_uri(source)
-                if not data or data is None:
-                    data = self.parser.parse(text)
+            if source_is_uri:
+                # Load URI content if any backend needs non-URI format
+                source_text = self.parser.load_uri(source) if self.has_non_uri_backend() else source
+                source_dict = self.parser.parse(source_text) if self.has_non_uri_backend() else None
+            else:
+                # Plain text (JSON/YAML)
+                source_text = source
+                source_dict = self.parser.parse(source)
+        elif isinstance(source, dict):
+            source_is_uri = False
+            source_text = json.dumps(source)
+            source_dict = source
         else:
-            is_uri = False
-            is_text = False
-        if not data or data is None:
-            data = text
+            raise TypeError(
+                f"Unsupported document type: {type(source).__name__!r}. "
+                f"Expected str (URI or JSON/YAML) or dict."
+            )
 
-        for strat in self.strategies:
+        # Run validation through all backends
+        for backend in self.backends:
+            accepted = backend.accepts()
             document = None
-            if is_uri and "uri" in strat.accepts():
+
+            # Determine which format to pass to this backend
+            if source_is_uri and "uri" in accepted:
                 document = source
-            elif is_uri and "text" in strat.accepts():
-                document = text
-            elif is_uri and "dict" in strat.accepts():
-                document = data
-            elif not is_uri and "text" in strat.accepts():
-                document = text
-            elif not is_uri and "dict" in strat.accepts():
-                document = data
+            elif "dict" in accepted and source_dict is not None:
+                document = source_dict
+            elif "text" in accepted:
+                document = source_text
 
             if document is not None:
-                result = strat.validate(document)
-                all_messages.extend(result.diagnostics)
+                result = backend.validate(document)
+                diagnostics.extend(result.diagnostics)
 
-        return ValidationResult(all_messages)
+        return ValidationResult(diagnostics=diagnostics)
 
-    def has_non_uri_strategy(self) -> bool:
-        """Check if any strategy accepts 'text' or 'dict' but not 'uri'."""
-        for strat in self.strategies:
-            accepted = strat.accepts()
+    def has_non_uri_backend(self) -> bool:
+        """
+        Check if any configured backend requires non-URI document format.
+
+        This helper method determines whether document content needs to be loaded
+        and parsed from a URI. If all backends accept URIs directly, the loading
+        step can be skipped for better performance.
+
+        Returns:
+            True if at least one backend accepts 'text' or 'dict' but not 'uri'.
+            False if all backends can handle URIs directly.
+        """
+        for backend in self.backends:
+            accepted = backend.accepts()
             if ("text" in accepted or "dict" in accepted) and "uri" not in accepted:
                 return True
         return False

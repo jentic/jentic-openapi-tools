@@ -1,7 +1,7 @@
 [project]
 name = "jentic-openapi-transformer-redocly"
 version = "0.1.0"
-description = "Jentic OpenAPI Redocly Transformer Strategy"
+description = "Jentic OpenAPI Redocly Transformer Backend"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
 license = "Apache-2.0"

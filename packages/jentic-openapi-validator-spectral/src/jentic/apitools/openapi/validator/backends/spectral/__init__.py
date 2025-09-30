@@ -12,16 +12,16 @@ from jentic.apitools.openapi.common.subproc import (
     SubprocessExecutionResult,
 )
 from jentic.apitools.openapi.validator.core import ValidationResult
-from jentic.apitools.openapi.validator.strategies.base import BaseValidatorStrategy
+from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
 
-__all__ = ["SpectralValidator"]
+__all__ = ["SpectralValidatorBackend"]
 
 
-rulesets_files_dir = files("jentic.apitools.openapi.validator.spectral.rulesets")
+rulesets_files_dir = files("jentic.apitools.openapi.validator.backends.spectral.rulesets")
 ruleset_file = rulesets_files_dir.joinpath("spectral.yaml")
 
 
-class SpectralValidator(BaseValidatorStrategy):
+class SpectralValidatorBackend(BaseValidatorBackend):
     def __init__(
         self,
         spectral_path: str = "npx @stoplight/spectral-cli@^6.15.0",

@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
+from jentic.apitools.openapi.validator.core import ValidationResult
 
-from ..core.diagnostics import ValidationResult
 
-
-class BaseValidatorStrategy(ABC):
-    """Interface that all Validator plugins must implement."""
+class BaseValidatorBackend(ABC):
+    """Interface that all Validator backends must implement."""
 
     @abstractmethod
     def validate(self, document: str | dict) -> ValidationResult:
