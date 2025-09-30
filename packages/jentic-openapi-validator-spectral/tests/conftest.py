@@ -2,7 +2,7 @@
 
 import pytest
 from pathlib import Path
-from jentic.apitools.openapi.validator.spectral import SpectralValidator
+from jentic.apitools.openapi.validator.backends.spectral import SpectralValidatorBackend
 
 
 @pytest.fixture
@@ -42,24 +42,24 @@ def custom_ruleset_path(ruleset_fixtures_dir: Path) -> Path:
 
 
 @pytest.fixture
-def spectral_validator() -> SpectralValidator:
+def spectral_validator() -> SpectralValidatorBackend:
     """A default SpectralValidator instance."""
-    return SpectralValidator()
+    return SpectralValidatorBackend()
 
 
 @pytest.fixture
-def spectral_validator_with_custom_ruleset(custom_ruleset_path: Path) -> SpectralValidator:
+def spectral_validator_with_custom_ruleset(custom_ruleset_path: Path) -> SpectralValidatorBackend:
     """A SpectralValidator instance with a custom ruleset."""
-    return SpectralValidator(ruleset_path=str(custom_ruleset_path))
+    return SpectralValidatorBackend(ruleset_path=str(custom_ruleset_path))
 
 
 @pytest.fixture
-def spectral_validator_with_short_timeout() -> SpectralValidator:
+def spectral_validator_with_short_timeout() -> SpectralValidatorBackend:
     """A SpectralValidator instance with a short timeout for testing."""
-    return SpectralValidator(timeout=1.0)
+    return SpectralValidatorBackend(timeout=1.0)
 
 
 @pytest.fixture
-def spectral_validator_with_long_timeout() -> SpectralValidator:
+def spectral_validator_with_long_timeout() -> SpectralValidatorBackend:
     """A SpectralValidator instance with a long timeout."""
-    return SpectralValidator(timeout=120.0)
+    return SpectralValidatorBackend(timeout=120.0)
