@@ -1,4 +1,4 @@
-from .transform import normalize
-from .openapi_bundler import OpenAPIBundler
+from .normalize import normalize
 
-__all__ = ["OpenAPIBundler", "normalize"]
+
+__all__ = ["normalize"]

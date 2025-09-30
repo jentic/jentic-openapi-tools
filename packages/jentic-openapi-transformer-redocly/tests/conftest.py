@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from jentic.apitools.openapi.transformer.redocly import RedoclyBundler
+from jentic.apitools.openapi.transformer.bundler.backends.redocly import RedoclyBundlerBackend
 
 
 @pytest.fixture
@@ -27,21 +27,21 @@ def snapshots_dir(fixtures_dir: Path) -> Path:
 
 
 @pytest.fixture
-def redocly_bundler() -> RedoclyBundler:
+def redocly_bundler() -> RedoclyBundlerBackend:
     """Return a default RedoclyBundler instance."""
-    return RedoclyBundler()
+    return RedoclyBundlerBackend()
 
 
 @pytest.fixture
-def redocly_bundler_with_custom_timeout() -> RedoclyBundler:
+def redocly_bundler_with_custom_timeout() -> RedoclyBundlerBackend:
     """Return a RedoclyBundler instance with custom timeout."""
-    return RedoclyBundler(timeout=60.0)
+    return RedoclyBundlerBackend(timeout=60.0)
 
 
 @pytest.fixture
-def redocly_bundler_with_custom_path() -> RedoclyBundler:
+def redocly_bundler_with_custom_path() -> RedoclyBundlerBackend:
     """Return a RedoclyBundler instance with custom redocly path."""
-    return RedoclyBundler(redocly_path="/custom/path/to/redocly")
+    return RedoclyBundlerBackend(redocly_path="/custom/path/to/redocly")
 
 
 @pytest.fixture
