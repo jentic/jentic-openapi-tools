@@ -1,17 +1,16 @@
 import logging
 from typing import Any, Mapping
-from ruamel.yaml import YAML
+import yaml
 import json
-from .base import BaseParserStrategy
-from ..core.uri import is_uri_like, load_uri
+from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
+from jentic.apitools.openapi.parser.core.uri import is_uri_like, load_uri
 
 
-class RuamelOpenAPIParser(BaseParserStrategy):
-    def __init__(self, typ: str = "safe", pure: bool = True):
-        self.yaml = YAML(typ=typ, pure=pure)
-        self.yaml.default_flow_style = False
+__all__ = ["PyYAMLParserBackend"]
 
-    def parse(self, source: str, logger: logging.Logger | None = None) -> Any:
+
+class PyYAMLParserBackend(BaseParserBackend):
+    def parse(self, source: str, *, logger: logging.Logger | None = None) -> Any:
         logger = logger or logging.getLogger(__name__)
         text = source
         try:
@@ -32,7 +31,7 @@ class RuamelOpenAPIParser(BaseParserStrategy):
     def parse_text(self, text: str, logger: logging.Logger | None = None) -> Any:
         logger = logger or logging.getLogger(__name__)
         try:
-            data = self.yaml.load(text)
+            data = yaml.safe_load(text)
             logger.debug("loaded YAML")
         except Exception:
             if isinstance(text, (bytes, str)):
@@ -40,9 +39,8 @@ class RuamelOpenAPIParser(BaseParserStrategy):
                 data = json.loads(text)
                 logger.debug("loaded JSON")
         if isinstance(data, Mapping):
-            return data
+            return dict(data)
         msg = f"Unsupported document type: {type(text)!r}"
-        logger.error(msg)
         raise TypeError(msg)
 
     def accepts(self) -> list[str]:

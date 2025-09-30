@@ -5,8 +5,8 @@ from .exceptions import (
     DocumentParseError,
     DocumentLoadError,
     TypeConversionError,
-    InvalidStrategyError,
-    StrategyNotFoundError,
+    InvalidBackendError,
+    BackendNotFoundError,
 )
 
 
@@ -21,6 +21,6 @@ __all__ = [
     "DocumentParseError",
     "DocumentLoadError",
     "TypeConversionError",
-    "InvalidStrategyError",
-    "StrategyNotFoundError",
+    "InvalidBackendError",
+    "BackendNotFoundError",
 ]

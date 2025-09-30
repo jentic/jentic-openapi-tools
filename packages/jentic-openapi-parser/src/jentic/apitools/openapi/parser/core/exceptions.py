@@ -9,12 +9,12 @@ class OpenAPIParserError(Exception):
     """Base exception for OpenAPI parser errors."""
 
 
-class InvalidStrategyError(OpenAPIParserError):
-    """Raised when an invalid strategy is provided."""
+class InvalidBackendError(OpenAPIParserError):
+    """Raised when an invalid backend is provided."""
 
 
-class StrategyNotFoundError(InvalidStrategyError):
-    """Raised when a named strategy cannot be found."""
+class BackendNotFoundError(InvalidBackendError):
+    """Raised when a named backend cannot be found."""
 
 
 class DocumentParseError(OpenAPIParserError):
