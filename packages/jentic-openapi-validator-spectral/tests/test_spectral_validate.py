@@ -6,7 +6,7 @@ from jentic.apitools.openapi.validator.backends.spectral import SpectralValidato
 
 pytestmark = pytest.mark.skipif(
     subprocess.run(
-        ["npx", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
+        ["npx", "--yes", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
     ).returncode
     != 0,
     reason="Spectral CLI not available",
@@ -51,7 +51,7 @@ class TestSpectralValidatorUnit:
     def test_initialization_with_defaults(self):
         """Test SpectralValidator initialization with default values."""
         validator = SpectralValidatorBackend()
-        assert validator.spectral_path == "npx @stoplight/spectral-cli@^6.15.0"
+        assert validator.spectral_path == "npx --yes @stoplight/spectral-cli@^6.15.0"
         assert validator.ruleset_path is None
         assert validator.timeout == 30.0
 
@@ -69,7 +69,7 @@ class TestSpectralValidatorUnit:
         """Test SpectralValidator with custom timeout."""
         validator = SpectralValidatorBackend(timeout=60.0)
         assert validator.timeout == 60.0
-        assert validator.spectral_path == "npx @stoplight/spectral-cli@^6.15.0"  # default
+        assert validator.spectral_path == "npx --yes @stoplight/spectral-cli@^6.15.0"  # default
         assert validator.ruleset_path is None  # default
 
     def test_initialization_with_all_custom_parameters(self, custom_ruleset_path):
