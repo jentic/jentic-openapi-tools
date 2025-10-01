@@ -257,12 +257,14 @@ name = "jentic-openapi-parser"
 version = "0.1.0"
 source = { editable = "packages/jentic-openapi-parser" }
 dependencies = [
+    { name = "attrs" },
     { name = "pyyaml" },
     { name = "ruamel-yaml" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "attrs" },
     { name = "pyyaml" },
     { name = "ruamel-yaml" },
 ]

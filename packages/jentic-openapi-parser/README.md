@@ -7,6 +7,7 @@ A Python library for parsing OpenAPI documents using pluggable parser backends. 
 - **Pluggable Backend Architecture**: Support for multiple parsing strategies via entry points
 - **Multiple Input Formats**: Parse OpenAPI documents from file URIs or text strings (JSON/YAML)
 - **Multiple Parser Backends**: Choose from PyYAML, ruamel.yaml, or ruamel.yaml roundtrip modes
+- **Enhanced JSON Serialization**: Built-in support for datetime, UUID, Path, Decimal, Enum, and attrs classes
 - **Type Safety**: Full type hints with overloaded methods for precise return types
 - **Extensible Design**: Easy integration of third-party parser backends
 
@@ -177,6 +178,41 @@ class OpenAPIParser:
 
 - `load_uri(uri: str) -> str`
   - Load content from a URI
+
+### JSON Serialization
+
+The parser includes enhanced JSON serialization utilities for working with OpenAPI documents:
+
+```python
+from jentic.apitools.openapi.parser.core import json_dumps
+
+# Serialize with special type support
+from datetime import datetime
+from pathlib import Path
+from uuid import UUID
+
+data = {
+    "timestamp": datetime(2025, 10, 1, 12, 0, 0),
+    "id": UUID("550e8400-e29b-41d4-a716-446655440000"),
+    "path": Path("/var/log/app.log")
+}
+
+json_str = json_dumps(data, indent=2)
+# Output:
+# {
+#   "id": "550e8400-e29b-41d4-a716-446655440000",
+#   "path": "/var/log/app.log",
+#   "timestamp": "2025-10-01T12:00:00"
+# }
+```
+
+**Supported Types:**
+- `datetime` / `date` - Serialized to ISO 8601 format
+- `UUID` - Converted to string
+- `Path` - Converted to string
+- `Decimal` - Converted to float
+- `Enum` - Serialized using enum value
+- `attrs` classes - Converted to dictionaries
 
 ### Exceptions
 
