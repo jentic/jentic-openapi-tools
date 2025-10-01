@@ -38,7 +38,7 @@ class OpenAPIParser:
         read_timeout: int = 10,
     ):
         logger = logger or logging.getLogger(__name__)
-        backend = backend if backend else "default"
+        backend = backend if backend else "pyyaml"
         self.backend: BaseParserBackend
         self.logger = logger
         self.conn_timeout = conn_timeout
