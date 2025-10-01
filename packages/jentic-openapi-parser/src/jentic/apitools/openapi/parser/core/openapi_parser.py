@@ -6,27 +6,24 @@ from .uri import is_uri_like, load_uri
 from .exceptions import (
     OpenAPIParserError,
     DocumentParseError,
-    InvalidStrategyError,
-    StrategyNotFoundError,
+    InvalidBackendError,
+    BackendNotFoundError,
     TypeConversionError,
 )
-from ..strategies.base import BaseParserStrategy
-from ..strategies.default_strategy import DefaultOpenAPIParser
-from ..strategies.ruamel_strategy import RuamelOpenAPIParser
-from ..strategies.ruamel_roundtrip_strategy import RuamelRoundTripOpenAPIParser
+from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
 
 T = TypeVar("T")
 
 
 class OpenAPIParser:
     """
-    Provides a parser for OpenAPI specifications using customizable strategies.
+    Provides a parser for OpenAPI specifications using customizable backends.
 
     This class is designed to facilitate the parsing of OpenAPI documents.
-    It supports one strategy at a time and can be extended through plugins.
+    It supports one backend at a time and can be extended through backends.
 
     Attributes:
-        strategy: Strategy used by the parser implementing the BaseParserStrategy interface.
+        backend: Backend used by the parser implementing the BaseParserBackend interface.
         logger: Logger instance.
         conn_timeout: Connection timeout in seconds.
         read_timeout: Read timeout in seconds.
@@ -34,80 +31,64 @@ class OpenAPIParser:
 
     def __init__(
         self,
-        strategy: str | BaseParserStrategy | Type[BaseParserStrategy] | None = None,
+        backend: str | BaseParserBackend | Type[BaseParserBackend] | None = None,
         *,
         logger: logging.Logger | None = None,
         conn_timeout: int = 5,
         read_timeout: int = 10,
     ):
         logger = logger or logging.getLogger(__name__)
-        # If no strategy specified, use default
-        if not strategy:
-            strategy = "default"
+        backend = backend if backend else "pyyaml"
+        self.backend: BaseParserBackend
         self.logger = logger
         self.conn_timeout = conn_timeout
         self.read_timeout = read_timeout
 
         try:
-            # Discover entry points for parser plugins
-            # TODO(francesco@jentic.com): This could be a one-time load stored at class level to avoid doing it every time
-            eps = importlib.metadata.entry_points(group="jentic.apitools.openapi.parser.strategies")
-            plugin_map = {ep.name: ep for ep in eps}
+            # Discover entry points for parser backends
+            eps = importlib.metadata.entry_points(group="jentic.apitools.openapi.parser.backends")
+            backends = {ep.name: ep for ep in eps}
         except Exception as e:
-            self.logger.warning(f"Failed to load plugin entry points: {e}")
-            plugin_map = {}
+            self.logger.warning(f"Failed to load backend entry points: {e}")
+            backends = {}
 
-        if isinstance(strategy, str):
-            name = strategy
-
+        if isinstance(backend, str):
             try:
-                if name == "default":
-                    # Use built-in default parser
-                    logger.debug("using default parser")
-                    self.strategy = DefaultOpenAPIParser()
-                elif name == "ruamel":
-                    # Use built-in ruamel parser
-                    logger.debug("using ruamel parser")
-                    self.strategy = RuamelOpenAPIParser()
-                elif name == "ruamel-rt":
-                    # Use built-in ruamel roundtrip parser
-                    logger.debug("using ruamel roundtrip parser")
-                    self.strategy = RuamelRoundTripOpenAPIParser()
-                elif name in plugin_map:
+                if backend in backends:
                     try:
-                        logger.debug(f"using parser plugin '{name}'")
-                        plugin_class = plugin_map[name].load()  # loads the class
-                        self.strategy = plugin_class()
+                        logger.debug(f"using parser backend '{backend}'")
+                        backend_class = backends[backend].load()  # loads the class
+                        self.backend = backend_class()
                     except Exception as e:
-                        raise InvalidStrategyError(
-                            f"Failed to load parser plugin '{name}': {e}"
+                        raise InvalidBackendError(
+                            f"Failed to load parser backend '{backend}': {e}"
                         ) from e
                 else:
-                    logger.error(f"No parser plugin named '{name}' found")
-                    raise StrategyNotFoundError(f"No parser plugin named '{name}' found")
+                    logger.error(f"No parser backend named '{backend}' found")
+                    raise BackendNotFoundError(f"No parser backend named '{backend}' found")
             except OpenAPIParserError:
                 raise
             except Exception as e:
-                raise InvalidStrategyError(f"Error initializing strategy '{name}': {e}") from e
+                raise InvalidBackendError(f"Error initializing backend '{backend}': {e}") from e
 
-        elif isinstance(strategy, BaseParserStrategy):
-            logger.debug(f"using strategy '{type[strategy]}'")
-            self.strategy = strategy
-        elif hasattr(strategy, "__call__") and issubclass(strategy, BaseParserStrategy):
+        elif isinstance(backend, BaseParserBackend):
+            logger.debug(f"using parser backend '{type[backend]}'")
+            self.backend = backend
+        elif isinstance(backend, type) and issubclass(backend, BaseParserBackend):
             try:
-                # if a class (not instance) is passed
-                self.strategy = strategy()
-                logger.debug(f"using strategy '{type[strategy]}'")
+                # class (not instance) is passed
+                self.backend = backend()
+                logger.debug(f"using parser backend '{type[backend]}'")
             except Exception as e:
-                raise InvalidStrategyError(
-                    f"Failed to instantiate strategy class '{strategy.__name__}': {e}"
+                raise InvalidBackendError(
+                    f"Failed to instantiate backend class '{backend.__name__}': {e}"
                 ) from e
 
         else:
-            logger.error("Invalid strategy type: must be name or strategy class/instance")
-            raise InvalidStrategyError(
-                "Invalid strategy type: must be a strategy name (str), "
-                "BaseParserStrategy instance, or BaseParserStrategy class"
+            logger.error("Invalid backend type: must be name or backend class/instance")
+            raise InvalidBackendError(
+                "Invalid backend type: must be a backend name (str), "
+                "BaseParserBackend instance, or BaseParserBackend class"
             )
 
     @overload
@@ -137,59 +118,57 @@ class OpenAPIParser:
         return cast(T, raw)
 
     def _parse(self, source: str) -> Any:
-        text = source
-        is_uri = is_uri_like(source)
-        self.logger.debug(f"parsing a '{'uri' if is_uri else 'text'}'")
-        result = None
-        if is_uri and self.has_non_uri_strategy():
-            text = self.load_uri(source)
+        source_is_uri = is_uri_like(source)
+        backend_source: str | None = None
 
-        document = None
-        if is_uri and "uri" in self.strategy.accepts():
-            document = source
-        elif is_uri and "text" in self.strategy.accepts():
-            document = text
-        elif not is_uri and "text" in self.strategy.accepts():
-            document = text
+        self.logger.debug(f"parsing a '{'uri' if source_is_uri else 'text'}'")
 
-        if document is None:
-            accepted_formats = ", ".join(self.strategy.accepts())
-            source_type = "URI" if is_uri else "text"
+        if source_is_uri and "uri" in self.backend.accepts():
+            backend_source = source  # Delegate loading to backend
+        elif source_is_uri and "text" in self.backend.accepts():
+            backend_source = self.load_uri(source)
+        elif not source_is_uri and "text" in self.backend.accepts():
+            backend_source = source
+
+        if backend_source is None:
+            accepted_formats = ", ".join(self.backend.accepts())
+            source_type = "URI" if source_is_uri else "text"
             raise DocumentParseError(
-                f"Strategy '{type(self.strategy).__name__}' does not accept {source_type} format. "
+                f"Backend '{type(self.backend).__name__}' does not accept {source_type} format. "
                 f"Accepted formats: {accepted_formats}"
             )
 
         try:
-            result = self.strategy.parse(document, self.logger)
+            parse_result = self.backend.parse(backend_source, logger=self.logger)
         except Exception as e:
             # Log the original error and wrap it
-            msg = f"Failed to parse document with strategy '{type(self.strategy).__name__}': {e}"
+            msg = f"Failed to parse document with backend '{type(self.backend).__name__}': {e}"
             self.logger.error(msg)
             raise DocumentParseError(msg) from e
 
-        if result is None:
+        if parse_result is None:
             msg = "No valid document found"
             self.logger.error(msg)
             raise DocumentParseError(msg)
-        return result
 
-    def has_non_uri_strategy(self) -> bool:
-        """Check if any strategy accepts 'text' but not 'uri'."""
-        accepted = self.strategy.accepts()
+        return parse_result
+
+    def has_non_uri_backend(self) -> bool:
+        """Check if any backend accepts 'text' but not 'uri'."""
+        accepted = self.backend.accepts()
         return "text" in accepted and "uri" not in accepted
 
-    def _to_plain(self, obj: Any) -> Any:
-        # Mapping?
-        if isinstance(obj, Mapping):
-            return {k: self._to_plain(v) for k, v in obj.items()}
+    def _to_plain(self, value: Any) -> Any:
+        # Mapping
+        if isinstance(value, Mapping):
+            return {k: self._to_plain(v) for k, v in value.items()}
 
         # Sequence but NOT str/bytes
-        if isinstance(obj, Sequence) and not isinstance(obj, (str, bytes, bytearray)):
-            return [self._to_plain(x) for x in obj]
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+            return [self._to_plain(x) for x in value]
 
         # Scalar
-        return obj
+        return value
 
     @staticmethod
     def is_uri_like(s: Optional[str]) -> bool:

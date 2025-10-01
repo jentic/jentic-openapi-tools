@@ -4,6 +4,9 @@ from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
 from jentic.apitools.openapi.validator.core.diagnostics import ValidationResult
 
 
+__all__ = ["DefaultValidatorBackend"]
+
+
 class DefaultValidatorBackend(BaseValidatorBackend):
     def validate(self, document: str | dict) -> ValidationResult:
         # Use openapi_spec_validator to check spec validity
