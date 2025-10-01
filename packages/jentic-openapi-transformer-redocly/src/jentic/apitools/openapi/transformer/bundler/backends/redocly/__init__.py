@@ -12,12 +12,12 @@ __all__ = ["RedoclyBundlerBackend"]
 
 
 class RedoclyBundlerBackend(BaseBundlerBackend):
-    def __init__(self, redocly_path: str = "npx @redocly/cli@^2.1.5", timeout: float = 30.0):
+    def __init__(self, redocly_path: str = "npx --yes @redocly/cli@^2.1.5", timeout: float = 30.0):
         """
         Initialize the RedoclyBundler.
 
         Args:
-            redocly_path: Path to the redocly CLI executable (default: "npx @redocly/cli@^2.1.5")
+            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@^2.1.5")
             timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 30.0)
         """
         self.redocly_path = redocly_path
