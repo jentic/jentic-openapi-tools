@@ -1,8 +1,10 @@
 import subprocess
+
 import pytest
 
 from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
 from jentic.apitools.openapi.validator.backends.spectral import SpectralValidatorBackend
+
 
 pytestmark = pytest.mark.skipif(
     subprocess.run(

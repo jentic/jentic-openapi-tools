@@ -289,11 +289,11 @@ dev = [
 [package.metadata.requires-dev]
 dev = [
     { name = "poethepoet", specifier = ">=0.37.0" },
-    { name = "pre-commit" },
-    { name = "pyright" },
-    { name = "pytest" },
+    { name = "pre-commit", specifier = ">=4.0.1" },
+    { name = "pyright", specifier = ">=1.1.391" },
+    { name = "pytest", specifier = ">=8.3.4" },
     { name = "python-semantic-release", specifier = ">=10.0.0" },
-    { name = "ruff" },
+    { name = "ruff", specifier = ">=0.8.6" },
 ]
 
 [[package]]

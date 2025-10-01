@@ -1,9 +1,10 @@
-import json
 import importlib.metadata
-from typing import Any, TypeVar, cast, overload, Mapping, Sequence, Type
+import json
+from typing import Any, Mapping, Sequence, Type, TypeVar, cast, overload
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser
 from jentic.apitools.openapi.transformer.bundler.backends.base import BaseBundlerBackend
+
 
 T = TypeVar("T")
 

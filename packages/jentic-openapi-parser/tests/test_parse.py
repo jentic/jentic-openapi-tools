@@ -1,16 +1,17 @@
 """Tests for OpenAPI parser functionality."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 from ruamel.yaml import CommentedMap
 
+from jentic.apitools.openapi.parser.backends.pyyaml import PyYAMLParserBackend
 from jentic.apitools.openapi.parser.core import OpenAPIParser
 from jentic.apitools.openapi.parser.core.exceptions import (
     BackendNotFoundError,
     DocumentParseError,
     TypeConversionError,
 )
-from jentic.apitools.openapi.parser.backends.pyyaml import PyYAMLParserBackend
 
 
 def test_parse_json_uri(parser: OpenAPIParser, simple_openapi_uri: str):
