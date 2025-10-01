@@ -1,16 +1,18 @@
 import importlib.metadata
 import logging
-from typing import Any, TypeVar, cast, Optional, overload, Mapping, Sequence, Type
+from typing import Any, Mapping, Optional, Sequence, Type, TypeVar, cast, overload
 
-from .uri import is_uri_like, load_uri
+from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
+
 from .exceptions import (
-    OpenAPIParserError,
+    BackendNotFoundError,
     DocumentParseError,
     InvalidBackendError,
-    BackendNotFoundError,
+    OpenAPIParserError,
     TypeConversionError,
 )
-from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
+from .uri import is_uri_like, load_uri
+
 
 T = TypeVar("T")
 

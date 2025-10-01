@@ -1,7 +1,9 @@
+import json
 import logging
 from typing import Any, Mapping
+
 import yaml
-import json
+
 from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
 from jentic.apitools.openapi.parser.core.uri import is_uri_like, load_uri
 

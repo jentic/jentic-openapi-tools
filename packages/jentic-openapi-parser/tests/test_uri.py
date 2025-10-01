@@ -1,7 +1,9 @@
 import os
 from pathlib import Path
 from urllib.parse import urlparse
+
 import pytest
+
 from jentic.apitools.openapi.parser.core import UriResolutionError, resolve_to_absolute
 
 

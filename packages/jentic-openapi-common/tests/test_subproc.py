@@ -1,11 +1,11 @@
+import platform
 import sys
 import unittest
-import platform
 
 from jentic.apitools.openapi.common.subproc import (
-    run_subprocess,
-    SubprocessExecutionResult,
     SubprocessExecutionError,
+    SubprocessExecutionResult,
+    run_subprocess,
 )
 
 

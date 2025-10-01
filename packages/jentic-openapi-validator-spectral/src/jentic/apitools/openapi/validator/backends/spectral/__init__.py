@@ -1,18 +1,20 @@
 import json
 import tempfile
+from importlib.resources import as_file, files
 from pathlib import Path
 from urllib.parse import urlparse
 from urllib.request import url2pathname
-from lsprotocol.types import Diagnostic, DiagnosticSeverity, Range, Position
-from importlib.resources import files, as_file
+
+from lsprotocol.types import Diagnostic, DiagnosticSeverity, Position, Range
 
 from jentic.apitools.openapi.common.subproc import (
-    run_subprocess,
     SubprocessExecutionError,
     SubprocessExecutionResult,
+    run_subprocess,
 )
-from jentic.apitools.openapi.validator.core import ValidationResult
 from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
+from jentic.apitools.openapi.validator.core import ValidationResult
+
 
 __all__ = ["SpectralValidatorBackend"]
 

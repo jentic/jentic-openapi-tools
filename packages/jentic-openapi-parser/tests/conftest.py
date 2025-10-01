@@ -1,7 +1,9 @@
 """Pytest configuration and fixtures for jentic-openapi-parser tests."""
 
-import pytest
 from pathlib import Path
+
+import pytest
+
 from jentic.apitools.openapi.parser.core import OpenAPIParser
 
 

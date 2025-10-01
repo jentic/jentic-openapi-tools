@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
-from urllib.parse import urlparse, urljoin, urlsplit, urlunsplit
-from pathlib import Path
 import os
 import re
 import urllib.request
+from pathlib import Path
+from typing import Optional
+from urllib.parse import urljoin, urlparse, urlsplit, urlunsplit
+
 import requests
 
 from .exceptions import DocumentLoadError
+
 
 _WINDOWS_DRIVE_RE = re.compile(r"^[A-Za-z]:[\\/]")
 _WINDOWS_UNC_RE = re.compile(r"^(?:\\\\|//)[^\\/]+[\\/][^\\/]+")

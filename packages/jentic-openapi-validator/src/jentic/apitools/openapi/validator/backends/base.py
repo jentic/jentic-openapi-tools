@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 from jentic.apitools.openapi.validator.core import ValidationResult
 
 

@@ -16,10 +16,10 @@ Homepage = "https://github.com/jentic/jentic-openapi-tools"
 # Development-only dependencies (will not be published)
 [dependency-groups]
 dev = [
-  "pre-commit",
-  "ruff",
-  "pyright",
-  "pytest",
+  "pre-commit>=4.0.1",
+  "ruff>=0.8.6",
+  "pyright>=1.1.391",
+  "pytest>=8.3.4",
   "python-semantic-release>=10.0.0",
   "poethepoet>=0.37.0",
 ]
@@ -63,6 +63,12 @@ src = [
   "packages/jentic-openapi-validator-spectral/src",
   "packages/jentic-openapi-transformer-redocly/src",
 ]
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
 
 [tool.pyright]
 include = ["src", "packages/*/src/**"]
