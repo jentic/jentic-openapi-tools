@@ -1,6 +1,5 @@
 from jentic.apitools.openapi.parser.backends.ruamel import RuamelParserBackend
 
-
 __all__ = ["RuamelRoundTripParserBackend"]
 
 

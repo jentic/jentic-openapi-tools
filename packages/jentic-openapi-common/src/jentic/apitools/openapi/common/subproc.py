@@ -4,7 +4,6 @@ import subprocess
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-
 __all__ = ["run_subprocess", "SubprocessExecutionResult", "SubprocessExecutionError"]
 
 

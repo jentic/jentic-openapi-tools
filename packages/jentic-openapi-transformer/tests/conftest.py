@@ -1,9 +1,9 @@
 """Pytest configuration and fixtures for jentic-openapi-transformer tests."""
 
 import subprocess
+from pathlib import Path
 
 import pytest
-from pathlib import Path
 from jentic.apitools.openapi.transformer.bundler.core import OpenAPIBundler
 
 

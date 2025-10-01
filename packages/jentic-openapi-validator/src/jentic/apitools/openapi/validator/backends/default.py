@@ -1,8 +1,7 @@
-from lsprotocol import types as lsp
-from openapi_spec_validator import validate
 from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
 from jentic.apitools.openapi.validator.core.diagnostics import ValidationResult
-
+from lsprotocol import types as lsp
+from openapi_spec_validator import validate
 
 __all__ = ["DefaultValidatorBackend"]
 

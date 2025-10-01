@@ -4,7 +4,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
 from jentic.apitools.openapi.transformer.bundler.backends.redocly import RedoclyBundlerBackend
 
 

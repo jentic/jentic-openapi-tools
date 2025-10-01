@@ -1,7 +1,6 @@
 """Integration tests for Redocly backend discovery and usage."""
 
 import pytest
-
 from jentic.apitools.openapi.transformer.bundler.core import OpenAPIBundler
 
 

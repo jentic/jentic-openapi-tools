@@ -8,7 +8,6 @@ from uuid import UUID
 
 import attrs
 
-
 __all__ = ["json_dumps", "CustomEncoder"]
 
 

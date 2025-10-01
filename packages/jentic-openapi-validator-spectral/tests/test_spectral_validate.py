@@ -1,6 +1,6 @@
 import subprocess
-import pytest
 
+import pytest
 from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
 from jentic.apitools.openapi.validator.backends.spectral import SpectralValidatorBackend
 

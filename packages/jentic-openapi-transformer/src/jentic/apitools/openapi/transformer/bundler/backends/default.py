@@ -1,6 +1,5 @@
 from jentic.apitools.openapi.transformer.bundler.backends.base import BaseBundlerBackend
 
-
 __all__ = ["DefaultBundlerBackend"]
 
 

@@ -1,10 +1,10 @@
-import json
 import importlib.metadata
+import json
 from typing import Type
-from lsprotocol.types import Diagnostic
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser
 from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
+from lsprotocol.types import Diagnostic
 
 from .diagnostics import ValidationResult
 

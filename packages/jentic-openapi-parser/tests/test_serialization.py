@@ -9,7 +9,6 @@ from uuid import UUID
 
 import attrs
 import pytest
-
 from jentic.apitools.openapi.parser.core.serialization import CustomEncoder, json_dumps
 
 

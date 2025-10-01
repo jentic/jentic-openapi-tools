@@ -4,9 +4,8 @@ from pathlib import Path
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
-from jentic.apitools.openapi.transformer.bundler.backends.base import BaseBundlerBackend
 from jentic.apitools.openapi.common.subproc import run_subprocess
-
+from jentic.apitools.openapi.transformer.bundler.backends.base import BaseBundlerBackend
 
 __all__ = ["RedoclyBundlerBackend"]
 

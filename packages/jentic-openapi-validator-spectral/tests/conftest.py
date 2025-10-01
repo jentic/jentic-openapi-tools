@@ -1,7 +1,8 @@
 """Pytest configuration and fixtures for jentic-openapi-validator-spectral tests."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 from jentic.apitools.openapi.validator.backends.spectral import SpectralValidatorBackend
 
 

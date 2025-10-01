@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from jentic.apitools.openapi.validator.core import ValidationResult
 
+from jentic.apitools.openapi.validator.core import ValidationResult
 
 __all__ = ["BaseValidatorBackend"]
 

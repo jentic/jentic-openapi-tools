@@ -1,9 +1,8 @@
 """Tests for RedoclyBundlerBackend functionality."""
 
 import pytest
-
-from jentic.apitools.openapi.transformer.bundler.backends.redocly import RedoclyBundlerBackend
 from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
+from jentic.apitools.openapi.transformer.bundler.backends.redocly import RedoclyBundlerBackend
 
 
 class TestRedoclyBundlerIntegration:

@@ -1,7 +1,6 @@
 """Integration tests for Spectral backend discovery and usage."""
 
 import pytest
-
 from jentic.apitools.openapi.validator.core import OpenAPIValidator
 
 

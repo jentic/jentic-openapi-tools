@@ -16,10 +16,11 @@ Homepage = "https://github.com/jentic/jentic-openapi-tools"
 # Development-only dependencies (will not be published)
 [dependency-groups]
 dev = [
-  "pre-commit",
-  "ruff",
-  "pyright",
-  "pytest",
+  "pre-commit>=4.0.1",
+  "ruff>=0.8.6",
+  "pyright>=1.1.391",
+  "pytest>=8.3.4",
+  "isort>=5.13.2",
   "python-semantic-release>=10.0.0",
   "poethepoet>=0.37.0",
 ]
@@ -27,11 +28,13 @@ dev = [
 [tool.poe.tasks]
 [tool.poe.tasks.lint]
 sequence = [
+  { cmd = "isort --check-only --diff ." },
   { shell = "ruff check ${GITHUB_ACTIONS:+--output-format=github}" },
   { cmd = "ruff format --check --diff"}
 ]
 [tool.poe.tasks."lint:fix"]
 sequence = [
+  { cmd = "isort ." },
   { cmd = "ruff check --fix" },
   { cmd = "ruff format" },
 ]

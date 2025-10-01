@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+
 from lsprotocol.types import Diagnostic
 
 
