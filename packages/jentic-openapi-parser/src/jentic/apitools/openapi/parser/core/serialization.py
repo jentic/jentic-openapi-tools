@@ -78,5 +78,11 @@ def json_dumps(
         >>> json_str = json_dumps(data, indent=2)
     """
     return json.dumps(
-        data, indent=indent, ensure_ascii=False, allow_nan=False, sort_keys=True, cls=cls
+        data,
+        indent=indent,
+        ensure_ascii=False,
+        allow_nan=False,
+        sort_keys=True,
+        separators=(",", ":") if indent is None else (",", ": "),
+        cls=cls,
     )
