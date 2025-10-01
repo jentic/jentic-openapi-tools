@@ -24,7 +24,7 @@ ruleset_file = rulesets_files_dir.joinpath("spectral.yaml")
 class SpectralValidatorBackend(BaseValidatorBackend):
     def __init__(
         self,
-        spectral_path: str = "npx @stoplight/spectral-cli@^6.15.0",
+        spectral_path: str = "npx --yes @stoplight/spectral-cli@^6.15.0",
         ruleset_path: str | None = None,
         timeout: float = 30.0,
     ):
@@ -32,7 +32,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         Initialize the SpectralValidator.
 
         Args:
-            spectral_path: Path to the spectral CLI executable (default: "npx @stoplight/spectral-cli")
+            spectral_path: Path to the spectral CLI executable (default: "npx --yes @stoplight/spectral-cli@^6.15.0")
             ruleset_path: Path to a custom ruleset file. If None, uses bundled default ruleset.
             timeout: Maximum time in seconds to wait for Spectral CLI execution (default: 30.0)
         """
