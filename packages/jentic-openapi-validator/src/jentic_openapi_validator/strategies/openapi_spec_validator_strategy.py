@@ -49,13 +49,13 @@ class OpenAPISpecValidator(BaseValidatorStrategy):
                         severity=lsp.DiagnosticSeverity.Error,
                         code="openapi-spec-validator-error",
                         source="openapi-spec-validator",
-                        message=msg,
+                        message=msg[:500],
                     )
                     diag.set_target(target)
                     diagnostics.append(diag)
         except Exception as e:
-            msg = f"Error validating spec - {str(e)}"
-            print(msg)
+            msg = f"OpenAPISpecValidator Error validating spec - {str(e)}"
+            print(msg[:500])
             diag = JenticDiagnostic(
                 range=lsp.Range(
                     start=lsp.Position(line=0, character=0),
@@ -64,7 +64,7 @@ class OpenAPISpecValidator(BaseValidatorStrategy):
                 severity=lsp.DiagnosticSeverity.Error,
                 code="openapi-spec-validator-error",
                 source="openapi-spec-validator",
-                message=msg,
+                message=msg[:500],
             )
             diag.set_target(target)
             diagnostics.append(diag)

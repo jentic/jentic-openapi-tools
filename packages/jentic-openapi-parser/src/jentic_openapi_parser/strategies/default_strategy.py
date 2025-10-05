@@ -16,10 +16,12 @@ class DefaultOpenAPIParser(BaseParserStrategy):
                 text = load_uri(source, 5, 10, logger)
 
             data = self.parse_text(text)
-        except Exception:
-            msg = f"Unsupported document type: {type(source)!r}"
+        except Exception as e:
+            src = f"{type(source)!r}" if not is_uri_like(source) else source
+            msg = f"Error parsing with default strategy type: {src}"
             logger.exception(msg)
-            raise TypeError(msg)
+            raise e
+
         return data
 
     def parse_uri(self, uri: str, logger: logging.Logger | None = None) -> Any:
@@ -28,11 +30,14 @@ class DefaultOpenAPIParser(BaseParserStrategy):
     def parse_text(self, text: str, logger: logging.Logger | None = None) -> Any:
         logger = logger or logging.getLogger(__name__)
         try:
+            logger.debug("loading YAML")
             data = yaml.safe_load(text)
             logger.debug("loaded YAML")
         except Exception:
             if isinstance(text, (bytes, str)):
+                logger.debug("decoding JSON")
                 text = text.decode() if isinstance(text, bytes) else text
+                logger.debug("loading JSON")
                 data = json.loads(text)
                 logger.debug("loaded JSON")
         if isinstance(data, Mapping):

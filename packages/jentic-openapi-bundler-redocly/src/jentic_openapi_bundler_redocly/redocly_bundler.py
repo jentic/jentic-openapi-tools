@@ -43,24 +43,25 @@ class RedoclyBundler(BaseBundlerStrategy):
                 "json",
                 "--lint-config",
                 "off",
-                "--force",
                 # "--remove-unused-components", # TODO, raises errors in redocly for some reason
             ]
-            result = run_checked(cmd)
+            result = run_checked(cmd, timeout=600)
         except SubprocessExecutionError as e:
             # only timeout and OS errors, as run_checked has default `fail_on_error = False`
             raise e
+
+        if result.returncode != 0:
+            # TODO we need to return significant error
+            print(f"Error parsing document: {result.stderr}")
+            err = (result.stderr or "").strip()
+            msg = err or f"Redocly exited with code {result.returncode}"
+            raise Exception(msg)
 
         if result.stdout:
             # When using `--force` Redocly tries bundling even on errors
             output_lines = result.stdout.splitlines()
             if output_lines and output_lines[-1].startswith("Created a bundle"):
                 output_lines = output_lines[:-1]
-
-            if result.returncode != 0 and result.stderr:
-                # TODO we need to add any errors to the parser/validation chain result
-                print(f"Error parsing document: {result.stderr}")
-
             return "\n".join(output_lines)
         else:
             err = (result.stderr or "").strip()

@@ -8,6 +8,17 @@ from .strategies.default.default_strategy import DefaultOpenAPIValidator
 
 
 class OpenAPIValidator:
+    # Cache entry points at class level (loaded once)
+    _plugin_map: dict | None = None
+
+    @classmethod
+    def _get_plugin_map(cls) -> dict:
+        """Lazily load and cache validator plugin entry points."""
+        if cls._plugin_map is None:
+            eps = importlib.metadata.entry_points(group="jentic.openapi_validator_strategies")
+            cls._plugin_map = {ep.name: ep for ep in eps}
+        return cls._plugin_map
+
     def __init__(self, strategies: list | None = None, parser: OpenAPIParser | None = None):
         if not parser:
             parser = OpenAPIParser()
@@ -16,12 +27,7 @@ class OpenAPIValidator:
         if not strategies:
             strategies = ["default"]
         self.strategies = []  # list of BaseValidatorStrategy instances
-
-        # Discover entry points for validator plugins
-        # (This could be a one-time load stored at class level to avoid doing it every time)
-        eps = importlib.metadata.entry_points(group="jentic.openapi_validator_strategies")
-        plugin_map = {ep.name: ep for ep in eps}
-
+        plugin_map = self._get_plugin_map()
         for strat in strategies:
             if isinstance(strat, str):
                 name = strat
@@ -93,11 +99,10 @@ class OpenAPIValidator:
                 return True
         return False
 
-    @staticmethod
-    def list_strategies() -> list[str]:
+    @classmethod
+    def list_strategies(cls) -> list[str]:
         strategies = ["default", "openapi-spec-validator"]
-        eps = importlib.metadata.entry_points(group="jentic.openapi_validator_strategies")
-        plugin_map = {ep.name: ep for ep in eps}
+        plugin_map = cls._get_plugin_map()
         for plugin_name, entry_point in plugin_map.items():
             strategies.append(plugin_name)
         return strategies

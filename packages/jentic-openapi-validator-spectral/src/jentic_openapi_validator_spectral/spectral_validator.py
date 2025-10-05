@@ -77,14 +77,13 @@ class SpectralValidator(BaseValidatorStrategy):
 
             # Get ruleset path (may create temporary file)
             ruleset_path = self._get_ruleset_path()
-
             # Keep track of temp file for cleanup if we created one
             if not self.ruleset_path:
                 ruleset_temp_path = ruleset_path
 
             # Build spectral command
             cmd = [*self.spectral_path.split(), "lint", "-r", ruleset_path, "-f", "json", doc_path]
-            result = run_checked(cmd)
+            result = run_checked(cmd, timeout=600)
 
         except SubprocessExecutionError as e:
             # only timeout and OS errors, as run_checked has default `fail_on_error = False`

@@ -92,7 +92,7 @@ class RedoclyValidator(BaseValidatorStrategy):
                 "json",
                 doc_path,
             ]
-            result = run_checked(cmd)
+            result = run_checked(cmd, timeout=600)
 
         except SubprocessExecutionError as e:
             # only timeout and OS errors, as run_checked has default `fail_on_error = False`

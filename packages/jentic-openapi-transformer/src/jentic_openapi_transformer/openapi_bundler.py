@@ -158,8 +158,8 @@ class OpenAPIBundler:
             try:
                 result = self.strategy.bundle(document, base_url)
             except Exception as e:
-                # TODO add to parser/validation chain result
                 print(f"Error parsing document: {e}")
+                raise e
 
         if result is None:
             raise ValueError("No valid document found")
