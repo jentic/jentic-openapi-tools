@@ -2,12 +2,10 @@ import importlib.metadata
 import json
 from typing import Type
 
-from lsprotocol.types import Diagnostic
-
 from jentic.apitools.openapi.parser.core import OpenAPIParser
 from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
 
-from .diagnostics import ValidationResult
+from .diagnostics import JenticDiagnostic, ValidationResult
 
 
 class OpenAPIValidator:
@@ -66,7 +64,9 @@ class OpenAPIValidator:
             else:
                 raise TypeError("Invalid backend type: must be name or backend class/instance")
 
-    def validate(self, source: str | dict) -> ValidationResult:
+    def validate(
+        self, source: str | dict, *, base_url: str | None = None, target: str | None = None
+    ) -> ValidationResult:
         """
         Validate an OpenAPI document using all configured backends.
 
@@ -79,6 +79,8 @@ class OpenAPIValidator:
                 - File URI (e.g., "file:///path/to/openapi.yaml")
                 - JSON/YAML string representation
                 - Python dictionary
+            base_url: Optional base URL for resolving relative references in the document
+            target: Optional target identifier for validation context
 
         Returns:
             ValidationResult containing aggregated diagnostics from all backends.
@@ -88,7 +90,7 @@ class OpenAPIValidator:
             TypeError: If source is not a str or dict
         """
 
-        diagnostics: list[Diagnostic] = []
+        diagnostics: list[JenticDiagnostic] = []
         source_is_uri: bool = False
         source_text: str = ""
         source_dict: dict | None = None
@@ -129,7 +131,7 @@ class OpenAPIValidator:
                 document = source_text
 
             if document is not None:
-                result = backend.validate(document)
+                result = backend.validate(document, base_url=base_url, target=target)
                 diagnostics.extend(result.diagnostics)
 
         return ValidationResult(diagnostics=diagnostics)
@@ -151,3 +153,27 @@ class OpenAPIValidator:
             if ("text" in accepted or "dict" in accepted) and "uri" not in accepted:
                 return True
         return False
+
+    @staticmethod
+    def list_backends() -> list[str]:
+        """
+        List all available validator backends registered via entry points.
+
+        This static method discovers and returns the names of all validator backends
+        that have been registered in the 'jentic.apitools.openapi.validator.backends'
+        entry point group.
+
+        Returns:
+            List of backend names that can be used when initializing OpenAPIValidator.
+
+        Example:
+            >>> backends = OpenAPIValidator.list_backends()
+            >>> print(backends)
+            ['default', 'spectral']
+        """
+        backends = []
+        eps = importlib.metadata.entry_points(group="jentic.apitools.openapi.validator.backends")
+        available_backends = {ep.name: ep for ep in eps}
+        for backend_name, backend in available_backends.items():
+            backends.append(backend_name)
+        return backends

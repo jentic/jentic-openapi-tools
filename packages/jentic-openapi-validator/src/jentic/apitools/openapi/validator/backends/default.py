@@ -1,22 +1,26 @@
+from typing import Literal
+
 from lsprotocol import types as lsp
 from openapi_spec_validator import validate
 
 from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
-from jentic.apitools.openapi.validator.core.diagnostics import ValidationResult
+from jentic.apitools.openapi.validator.core.diagnostics import JenticDiagnostic, ValidationResult
 
 
 __all__ = ["DefaultValidatorBackend"]
 
 
 class DefaultValidatorBackend(BaseValidatorBackend):
-    def validate(self, document: str | dict) -> ValidationResult:
+    def validate(
+        self, source: str | dict, *, base_url: str | None = None, target: str | None = None
+    ) -> ValidationResult:
         # Use openapi_spec_validator to check spec validity
         try:
-            assert isinstance(document, dict)
-            validate(document)  # TODO use base url..
+            assert isinstance(source, dict)
+            validate(source, base_uri=base_url or "")
         except Exception as e:
             msg = str(e)
-            diag = lsp.Diagnostic(
+            diagnostic = JenticDiagnostic(
                 range=lsp.Range(
                     start=lsp.Position(line=0, character=0),
                     end=lsp.Position(line=0, character=12),
@@ -26,11 +30,13 @@ class DefaultValidatorBackend(BaseValidatorBackend):
                 # code_description=lsp.CodeDescription(href="https://example.com/rules/OAS1001"),
                 source="openapi_spec_validator",
                 message=msg,
-            )  # ,tags=[lsp.DiagnosticTag.Unnecessary])
+            )
+            diagnostic.set_target(target)
 
-            return ValidationResult([diag])
+            return ValidationResult(diagnostics=[diagnostic])
         # If no exception, it's valid
-        return ValidationResult([])
+        return ValidationResult(diagnostics=[])
 
-    def accepts(self) -> list[str]:
+    @staticmethod
+    def accepts() -> list[Literal["uri", "text", "dict"]]:
         return ["dict"]
