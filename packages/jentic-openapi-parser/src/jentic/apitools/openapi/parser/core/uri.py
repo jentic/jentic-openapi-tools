@@ -23,7 +23,7 @@ _WINDOWS_UNC_RE = re.compile(r"^(?:\\\\|//)[^\\/]+[\\/][^\\/]+")
 # - Windows UNC: \\server\share\...
 # - Windows root-relative: \path\to (current drive root)
 # - Windows drive-absolute: C:\path\to or C:/path/to
-# - Relative paths: ./path, ../path, .\path, ..\path
+# - Relative paths: ./path, ../path, .\path, ..\path, or plain relative paths
 _URI_LIKE_RE = re.compile(
     r"""^(?:
             https?://[^\r\n]+ |
@@ -36,7 +36,9 @@ _URI_LIKE_RE = re.compile(
             \./[^\r\n]*       |
             \.\\/[^\r\n]*     |
             \.\.[/\\][^\r\n]* |
-            \.\.\\[^\r\n]*
+            \.\.\\[^\r\n]*    |
+            [a-zA-Z_][a-zA-Z0-9_.-]*(?:[/\\][a-zA-Z0-9_.-]+)+ |
+            [a-zA-Z_][a-zA-Z0-9_.-]*\.[a-zA-Z0-9]+(?![}\])])
         )$""",
     re.VERBOSE,
 )
@@ -196,21 +198,21 @@ def load_uri(
 
     try:
         if resolved_uri.startswith("http://") or uri.startswith("https://"):
-            logger.info("Starting download of %s", resolved_uri)
+            logger.info("Loading URI %s", resolved_uri)
             resp = requests.get(resolved_uri, timeout=(connTimeout, readTimeout))
             logger.info(
-                "Download completed, status: %s, content length: %s",
+                "Load of URI %s completed, status: %s, content length: %s",
                 resp.status_code,
                 len(resp.content),
             )
             content = resp.text
         elif resolved_uri.startswith("file://"):
-            logger.info("Using local file: %s", resolved_uri)
+            logger.info("Loading local file %s", resolved_uri)
             with open(resolved_uri, "r", encoding="utf-8") as f:
                 content = f.read()
         else:
             # Treat as local file path
-            logger.info("Using local file: %s", resolved_uri)
+            logger.info("Loading local file %s", resolved_uri)
             with open(resolved_uri, "r", encoding="utf-8") as f:
                 content = f.read()
     except Exception as e:
