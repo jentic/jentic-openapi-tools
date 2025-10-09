@@ -1,5 +1,6 @@
 """Pytest configuration and fixtures for jentic-openapi-validator-spectral tests."""
 
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -65,3 +66,25 @@ def spectral_validator_with_short_timeout() -> SpectralValidatorBackend:
 def spectral_validator_with_long_timeout() -> SpectralValidatorBackend:
     """A SpectralValidator instance with a long timeout."""
     return SpectralValidatorBackend(timeout=120.0)
+
+
+def pytest_configure(config):
+    """Configure pytest markers."""
+    config.addinivalue_line(
+        "markers", "requires_spectral_cli: mark test as requiring Spectral CLI to be available"
+    )
+
+
+def pytest_runtest_setup(item):
+    """Skip tests that require Spectral CLI when it's not available."""
+    if item.get_closest_marker("requires_spectral_cli"):
+        try:
+            result = subprocess.run(
+                ["npx", "--yes", "@stoplight/spectral-cli@^6.15.0", "--version"],
+                capture_output=True,
+                timeout=10,
+            )
+            if result.returncode != 0:
+                pytest.skip("Spectral CLI not available")
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pytest.skip("Spectral CLI not available")

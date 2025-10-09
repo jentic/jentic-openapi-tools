@@ -1,5 +1,6 @@
 """Pytest configuration and fixtures for jentic-openapi-validator-redocly tests."""
 
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -65,3 +66,25 @@ def redocly_validator_with_short_timeout() -> RedoclyValidatorBackend:
 def redocly_validator_with_long_timeout() -> RedoclyValidatorBackend:
     """A RedoclyValidator instance with a long timeout."""
     return RedoclyValidatorBackend(timeout=120.0)
+
+
+def pytest_configure(config):
+    """Configure pytest markers."""
+    config.addinivalue_line(
+        "markers", "requires_redocly_cli: mark test as requiring Redocly CLI to be available"
+    )
+
+
+def pytest_runtest_setup(item):
+    """Skip tests that require Redocly CLI when it's not available."""
+    if item.get_closest_marker("requires_redocly_cli"):
+        try:
+            result = subprocess.run(
+                ["npx", "--yes", "@redocly/cli@2.4.0", "--version"],
+                capture_output=True,
+                timeout=10,
+            )
+            if result.returncode != 0:
+                pytest.skip("Redocly CLI not available")
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pytest.skip("Redocly CLI not available")

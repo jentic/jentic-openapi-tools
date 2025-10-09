@@ -1,20 +1,10 @@
-import subprocess
-
 import pytest
 
 from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
 from jentic.apitools.openapi.validator.backends.spectral import SpectralValidatorBackend
 
 
-pytestmark = pytest.mark.skipif(
-    subprocess.run(
-        ["npx", "--yes", "@stoplight/spectral-cli@^6.15.0", "--version"], capture_output=True
-    ).returncode
-    != 0,
-    reason="Spectral CLI not available",
-)
-
-
+@pytest.mark.requires_spectral_cli
 class TestSpectralValidatorIntegration:
     """Integration tests that require Spectral CLI to be available."""
 

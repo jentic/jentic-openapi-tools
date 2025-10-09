@@ -1,20 +1,10 @@
-import subprocess
-
 import pytest
 
 from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
 from jentic.apitools.openapi.validator.backends.redocly import RedoclyValidatorBackend
 
 
-pytestmark = pytest.mark.skipif(
-    subprocess.run(
-        ["npx", "--yes", "@redocly/cli@2.4.0", "--version"], capture_output=True
-    ).returncode
-    != 0,
-    reason="Redocly CLI not available",
-)
-
-
+@pytest.mark.requires_redocly_cli
 class TestRedoclyValidatorIntegration:
     """Integration tests that require Redocly CLI to be available."""
 
