@@ -58,7 +58,9 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
 
     def _bundle_uri(self, document: str, base_url: str | None = None) -> str:
         parsed_doc_url = urlparse(document)
-        doc_path = url2pathname(parsed_doc_url.path)
+        doc_path = (
+            url2pathname(parsed_doc_url.path) if parsed_doc_url.scheme == "file" else document
+        )
 
         # Create a temporary output file path
         temp_output_path = tempfile.mktemp(suffix=".json")
