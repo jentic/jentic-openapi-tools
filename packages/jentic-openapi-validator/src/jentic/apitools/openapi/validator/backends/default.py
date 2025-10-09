@@ -13,12 +13,12 @@ __all__ = ["DefaultValidatorBackend"]
 
 class DefaultValidatorBackend(BaseValidatorBackend):
     def validate(
-        self, source: str | dict, *, base_url: str | None = None, target: str | None = None
+        self, document: str | dict, *, base_url: str | None = None, target: str | None = None
     ) -> ValidationResult:
         # Use openapi_spec_validator to check spec validity
         try:
-            assert isinstance(source, dict)
-            validate(source, base_uri=base_url or "")
+            assert isinstance(document, dict)
+            validate(document, base_uri=base_url or "")
         except Exception as e:
             msg = str(e)
             diagnostic = JenticDiagnostic(

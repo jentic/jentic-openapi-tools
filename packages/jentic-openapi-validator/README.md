@@ -170,9 +170,9 @@ class OpenAPIValidator:
 
 **Methods:**
 
-- `validate(source: str | dict) -> ValidationResult`
+- `validate(document: str | dict) -> ValidationResult`
   - Validates an OpenAPI document using all configured backends
-  - `source`: File URI, JSON/YAML string, or dictionary
+  - `document`: File URI, JSON/YAML string, or dictionary
   - Returns: `ValidationResult` with aggregated diagnostics
 
 ### ValidationResult

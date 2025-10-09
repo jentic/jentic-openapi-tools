@@ -94,16 +94,16 @@ class OpenAPIParser:
             )
 
     @overload
-    def parse(self, source: str) -> dict[str, Any]: ...
+    def parse(self, document: str) -> dict[str, Any]: ...
 
     @overload
-    def parse(self, source: str, *, return_type: type[T], strict: bool = False) -> T: ...
+    def parse(self, document: str, *, return_type: type[T], strict: bool = False) -> T: ...
 
     def parse(
-        self, source: str, *, return_type: type[T] | None = None, strict: bool = False
+        self, document: str, *, return_type: type[T] | None = None, strict: bool = False
     ) -> Any:
         try:
-            raw = self._parse(source)
+            raw = self._parse(document)
         except OpenAPIParserError:
             raise
         except Exception as e:
@@ -119,29 +119,29 @@ class OpenAPIParser:
                 raise TypeConversionError(msg)
         return cast(T, raw)
 
-    def _parse(self, source: str) -> Any:
-        source_is_uri = is_uri_like(source)
-        backend_source: str | None = None
+    def _parse(self, document: str) -> Any:
+        document_is_uri = is_uri_like(document)
+        backend_document: str | None = None
 
-        self.logger.debug(f"parsing a '{'uri' if source_is_uri else 'text'}'")
+        self.logger.debug(f"parsing a '{'uri' if document_is_uri else 'text'}'")
 
-        if source_is_uri and "uri" in self.backend.accepts():
-            backend_source = source  # Delegate loading to backend
-        elif source_is_uri and "text" in self.backend.accepts():
-            backend_source = self.load_uri(source)
-        elif not source_is_uri and "text" in self.backend.accepts():
-            backend_source = source
+        if document_is_uri and "uri" in self.backend.accepts():
+            backend_document = document  # Delegate loading to backend
+        elif document_is_uri and "text" in self.backend.accepts():
+            backend_document = self.load_uri(document)
+        elif not document_is_uri and "text" in self.backend.accepts():
+            backend_document = document
 
-        if backend_source is None:
+        if backend_document is None:
             accepted_formats = ", ".join(self.backend.accepts())
-            source_type = "URI" if source_is_uri else "text"
+            document_type = "URI" if document_is_uri else "text"
             raise DocumentParseError(
-                f"Backend '{type(self.backend).__name__}' does not accept {source_type} format. "
+                f"Backend '{type(self.backend).__name__}' does not accept {document_type} format. "
                 f"Accepted formats: {accepted_formats}"
             )
 
         try:
-            parse_result = self.backend.parse(backend_source, logger=self.logger)
+            parse_result = self.backend.parse(backend_document, logger=self.logger)
         except Exception as e:
             # Log the original error and wrap it
             msg = f"Failed to parse document with backend '{type(self.backend).__name__}': {e}"

@@ -65,7 +65,7 @@ class OpenAPIValidator:
                 raise TypeError("Invalid backend type: must be name or backend class/instance")
 
     def validate(
-        self, source: str | dict, *, base_url: str | None = None, target: str | None = None
+        self, document: str | dict, *, base_url: str | None = None, target: str | None = None
     ) -> ValidationResult:
         """
         Validate an OpenAPI document using all configured backends.
@@ -75,7 +75,7 @@ class OpenAPIValidator:
         from all backends are aggregated into a single ValidationResult.
 
         Args:
-            source: OpenAPI document in one of the following formats:
+            document: OpenAPI document in one of the following formats:
                 - File URI (e.g., "file:///path/to/openapi.yaml")
                 - JSON/YAML string representation
                 - Python dictionary
@@ -87,51 +87,55 @@ class OpenAPIValidator:
             The result's `valid` property indicates if validation passed.
 
         Raises:
-            TypeError: If source is not a str or dict
+            TypeError: If document is not a str or dict
         """
 
         diagnostics: list[JenticDiagnostic] = []
-        source_is_uri: bool = False
-        source_text: str = ""
-        source_dict: dict | None = None
+        document_is_uri: bool = False
+        document_text: str = ""
+        document_dict: dict | None = None
 
         # Determine an input type and prepare different representations
-        if isinstance(source, str):
-            source_is_uri = self.parser.is_uri_like(source)
+        if isinstance(document, str):
+            document_is_uri = self.parser.is_uri_like(document)
 
-            if source_is_uri:
+            if document_is_uri:
                 # Load URI content if any backend needs non-URI format
-                source_text = self.parser.load_uri(source) if self.has_non_uri_backend() else source
-                source_dict = self.parser.parse(source_text) if self.has_non_uri_backend() else None
+                document_text = (
+                    self.parser.load_uri(document) if self.has_non_uri_backend() else document
+                )
+                document_dict = (
+                    self.parser.parse(document_text) if self.has_non_uri_backend() else None
+                )
             else:
                 # Plain text (JSON/YAML)
-                source_text = source
-                source_dict = self.parser.parse(source)
-        elif isinstance(source, dict):
-            source_is_uri = False
-            source_text = json.dumps(source)
-            source_dict = source
+                document_text = document
+                document_dict = self.parser.parse(document)
+        elif isinstance(document, dict):
+            document_is_uri = False
+            document_text = json.dumps(document)
+            document_dict = document
         else:
             raise TypeError(
-                f"Unsupported document type: {type(source).__name__!r}. "
+                f"Unsupported document type: {type(document).__name__!r}. "
                 f"Expected str (URI or JSON/YAML) or dict."
             )
 
         # Run validation through all backends
         for backend in self.backends:
             accepted = backend.accepts()
-            document = None
+            backend_document = None
 
             # Determine which format to pass to this backend
-            if source_is_uri and "uri" in accepted:
-                document = source
-            elif "dict" in accepted and source_dict is not None:
-                document = source_dict
+            if document_is_uri and "uri" in accepted:
+                backend_document = document
+            elif "dict" in accepted and document_dict is not None:
+                backend_document = document_dict
             elif "text" in accepted:
-                document = source_text
+                backend_document = document_text
 
-            if document is not None:
-                result = backend.validate(document, base_url=base_url, target=target)
+            if backend_document is not None:
+                result = backend.validate(backend_document, base_url=base_url, target=target)
                 diagnostics.extend(result.diagnostics)
 
         return ValidationResult(diagnostics=diagnostics)

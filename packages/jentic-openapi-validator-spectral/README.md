@@ -205,7 +205,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
 **Methods:**
 
 - `accepts() -> list[Literal["uri", "dict"]]`: Returns supported document format identifiers
-- `validate(source: str | dict) -> ValidationResult`: Validates an OpenAPI document
+- `validate(document: str | dict) -> ValidationResult`: Validates an OpenAPI document
 
 **Exceptions:**
 - `FileNotFoundError`: Custom ruleset file doesn't exist
