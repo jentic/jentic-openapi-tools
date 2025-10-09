@@ -109,6 +109,6 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
             mode="w", suffix=".json", delete=True, encoding="utf-8"
         ) as temp_file:
             json.dump(document, temp_file)
-            temp_file.flush()  # Ensure content is written to a disk
+            temp_file.flush()  # Ensure content is written to disk
 
             return self._bundle_uri(Path(temp_file.name).as_uri(), base_url)
