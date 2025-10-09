@@ -1,6 +1,11 @@
-from abc import ABC, abstractmethod
+from __future__ import annotations
 
-from jentic.apitools.openapi.validator.core import ValidationResult
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from jentic.apitools.openapi.validator.core.diagnostics import ValidationResult
 
 
 __all__ = ["BaseValidatorBackend"]

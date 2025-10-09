@@ -27,6 +27,14 @@ uv run --package jentic-openapi-transformer  pytest packages/jentic-openapi-tran
 uv run --package jentic-openapi-validator    pytest packages/jentic-openapi-validator/tests -q
 uv run --package jentic-openapi-validator-spectral    pytest packages/jentic-openapi-validator-spectral/tests -q
 uv run --package jentic-openapi-transformer-redocly    pytest packages/jentic-openapi-transformer-redocly/tests -q
+# Run single test suite 
+uv run --package jentic-openapi-transformer-redocly pytest -s packages/jentic-openapi-transformer-redocly/tests/test_redocly_bundle.py::TestRedoclyBundlerIntegration
+# Run by pattern
+uv run pytest packages/**/tests -s -v -k test_redocly_bundle
+```
+
+```bash
+
 ```
 
 ### Run linting
