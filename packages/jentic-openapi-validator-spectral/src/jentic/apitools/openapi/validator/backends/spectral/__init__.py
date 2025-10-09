@@ -100,18 +100,20 @@ class SpectralValidatorBackend(BaseValidatorBackend):
 
         try:
             parsed_doc_url = urlparse(document)
-            doc_path = url2pathname(parsed_doc_url.path)
+            doc_path = (
+                url2pathname(parsed_doc_url.path) if parsed_doc_url.scheme == "file" else document
+            )
 
             with as_file(ruleset_file) as ruleset_path:
                 # Build spectral command
                 cmd = [
                     *self.spectral_path.split(),
                     "lint",
-                    doc_path,
                     "-r",
                     self.ruleset_path or ruleset_path,
                     "-f",
                     "json",
+                    doc_path,
                 ]
                 result = run_subprocess(cmd, timeout=self.timeout)
 
@@ -169,6 +171,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
                 source="spectral-validator",
             )
             diagnostic.set_target(target)
+            diagnostic.set_path(issue.get("path"))
             diagnostics.append(diagnostic)
 
         return ValidationResult(diagnostics=diagnostics)
