@@ -2,10 +2,11 @@ import json
 import tempfile
 from importlib.resources import as_file, files
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
-from lsprotocol.types import Diagnostic, DiagnosticSeverity, Position, Range
+from lsprotocol.types import DiagnosticSeverity, Position, Range
 
 from jentic.apitools.openapi.common.subproc import (
     SubprocessExecutionError,
@@ -13,7 +14,7 @@ from jentic.apitools.openapi.common.subproc import (
     run_subprocess,
 )
 from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
-from jentic.apitools.openapi.validator.core import ValidationResult
+from jentic.apitools.openapi.validator.core import JenticDiagnostic, ValidationResult
 
 
 __all__ = ["SpectralValidatorBackend"]
@@ -42,7 +43,8 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         self.ruleset_path = ruleset_path if isinstance(ruleset_path, str) else None
         self.timeout = timeout
 
-    def accepts(self) -> list[str]:
+    @staticmethod
+    def accepts() -> list[Literal["uri", "text", "dict"]]:
         """Return the document formats this validator can accept.
 
         Returns:
@@ -52,12 +54,16 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         """
         return ["uri", "dict"]
 
-    def validate(self, document: str | dict) -> ValidationResult:
+    def validate(
+        self, source: str | dict, *, base_url: str | None = None, target: str | None = None
+    ) -> ValidationResult:
         """
         Validate an OpenAPI document using Spectral.
 
         Args:
-            document: Path to the OpenAPI document file to validate, or dict containing the document
+            source: Path to the OpenAPI document file to validate, or dict containing the document
+            base_url: Optional base URL for resolving relative references (currently unused)
+            target: Optional target identifier for validation context (currently unused)
 
         Returns:
             ValidationResult containing any validation issues found
@@ -68,14 +74,16 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             SubprocessExecutionError: If Spectral execution times out or fails to start
             TypeError: If a document type is not supported
         """
-        if isinstance(document, str):
-            return self._validate_uri(document)
-        elif isinstance(document, dict):
-            return self._validate_dict(document)
+        if isinstance(source, str):
+            return self._validate_uri(source, base_url=base_url, target=target)
+        elif isinstance(source, dict):
+            return self._validate_dict(source, base_url=base_url, target=target)
         else:
-            raise TypeError(f"Unsupported document type: {type(document)!r}")
+            raise TypeError(f"Unsupported document type: {type(source)!r}")
 
-    def _validate_uri(self, document: str) -> ValidationResult:
+    def _validate_uri(
+        self, document: str, *, base_url: str | None = None, target: str | None = None
+    ) -> ValidationResult:
         """
         Validate an OpenAPI document using Spectral.
 
@@ -130,7 +138,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             # If an output isn't JSON (maybe spectral old version or error format), handle gracefully
             return ValidationResult(diagnostics=[])
 
-        diagnostics: list[Diagnostic] = []
+        diagnostics: list[JenticDiagnostic] = []
         for issue in issues:
             # Spectral JSON has fields like code, message, severity, path, range, etc.
             try:
@@ -150,7 +158,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             end_line = range_info.get("end", {}).get("line", start_line)
             end_char = range_info.get("end", {}).get("character", start_char)
             # TODO(francesco@jentic.com): add jsonpath and other details to message if needed
-            diagnostic = Diagnostic(
+            diagnostic = JenticDiagnostic(
                 range=Range(
                     start=Position(line=start_line, character=start_char),
                     end=Position(line=end_line, character=end_char),
@@ -160,11 +168,14 @@ class SpectralValidatorBackend(BaseValidatorBackend):
                 code=issue.get("code"),
                 source="spectral-validator",
             )
+            diagnostic.set_target(target)
             diagnostics.append(diagnostic)
 
         return ValidationResult(diagnostics=diagnostics)
 
-    def _validate_dict(self, document: dict) -> ValidationResult:
+    def _validate_dict(
+        self, document: dict, *, base_url: str | None = None, target: str | None = None
+    ) -> ValidationResult:
         """Validate a dict document by creating a temporary file and using _validate_uri."""
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".json", delete=True, encoding="utf-8"
@@ -172,4 +183,6 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             json.dump(document, temp_file)
             temp_file.flush()  # Ensure content is written to a disk
 
-            return self._validate_uri(Path(temp_file.name).as_uri())
+            return self._validate_uri(
+                Path(temp_file.name).as_uri(), base_url=base_url, target=target
+            )
