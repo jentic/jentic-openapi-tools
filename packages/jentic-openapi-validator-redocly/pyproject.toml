@@ -11,8 +11,7 @@ dependencies = [
   "jentic-openapi-common",
   "jentic-openapi-validator",
   "lsprotocol>=2025.0.0",
-  "jsonpointer>=3.0,<4.0",
-  "importlib-resources>=1.3.0;python_version<'3.9'"
+  "jsonpointer>=3.0,<4.0"
 ]
 
 [project.urls]
