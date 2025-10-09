@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Literal
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
@@ -23,5 +24,10 @@ class BaseValidatorBackend(ABC):
         ...
 
     @staticmethod
-    def accepts() -> list[Literal["uri", "text", "dict"]]:
+    def accepts() -> Sequence[str]:
+        """Return the document formats this backend can accept.
+
+        Returns:
+            Sequence of format identifiers (e.g., "uri", "text", "dict")
+        """
         return []

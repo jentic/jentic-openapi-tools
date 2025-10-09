@@ -1,5 +1,6 @@
 import json
 import tempfile
+from collections.abc import Sequence
 from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Literal
@@ -44,11 +45,11 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         self.timeout = timeout
 
     @staticmethod
-    def accepts() -> list[Literal["uri", "text", "dict"]]:
+    def accepts() -> Sequence[Literal["uri", "dict"]]:
         """Return the document formats this validator can accept.
 
         Returns:
-            List of supported document format identifiers:
+            Sequence of supported document format identifiers:
             - "uri": File path or URI pointing to OpenAPI Document
             - "dict": Python dictionary containing OpenAPI Document data
         """
