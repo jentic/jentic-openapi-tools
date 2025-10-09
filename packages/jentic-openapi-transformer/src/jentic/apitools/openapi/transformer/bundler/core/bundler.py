@@ -51,7 +51,7 @@ class OpenAPIBundler:
     @overload
     def bundle(
         self,
-        source: str | dict,
+        document: str | dict,
         base_url: str | None = None,
         *,
         return_type: type[str],
@@ -61,7 +61,7 @@ class OpenAPIBundler:
     @overload
     def bundle(
         self,
-        source: str | dict,
+        document: str | dict,
         base_url: str | None = None,
         *,
         return_type: type[dict[str, Any]],
@@ -71,7 +71,7 @@ class OpenAPIBundler:
     @overload
     def bundle(
         self,
-        source: str | dict,
+        document: str | dict,
         base_url: str | None = None,
         *,
         return_type: type[T],
@@ -80,13 +80,13 @@ class OpenAPIBundler:
 
     def bundle(
         self,
-        source: str | dict,
+        document: str | dict,
         base_url: str | None = None,
         *,
         return_type: type[T] | None = None,
         strict: bool = False,
     ) -> Any:
-        raw = self._bundle(source, base_url)
+        raw = self._bundle(document, base_url)
 
         if return_type is None:
             return self._to_plain(raw)
@@ -116,20 +116,20 @@ class OpenAPIBundler:
 
         return cast(T, raw)
 
-    def _bundle(self, source: str | dict, base_url: str | None = None) -> Any:
-        text = source
+    def _bundle(self, document: str | dict, base_url: str | None = None) -> Any:
+        text = document
         data = None
         result = None
 
-        if isinstance(source, str):
-            is_uri = self.parser.is_uri_like(source)
+        if isinstance(document, str):
+            is_uri = self.parser.is_uri_like(document)
             is_text = not is_uri
 
             if is_text:
-                data = self.parser.parse(source)
+                data = self.parser.parse(document)
 
             if is_uri and self.has_non_uri_backend():
-                text = self.parser.load_uri(source)
+                text = self.parser.load_uri(document)
                 if not data or data is None:
                     data = self.parser.parse(text)
         else:
@@ -137,21 +137,21 @@ class OpenAPIBundler:
 
         data = text if not data or data is None else data
 
-        document = None
+        backend_document = None
         if is_uri and "uri" in self.backend.accepts():
-            document = source
+            backend_document = document
         elif is_uri and "text" in self.backend.accepts():
-            document = text
+            backend_document = text
         elif is_uri and "dict" in self.backend.accepts():
-            document = data
+            backend_document = data
         elif not is_uri and "text" in self.backend.accepts():
-            document = text
+            backend_document = text
         elif not is_uri and "dict" in self.backend.accepts():
-            document = data
+            backend_document = data
 
-        if document is not None:
+        if backend_document is not None:
             try:
-                result = self.backend.bundle(document)
+                result = self.backend.bundle(backend_document)
             except Exception as e:
                 # TODO(fracensco@jentic.com): Add to parser/validation chain result
                 print(f"Error parsing document: {e}")

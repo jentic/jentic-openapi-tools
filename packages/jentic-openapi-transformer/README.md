@@ -109,13 +109,13 @@ bundler = OpenAPIBundler(parser=parser)
 
 ```python
 # Return as dictionary (typed)
-dict_result: dict = bundler.bundle(source, return_type=dict)
+dict_result: dict = bundler.bundle(document, return_type=dict)
 
 # Return as JSON string (typed)
-str_result: str = bundler.bundle(source, return_type=str)
+str_result: str = bundler.bundle(document, return_type=str)
 
 # Return as plain (auto-detected type)
-plain_result = bundler.bundle(source)
+plain_result = bundler.bundle(document)
 ```
 
 ### Strict Mode
@@ -123,7 +123,7 @@ plain_result = bundler.bundle(source)
 ```python
 # Enable strict type checking for return type
 try:
-    result = bundler.bundle(source, return_type=dict, strict=True)
+    result = bundler.bundle(document, return_type=dict, strict=True)
 except TypeError as e:
     print(f"Type mismatch: {e}")
 ```
@@ -159,9 +159,9 @@ class OpenAPIBundler:
 
 **Methods:**
 
-- `bundle(source: str | dict, base_url: str | None = None, *, return_type: type[T] | None = None, strict: bool = False) -> T`
+- `bundle(document: str | dict, base_url: str | None = None, *, return_type: type[T] | None = None, strict: bool = False) -> T`
   - Bundles an OpenAPI document with specified return type
-  - `source`: File path, URI, JSON/YAML string, or dictionary
+  - `document`: File path, URI, JSON/YAML string, or dictionary
   - `base_url`: Optional base URL for resolving relative references
   - `return_type`: Desired output type (str, dict, or None for auto)
   - `strict`: Enable strict return type validation

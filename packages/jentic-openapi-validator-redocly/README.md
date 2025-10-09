@@ -201,7 +201,7 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
 **Methods:**
 
 - `accepts() -> list[Literal["uri", "dict"]]`: Returns supported document format identifiers
-- `validate(source: str | dict, *, base_url: str | None = None, target: str | None = None) -> ValidationResult`: Validates an OpenAPI document
+- `validate(document: str | dict, *, base_url: str | None = None, target: str | None = None) -> ValidationResult`: Validates an OpenAPI document
 
 **Exceptions:**
 - `FileNotFoundError`: Custom ruleset file doesn't exist

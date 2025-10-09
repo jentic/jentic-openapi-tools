@@ -17,17 +17,17 @@ class RuamelParserBackend(BaseParserBackend):
         self.yaml = YAML(typ=typ, pure=pure)
         self.yaml.default_flow_style = False
 
-    def parse(self, source: str, *, logger: logging.Logger | None = None) -> Any:
+    def parse(self, document: str, *, logger: logging.Logger | None = None) -> Any:
         logger = logger or logging.getLogger(__name__)
-        text = source
+        text = document
         try:
-            if is_uri_like(source):
-                logger.debug("Starting download of %s", source)
-                text = load_uri(source, 5, 10, logger)
+            if is_uri_like(document):
+                logger.debug("Starting download of %s", document)
+                text = load_uri(document, 5, 10, logger)
 
             data = self.parse_text(text)
         except Exception:
-            msg = f"Unsupported document type: {type(source)!r}"
+            msg = f"Unsupported document type: {type(document)!r}"
             logger.exception(msg)
             raise TypeError(msg)
         return data

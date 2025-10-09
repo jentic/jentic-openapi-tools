@@ -56,13 +56,13 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         return ["uri", "dict"]
 
     def validate(
-        self, source: str | dict, *, base_url: str | None = None, target: str | None = None
+        self, document: str | dict, *, base_url: str | None = None, target: str | None = None
     ) -> ValidationResult:
         """
         Validate an OpenAPI document using Spectral.
 
         Args:
-            source: Path to the OpenAPI document file to validate, or dict containing the document
+            document: Path to the OpenAPI document file to validate, or dict containing the document
             base_url: Optional base URL for resolving relative references (currently unused)
             target: Optional target identifier for validation context (currently unused)
 
@@ -75,12 +75,12 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             SubprocessExecutionError: If Spectral execution times out or fails to start
             TypeError: If a document type is not supported
         """
-        if isinstance(source, str):
-            return self._validate_uri(source, base_url=base_url, target=target)
-        elif isinstance(source, dict):
-            return self._validate_dict(source, base_url=base_url, target=target)
+        if isinstance(document, str):
+            return self._validate_uri(document, base_url=base_url, target=target)
+        elif isinstance(document, dict):
+            return self._validate_dict(document, base_url=base_url, target=target)
         else:
-            raise TypeError(f"Unsupported document type: {type(source)!r}")
+            raise TypeError(f"Unsupported document type: {type(document)!r}")
 
     def _validate_uri(
         self, document: str, *, base_url: str | None = None, target: str | None = None

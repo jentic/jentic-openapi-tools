@@ -163,12 +163,12 @@ class OpenAPIParser:
 
 **Methods:**
 
-- `parse(source: str) -> dict[str, Any]`
+- `parse(document: str) -> dict[str, Any]`
   - Parse without type conversion, returns plain dict
 
-- `parse(source: str, *, return_type: type[T], strict: bool = False) -> T`
+- `parse(document: str, *, return_type: type[T], strict: bool = False) -> T`
   - Parse with optional type conversion
-  - `source`: File URI or text string (JSON/YAML)
+  - `document`: File URI or text string (JSON/YAML)
   - `return_type`: Expected return type (e.g., `dict`, `CommentedMap`)
   - `strict`: If `True`, raises `TypeConversionError` if result doesn't match `return_type`
   - Returns: Parsed document
