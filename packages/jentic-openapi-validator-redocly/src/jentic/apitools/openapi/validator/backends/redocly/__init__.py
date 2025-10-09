@@ -6,6 +6,7 @@ from typing import Literal
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
+from jsonpointer import JsonPointer
 from lsprotocol.types import DiagnosticSeverity, Position, Range
 
 from jentic.apitools.openapi.common.subproc import (
@@ -17,29 +18,29 @@ from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
 from jentic.apitools.openapi.validator.core import JenticDiagnostic, ValidationResult
 
 
-__all__ = ["SpectralValidatorBackend"]
+__all__ = ["RedoclyValidatorBackend"]
 
 
-rulesets_files_dir = files("jentic.apitools.openapi.validator.backends.spectral.rulesets")
-ruleset_file = rulesets_files_dir.joinpath("spectral.yaml")
+rulesets_files_dir = files("jentic.apitools.openapi.validator.backends.redocly.rulesets")
+ruleset_file = rulesets_files_dir.joinpath("redocly.yaml")
 
 
-class SpectralValidatorBackend(BaseValidatorBackend):
+class RedoclyValidatorBackend(BaseValidatorBackend):
     def __init__(
         self,
-        spectral_path: str = "npx --yes @stoplight/spectral-cli@^6.15.0",
+        redocly_path: str = "npx --yes @redocly/cli@2.4.0",
         ruleset_path: str | None = None,
         timeout: float = 30.0,
     ):
         """
-        Initialize the SpectralValidatorBackend.
+        Initialize the RedoclyValidatorBackend.
 
         Args:
-            spectral_path: Path to the spectral CLI executable (default: "npx --yes @stoplight/spectral-cli@^6.15.0")
+            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@2.4.0")
             ruleset_path: Path to a custom ruleset file. If None, uses bundled default ruleset.
-            timeout: Maximum time in seconds to wait for Spectral CLI execution (default: 30.0)
+            timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 30.0)
         """
-        self.spectral_path = spectral_path
+        self.redocly_path = redocly_path
         self.ruleset_path = ruleset_path if isinstance(ruleset_path, str) else None
         self.timeout = timeout
 
@@ -58,7 +59,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         self, source: str | dict, *, base_url: str | None = None, target: str | None = None
     ) -> ValidationResult:
         """
-        Validate an OpenAPI document using Spectral.
+        Validate an OpenAPI document using Redocly.
 
         Args:
             source: Path to the OpenAPI document file to validate, or dict containing the document
@@ -70,8 +71,8 @@ class SpectralValidatorBackend(BaseValidatorBackend):
 
         Raises:
             FileNotFoundError: If a custom ruleset file doesn't exist
-            RuntimeError: If Spectral execution fails
-            SubprocessExecutionError: If Spectral execution times out or fails to start
+            RuntimeError: If Redocly execution fails
+            SubprocessExecutionError: If Redocly execution times out or fails to start
             TypeError: If a document type is not supported
         """
         if isinstance(source, str):
@@ -85,7 +86,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         self, document: str, *, base_url: str | None = None, target: str | None = None
     ) -> ValidationResult:
         """
-        Validate an OpenAPI document using Spectral.
+        Validate an OpenAPI document using Redocly.
 
         Args:
             document: Path to the OpenAPI document file to validate, or dict containing the document
@@ -105,13 +106,13 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             )
 
             with as_file(ruleset_file) as ruleset_path:
-                # Build spectral command
+                # Build redocly command
                 cmd = [
-                    *self.spectral_path.split(),
+                    *self.redocly_path.split(),
                     "lint",
-                    "-r",
+                    "--config",
                     self.ruleset_path or ruleset_path,
-                    "-f",
+                    "--format",
                     "json",
                     doc_path,
                 ]
@@ -122,58 +123,59 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             raise e
 
         if result is None:
-            raise RuntimeError("Spectral validation failed - no result returned")
+            raise RuntimeError("Redocly validation failed - no result returned")
 
         if result.returncode not in (0, 1) or (result.stderr and not result.stdout):
-            # According to Spectral docs, return code 2 might indicate lint errors found,
-            # 0 means no issues, but let's not assume this; we'll parse output.
-            # If returncode is something else, spectral encountered an execution error.
+            # Redocly returns 0 (no errors) or 1 (validation errors found).
+            # Exit code 2 or higher indicates command-line/configuration errors.
             err = result.stderr.strip() or result.stdout.strip()
-            msg = err or f"Spectral exited with code {result.returncode}"
+            msg = err or f"Redocly exited with code {result.returncode}"
             raise RuntimeError(msg)
 
-        output = result.stdout.replace("No results with a severity of 'error' found!", "")
+        output = result.stdout
 
         try:
-            issues: list[dict] = json.loads(output)
+            problems: list[dict] = json.loads(output).get("problems", [])
         except json.JSONDecodeError:
-            # If an output isn't JSON (maybe spectral old version or error format), handle gracefully
+            # If output isn't JSON (maybe redocly error format), handle gracefully
             return ValidationResult(diagnostics=[])
 
         diagnostics: list[JenticDiagnostic] = []
-        for issue in issues:
-            # Spectral JSON has fields like code, message, severity, path, range, etc.
-            try:
-                severity_code = issue.get(
-                    "severity", DiagnosticSeverity.Error
-                )  # e.g. "error" or numeric 0=error,1=warn...
-                severity = DiagnosticSeverity(severity_code + 1)
-            except (ValueError, TypeError):
-                severity = DiagnosticSeverity.Error
+        for problem in problems:
+            locations = []
+            for location_path in problem.get("location", [{}]):
+                pointer_uri_fragment_ident_rep = location_path.get("pointer")
+                if pointer_uri_fragment_ident_rep:
+                    pointer = pointer_uri_fragment_ident_rep.lstrip("#")
+                    path = JsonPointer(pointer).get_parts()
+                    loc = f"path: {'.'.join(path)}"
+                    data = {"fixable": True, "path": path}
+                else:
+                    loc = ""
+                    data = {"fixable": True, "path": []}
+                locations.append((loc, data))
 
-            msg_text = issue.get("message", "")
-            # location: combine file and jsonpath if available
-            loc = f"path: {'.'.join(str(p) for p in issue['path'])}" if issue.get("path") else ""
-            range_info = issue.get("range", {})
-            start_line = range_info.get("start", {}).get("line", 0)
-            start_char = range_info.get("start", {}).get("character", 0)
-            end_line = range_info.get("end", {}).get("line", start_line)
-            end_char = range_info.get("end", {}).get("character", start_char)
-            # TODO(francesco@jentic.com): add jsonpath and other details to message if needed
-            diagnostic = JenticDiagnostic(
-                range=Range(
-                    start=Position(line=start_line, character=start_char),
-                    end=Position(line=end_line, character=end_char),
-                ),
-                message=msg_text + " [" + loc + "]",
-                severity=severity,
-                code=issue.get("code"),
-                source="spectral-validator",
-            )
-            diagnostic.set_target(target)
-            diagnostic.set_path(issue.get("path"))
-            diagnostics.append(diagnostic)
+            for loc, data in locations:
+                # Map Redocly severity to LSP DiagnosticSeverity
+                severity_map: dict[str, DiagnosticSeverity] = {
+                    "error": DiagnosticSeverity.Error,
+                    "warn": DiagnosticSeverity.Warning,
+                }
+                severity = severity_map.get(problem.get("severity"), DiagnosticSeverity.Information)  # type: ignore[arg-type]
 
+                diagnostic = JenticDiagnostic(
+                    range=Range(
+                        start=Position(line=0, character=0),
+                        end=Position(line=0, character=0),
+                    ),
+                    message=problem.get("message", "") + " [" + loc + "]",
+                    severity=severity,
+                    code=problem.get("ruleId"),
+                    source="redocly-validator",
+                )
+                diagnostic.data = data
+                diagnostic.set_target(target)
+                diagnostics.append(diagnostic)
         return ValidationResult(diagnostics=diagnostics)
 
     def _validate_dict(

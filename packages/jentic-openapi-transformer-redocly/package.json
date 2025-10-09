@@ -4,6 +4,6 @@
   "description": "OpenAPI bundler using Redocly CLI for jentic-openapi-tools",
   "private": true,
   "dependencies": {
-    "@redocly/cli": "^2.1.5"
+    "@redocly/cli": "^2.4.0"
   }
 }

@@ -15,6 +15,7 @@ dependencies = [
 
 [project.optional-dependencies]
 spectral = ["jentic-openapi-validator-spectral"]
+redocly = ["jentic-openapi-validator-redocly"]
 
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
@@ -22,6 +23,7 @@ Homepage = "https://github.com/jentic/jentic-openapi-tools"
 [tool.uv.sources]
 jentic-openapi-parser             = { workspace = true }
 jentic-openapi-validator-spectral = { workspace = true }
+jentic-openapi-validator-redocly  = { workspace = true }
 
 [tool.uv]
 package = true

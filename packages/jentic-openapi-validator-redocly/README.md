@@ -1,11 +1,11 @@
-# jentic-openapi-validator-spectral
+# jentic-openapi-validator-redocly
 
-A [Spectral](https://github.com/stoplightio/spectral) validator backend for the Jentic OpenAPI Tools ecosystem. This package provides OpenAPI document validation using Stoplight's Spectral CLI with comprehensive error reporting and flexible configuration options.
+A [Redocly](https://redocly.com/docs/cli/) validator backend for the Jentic OpenAPI Tools ecosystem. This package provides OpenAPI document validation using Redocly CLI with comprehensive error reporting and flexible configuration options.
 
 ## Features
 
 - **Multiple input formats**: Validate OpenAPI documents from file URIs or Python dictionaries
-- **Custom rulesets**: Use built-in rules or provide your own Spectral ruleset
+- **Custom rulesets**: Use built-in rules or provide your own Redocly ruleset
 - **Configurable timeouts**: Control execution time limits for different use cases
 - **Rich diagnostics**: Detailed validation results with line/column information
 - **Type-safe API**: Full typing support with Literal types and comprehensive docstrings
@@ -13,17 +13,17 @@ A [Spectral](https://github.com/stoplightio/spectral) validator backend for the 
 ## Installation
 
 ```bash
-pip install jentic-openapi-validator-spectral
+pip install jentic-openapi-validator-redocly
 ```
 
 **Prerequisites:**
-- Node.js and npm (for Spectral CLI)
+- Node.js and npm (for Redocly CLI)
 - Python 3.11+
 
-The Spectral CLI will be automatically downloaded via npx on first use, or you can install it globally:
+The Redocly CLI will be automatically downloaded via npx on first use, or you can install it globally:
 
 ```bash
-npm install -g @stoplight/spectral-cli
+npm install -g @redocly/cli
 ```
 
 ## Quick Start
@@ -31,10 +31,10 @@ npm install -g @stoplight/spectral-cli
 ### Basic Usage
 
 ```python
-from jentic.apitools.openapi.validator.backends.spectral import SpectralValidatorBackend
+from jentic.apitools.openapi.validator.backends.redocly import RedoclyValidatorBackend
 
 # Create validator with defaults
-validator = SpectralValidatorBackend()
+validator = RedoclyValidatorBackend()
 
 # Validate from file URI
 result = validator.validate("file:///path/to/openapi.yaml")
@@ -62,21 +62,21 @@ print(f"Document is valid: {result.valid}")
 
 ## Configuration Options
 
-### Custom Spectral CLI Path
+### Custom Redocly CLI Path
 
 ```python
-# Use local Spectral installation
-validator = SpectralValidatorBackend(spectral_path="/usr/local/bin/spectral")
+# Use local Redocly installation
+validator = RedoclyValidatorBackend(redocly_path="/usr/local/bin/redocly")
 
 # Use specific version via npx
-validator = SpectralValidatorBackend(spectral_path="npx --yes @stoplight/spectral-cli@^6.15.0")
+validator = RedoclyValidatorBackend(redocly_path="npx --yes @redocly/cli@2.4.0")
 ```
 
 ### Custom Rulesets
 
 ```python
 # Use custom ruleset file
-validator = SpectralValidatorBackend(ruleset_path="/path/to/custom-rules.yaml")
+validator = RedoclyValidatorBackend(ruleset_path="/path/to/custom-rules.yaml")
 
 # The validator automatically falls back to bundled rulesets if no custom path is provided
 ```
@@ -85,14 +85,14 @@ validator = SpectralValidatorBackend(ruleset_path="/path/to/custom-rules.yaml")
 
 ```python
 # Short timeout for CI/CD (10 seconds)
-validator = SpectralValidatorBackend(timeout=10.0)
+validator = RedoclyValidatorBackend(timeout=10.0)
 
 # Extended timeout for large documents (2 minutes)
-validator = SpectralValidatorBackend(timeout=120.0)
+validator = RedoclyValidatorBackend(timeout=120.0)
 
 # Combined configuration (45 seconds)
-validator = SpectralValidatorBackend(
-    spectral_path="/usr/local/bin/spectral",
+validator = RedoclyValidatorBackend(
+    redocly_path="/usr/local/bin/redocly",
     ruleset_path="/path/to/strict-rules.yaml",
     timeout=45.0
 )
@@ -120,7 +120,7 @@ try:
 except FileNotFoundError as e:
     print(f"Ruleset file not found: {e}")
 except SubprocessExecutionError as e:
-    print(f"Spectral execution failed: {e}")
+    print(f"Redocly execution failed: {e}")
 except TypeError as e:
     print(f"Invalid document type: {e}")
 ```
@@ -142,32 +142,28 @@ if "dict" in validator.accepts():
 
 ## Custom Rulesets
 
-Create a custom Spectral ruleset file:
+Create a custom Redocly ruleset file:
 
 ```yaml
 # custom-rules.yaml
-extends: ["spectral:oas"]
+extends:
+  - recommended
 
 rules:
   info-contact: error
   info-description: error
   operation-description: error
   operation-summary: warn
-  path-params: error
+  path-parameters-defined: error
 
-  # Custom rule
-  no-empty-paths:
-    description: "Paths object should not be empty"
-    given: "$.paths"
-    then:
-      function: truthy
-    severity: error
+  # Disable specific rules
+  no-server-example.com: off
 ```
 
 Use it with the validator:
 
 ```python
-validator = SpectralValidatorBackend(ruleset_path="./custom-rules.yaml")
+validator = RedoclyValidatorBackend(ruleset_path="./custom-rules.yaml")
 result = validator.validate("file:///path/to/openapi.yaml")
 ```
 
@@ -175,39 +171,57 @@ result = validator.validate("file:///path/to/openapi.yaml")
 
 ### Integration Tests
 
-The integration tests require Spectral CLI to be available. They will be automatically skipped if Spectral is not installed.
+The integration tests require Redocly CLI to be available. They will be automatically skipped if Redocly is not installed.
 
 **Run the integration test:**
 
 ```bash
-uv run --package jentic-openapi-validator-spectral pytest packages/jentic-openapi-validator-spectral -v
+uv run --package jentic-openapi-validator-redocly pytest packages/jentic-openapi-validator-redocly -v
 ```
 
 ## API Reference
 
-### SpectralValidator
+### RedoclyValidatorBackend
 
 ```python
-class SpectralValidatorBackend(BaseValidatorBackend):
+class RedoclyValidatorBackend(BaseValidatorBackend):
     def __init__(
         self,
-        spectral_path: str = "npx --yes @stoplight/spectral-cli@^6.15.0",
+        redocly_path: str = "npx --yes @redocly/cli@2.4.0",
         ruleset_path: str | None = None,
         timeout: float = 30.0,
     ) -> None
 ```
 
 **Parameters:**
-- `spectral_path`: Path to Spectral CLI executable
+- `redocly_path`: Path to Redocly CLI executable
 - `ruleset_path`: Path to a custom ruleset file (optional)
 - `timeout`: Maximum execution time in seconds
 
 **Methods:**
 
 - `accepts() -> list[Literal["uri", "dict"]]`: Returns supported document format identifiers
-- `validate(source: str | dict) -> ValidationResult`: Validates an OpenAPI document
+- `validate(source: str | dict, *, base_url: str | None = None, target: str | None = None) -> ValidationResult`: Validates an OpenAPI document
 
 **Exceptions:**
 - `FileNotFoundError`: Custom ruleset file doesn't exist
-- `RuntimeError`: Spectral execution fails
-- `SubprocessExecutionError`: Spectral times out or fails to start
+- `RuntimeError`: Redocly execution fails
+- `SubprocessExecutionError`: Redocly times out or fails to start
+- `TypeError`: Unsupported document type
+
+## Exit Codes
+
+Redocly CLI uses the following exit codes:
+- **0**: No validation errors found
+- **1**: Validation errors found (document has issues)
+- **2+**: Command-line or configuration errors
+
+## License
+
+Apache License 2.0 - See LICENSE file for details.
+
+## Links
+
+- [Redocly CLI Documentation](https://redocly.com/docs/cli/)
+- [Redocly Rules Reference](https://redocly.com/docs/cli/rules/)
+- [Jentic OpenAPI Tools](https://github.com/jentic/jentic-openapi-tools)

@@ -59,9 +59,10 @@ src = [
   "packages/jentic-openapi-common/src",
   "packages/jentic-openapi-parser/src",
   "packages/jentic-openapi-transformer/src",
+  "packages/jentic-openapi-transformer-redocly/src",
   "packages/jentic-openapi-validator/src",
   "packages/jentic-openapi-validator-spectral/src",
-  "packages/jentic-openapi-transformer-redocly/src",
+  "packages/jentic-openapi-validator-redocly/src",
 ]
 
 [tool.ruff.lint]
@@ -102,9 +103,11 @@ version_pattern = [
     "packages/jentic-openapi-common/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-parser/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-transformer/pyproject.toml:version = \"{version}\"",
+    "packages/jentic-openapi-transformer-redocly/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-validator/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-validator-spectral/pyproject.toml:version = \"{version}\"",
-    "packages/jentic-openapi-transformer-redocly/pyproject.toml:version = \"{version}\"",
+    "packages/jentic-openapi-validator-redocly/pyproject.toml:version = \"{version}\"",
+
 ]
 
 # Commit author for version commits

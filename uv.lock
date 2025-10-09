@@ -10,6 +10,7 @@ members = [
     "jentic-openapi-transformer",
     "jentic-openapi-transformer-redocly",
     "jentic-openapi-validator",
+    "jentic-openapi-validator-redocly",
     "jentic-openapi-validator-spectral",
 ]
 
@@ -350,6 +351,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+redocly = [
+    { name = "jentic-openapi-validator-redocly" },
+]
 spectral = [
     { name = "jentic-openapi-validator-spectral" },
 ]
@@ -357,11 +361,32 @@ spectral = [
 [package.metadata]
 requires-dist = [
     { name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" },
+    { name = "jentic-openapi-validator-redocly", marker = "extra == 'redocly'", editable = "packages/jentic-openapi-validator-redocly" },
     { name = "jentic-openapi-validator-spectral", marker = "extra == 'spectral'", editable = "packages/jentic-openapi-validator-spectral" },
     { name = "lsprotocol" },
     { name = "openapi-spec-validator" },
 ]
-provides-extras = ["spectral"]
+provides-extras = ["spectral", "redocly"]
+
+[[package]]
+name = "jentic-openapi-validator-redocly"
+version = "0.1.0"
+source = { editable = "packages/jentic-openapi-validator-redocly" }
+dependencies = [
+    { name = "jentic-openapi-common" },
+    { name = "jentic-openapi-validator" },
+    { name = "jsonpointer" },
+    { name = "lsprotocol" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "importlib-resources", marker = "python_full_version < '3.9'", specifier = ">=1.3.0" },
+    { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
+    { name = "jentic-openapi-validator", editable = "packages/jentic-openapi-validator" },
+    { name = "jsonpointer", specifier = ">=3.0,<4.0" },
+    { name = "lsprotocol", specifier = ">=2025.0.0" },
+]
 
 [[package]]
 name = "jentic-openapi-validator-spectral"
@@ -391,6 +416,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/df/bf/f7da0350254c0ed7c72f3e33cef02e048281fec7ecec5f032d4aac52226b/jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d", size = 245115, upload-time = "2025-03-05T20:05:02.478Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl", hash = "sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67", size = 134899, upload-time = "2025-03-05T20:05:00.369Z" },
+]
+
+[[package]]
+name = "jsonpointer"
+version = "3.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6a/0a/eebeb1fa92507ea94016a2a790b93c2ae41a7e18778f85471dc54475ed25/jsonpointer-3.0.0.tar.gz", hash = "sha256:2b2d729f2091522d61c3b31f82e11870f60b68f43fbc705cb76bf4b832af59ef", size = 9114, upload-time = "2024-06-10T19:24:42.462Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/71/92/5e77f98553e9e75130c78900d000368476aed74276eb8ae8796f65f00918/jsonpointer-3.0.0-py2.py3-none-any.whl", hash = "sha256:13e088adc14fca8b6aa8177c044e12701e6ad4b28ff10e65f2267a90109c9942", size = 7595, upload-time = "2024-06-10T19:24:40.698Z" },
 ]
 
 [[package]]
