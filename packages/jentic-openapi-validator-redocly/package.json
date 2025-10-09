@@ -1,0 +1,9 @@
+{
+  "name": "@jentic/openapi-validator-redocly",
+  "version": "0.1.0",
+  "description": "OpenAPI validator using Redocly for jentic-openapi-tools",
+  "private": true,
+  "dependencies": {
+    "@redocly/cli": "^2.4.0"
+  }
+}

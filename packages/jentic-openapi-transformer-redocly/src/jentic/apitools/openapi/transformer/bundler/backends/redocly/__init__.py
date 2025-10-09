@@ -12,12 +12,12 @@ __all__ = ["RedoclyBundlerBackend"]
 
 
 class RedoclyBundlerBackend(BaseBundlerBackend):
-    def __init__(self, redocly_path: str = "npx --yes @redocly/cli@^2.1.5", timeout: float = 30.0):
+    def __init__(self, redocly_path: str = "npx --yes @redocly/cli@^2.4.0", timeout: float = 30.0):
         """
         Initialize the RedoclyBundler.
 
         Args:
-            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@^2.1.5")
+            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@^2.4.0")
             timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 30.0)
         """
         self.redocly_path = redocly_path
@@ -109,6 +109,6 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
             mode="w", suffix=".json", delete=True, encoding="utf-8"
         ) as temp_file:
             json.dump(document, temp_file)
-            temp_file.flush()  # Ensure content is written to a disk
+            temp_file.flush()  # Ensure content is written to disk
 
             return self._bundle_uri(Path(temp_file.name).as_uri(), base_url)

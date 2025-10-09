@@ -112,10 +112,13 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "requires_spectral_cli: mark test as requiring Spectral CLI to be available"
     )
+    config.addinivalue_line(
+        "markers", "requires_redocly_cli: mark test as requiring Redocly CLI to be available"
+    )
 
 
 def pytest_runtest_setup(item):
-    """Skip tests that require Spectral CLI when it's not available."""
+    """Skip tests that require Spectral or Redocly CLI when they're not available."""
     if item.get_closest_marker("requires_spectral_cli"):
         try:
             result = subprocess.run(
@@ -127,3 +130,15 @@ def pytest_runtest_setup(item):
                 pytest.skip("Spectral CLI not available")
         except (subprocess.TimeoutExpired, FileNotFoundError):
             pytest.skip("Spectral CLI not available")
+
+    if item.get_closest_marker("requires_redocly_cli"):
+        try:
+            result = subprocess.run(
+                ["npx", "--yes", "@redocly/cli@2.4.0", "--version"],
+                capture_output=True,
+                timeout=10,
+            )
+            if result.returncode != 0:
+                pytest.skip("Redocly CLI not available")
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pytest.skip("Redocly CLI not available")

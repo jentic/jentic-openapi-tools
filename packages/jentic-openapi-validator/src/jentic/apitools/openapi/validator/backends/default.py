@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Literal
 
 from lsprotocol import types as lsp
@@ -38,5 +39,11 @@ class DefaultValidatorBackend(BaseValidatorBackend):
         return ValidationResult(diagnostics=[])
 
     @staticmethod
-    def accepts() -> list[Literal["uri", "text", "dict"]]:
+    def accepts() -> Sequence[Literal["dict"]]:
+        """Return the document formats this validator can accept.
+
+        Returns:
+            Sequence of supported document format identifiers:
+            - "dict": Python dictionary containing OpenAPI Document data
+        """
         return ["dict"]

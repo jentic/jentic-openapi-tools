@@ -1,0 +1,6 @@
+extends:
+- spec
+- recommended
+
+rules:
+  no-server-example.com: off
