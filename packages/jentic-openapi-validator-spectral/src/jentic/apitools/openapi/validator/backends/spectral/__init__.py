@@ -171,8 +171,8 @@ class SpectralValidatorBackend(BaseValidatorBackend):
                 source="spectral-validator",
             )
             diagnostic.set_target(target)
-            diagnostics.append(diagnostic)
             diagnostic.set_path(issue.get("path"))
+            diagnostics.append(diagnostic)
 
         return ValidationResult(diagnostics=diagnostics)
 
