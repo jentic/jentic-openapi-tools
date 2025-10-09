@@ -24,10 +24,11 @@ class BaseValidatorBackend(ABC):
         ...
 
     @staticmethod
+    @abstractmethod
     def accepts() -> Sequence[str]:
         """Return the document formats this backend can accept.
 
         Returns:
             Sequence of format identifiers (e.g., "uri", "text", "dict")
         """
-        return []
+        ...

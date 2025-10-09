@@ -1,3 +1,6 @@
+from collections.abc import Sequence
+from typing import Literal
+
 from jentic.apitools.openapi.transformer.bundler.backends.base import BaseBundlerBackend
 
 
@@ -24,6 +27,12 @@ class DefaultBundlerBackend(BaseBundlerBackend):
             raise TypeError(f"Default bundler expects dict input, got {type(document).__name__}")
         return document
 
-    def accepts(self) -> list[str]:
-        """Return supported input formats."""
+    @staticmethod
+    def accepts() -> Sequence[Literal["dict"]]:
+        """Return supported input formats.
+
+        Returns:
+            Sequence of supported document format identifiers:
+            - "dict": Python dictionary containing OpenAPI Document data
+        """
         return ["dict"]

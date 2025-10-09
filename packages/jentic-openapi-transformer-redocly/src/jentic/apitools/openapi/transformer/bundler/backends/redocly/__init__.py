@@ -1,6 +1,8 @@
 import json
 import tempfile
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
@@ -23,11 +25,12 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
         self.redocly_path = redocly_path
         self.timeout = timeout
 
-    def accepts(self) -> list[str]:
+    @staticmethod
+    def accepts() -> Sequence[Literal["uri", "dict"]]:
         """Return the document formats this bundler can accept.
 
         Returns:
-            List of supported document format identifiers:
+            Sequence of supported document format identifiers:
             - "uri": File path or URI pointing to OpenAPI Document
             - "dict": Python dictionary containing OpenAPI Document data
         """
