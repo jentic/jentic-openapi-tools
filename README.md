@@ -33,10 +33,6 @@ uv run --package jentic-openapi-transformer-redocly pytest -s packages/jentic-op
 uv run pytest packages/**/tests -s -v -k test_redocly_bundle
 ```
 
-```bash
-
-```
-
 ### Run linting
 
 ```bash
