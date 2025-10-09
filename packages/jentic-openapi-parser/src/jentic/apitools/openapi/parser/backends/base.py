@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import Any
 
 
@@ -15,5 +16,14 @@ class BaseParserBackend(ABC):
         Returns a dict."""
         ...
 
+    @staticmethod
     @abstractmethod
-    def accepts(self) -> list[str]: ...
+    def accepts() -> Sequence[str]:
+        """Return a sequence of input formats this backend can handle.
+
+        Returns:
+            Sequence of supported input formats. Common values:
+            - "uri": Accepts URI/file path references
+            - "text": Accepts string (JSON/YAML) representation
+        """
+        ...

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import Any
 
 
@@ -32,13 +33,14 @@ class BaseBundlerBackend(ABC):
         """
         ...
 
+    @staticmethod
     @abstractmethod
-    def accepts(self) -> list[str]:
+    def accepts() -> Sequence[str]:
         """
-        Return a list of input formats this backend can handle.
+        Return a sequence of input formats this backend can handle.
 
         Returns:
-            List of supported input formats. Common values:
+            Sequence of supported input formats. Common values:
             - "dict": Accepts dictionary/object representation
             - "text": Accepts string (JSON/YAML) representation
             - "uri": Accepts URI/file path references

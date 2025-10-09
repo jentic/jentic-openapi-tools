@@ -1,6 +1,7 @@
 import json
 import logging
-from typing import Any, Mapping
+from collections.abc import Sequence
+from typing import Any, Literal, Mapping
 
 from ruamel.yaml import YAML
 
@@ -50,5 +51,13 @@ class RuamelParserBackend(BaseParserBackend):
         logger.error(msg)
         raise TypeError(msg)
 
-    def accepts(self) -> list[str]:
+    @staticmethod
+    def accepts() -> Sequence[Literal["uri", "text"]]:
+        """Return supported input formats.
+
+        Returns:
+            Sequence of supported document format identifiers:
+            - "uri": File path or URI pointing to OpenAPI Document
+            - "text": String (JSON/YAML) representation
+        """
         return ["uri", "text"]
