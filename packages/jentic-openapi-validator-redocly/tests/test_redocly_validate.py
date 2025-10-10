@@ -36,6 +36,19 @@ class TestRedoclyValidatorIntegration:
         result = redocly_validator_with_long_timeout.validate(spec_uri)
         assert result.valid is True
 
+    def test_validate_catches_missing_operation_summary(
+        self, redocly_validator, no_summary_openapi_path
+    ):
+        """Test that Redocly's recommended rules catch missing operation summaries."""
+        spec_uri = no_summary_openapi_path.as_uri()
+        result = redocly_validator.validate(spec_uri)
+        assert result.valid is False
+        assert result.diagnostics[0].code == "operation-summary"
+        assert (
+            result.diagnostics[0].message
+            == "Operation object should contain `summary` field. [path: paths./test.get.summary]"
+        )
+
 
 class TestRedoclyValidatorUnit:
     """Unit tests that don't require external dependencies."""

@@ -39,6 +39,12 @@ def invalid_openapi_path(openapi_fixtures_dir: Path) -> Path:
 
 
 @pytest.fixture
+def no_summary_openapi_path(openapi_fixtures_dir: Path) -> Path:
+    """Path to an OpenAPI document without operation summaries."""
+    return openapi_fixtures_dir / "simple_openapi_no_summary.json"
+
+
+@pytest.fixture
 def custom_ruleset_path(ruleset_fixtures_dir: Path) -> Path:
     """Path to a custom Redocly ruleset fixture."""
     return ruleset_fixtures_dir / "custom_redocly.yaml"
