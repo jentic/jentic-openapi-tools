@@ -1,5 +1,6 @@
 import importlib.metadata
 import json
+import warnings
 from typing import Any, Mapping, Sequence, Type, TypeVar, cast, overload
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser
@@ -10,12 +11,16 @@ __all__ = ["OpenAPIBundler"]
 
 
 # Cache entry points at module level for performance
-_BUNDLER_BACKENDS = {
-    ep.name: ep
-    for ep in importlib.metadata.entry_points(
-        group="jentic.apitools.openapi.transformer.bundler.backends"
-    )
-}
+try:
+    _BUNDLER_BACKENDS = {
+        ep.name: ep
+        for ep in importlib.metadata.entry_points(
+            group="jentic.apitools.openapi.transformer.bundler.backends"
+        )
+    }
+except Exception as e:
+    warnings.warn(f"Failed to load bundler backend entry points: {e}", RuntimeWarning)
+    _BUNDLER_BACKENDS = {}
 
 T = TypeVar("T")
 

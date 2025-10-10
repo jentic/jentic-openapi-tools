@@ -1,5 +1,6 @@
 import importlib.metadata
 import logging
+import warnings
 from typing import Any, Mapping, Optional, Sequence, Type, TypeVar, cast, overload
 
 from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
@@ -18,10 +19,14 @@ __all__ = ["OpenAPIParser"]
 
 
 # Cache entry points at module level for performance
-_PARSER_BACKENDS = {
-    ep.name: ep
-    for ep in importlib.metadata.entry_points(group="jentic.apitools.openapi.parser.backends")
-}
+try:
+    _PARSER_BACKENDS = {
+        ep.name: ep
+        for ep in importlib.metadata.entry_points(group="jentic.apitools.openapi.parser.backends")
+    }
+except Exception as e:
+    warnings.warn(f"Failed to load parser backend entry points: {e}", RuntimeWarning)
+    _PARSER_BACKENDS = {}
 
 T = TypeVar("T")
 

@@ -1,5 +1,6 @@
 import importlib.metadata
 import json
+import warnings
 from typing import Type
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser
@@ -12,10 +13,16 @@ __all__ = ["OpenAPIValidator"]
 
 
 # Cache entry points at module level for performance
-_VALIDATOR_BACKENDS = {
-    ep.name: ep
-    for ep in importlib.metadata.entry_points(group="jentic.apitools.openapi.validator.backends")
-}
+try:
+    _VALIDATOR_BACKENDS = {
+        ep.name: ep
+        for ep in importlib.metadata.entry_points(
+            group="jentic.apitools.openapi.validator.backends"
+        )
+    }
+except Exception as e:
+    warnings.warn(f"Failed to load validator backend entry points: {e}", RuntimeWarning)
+    _VALIDATOR_BACKENDS = {}
 
 
 class OpenAPIValidator:
