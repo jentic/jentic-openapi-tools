@@ -1,0 +1,59 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Test API",
+        "description": "Test API",
+        "version": "1.0.0",
+        "contact": {
+            "name": "Jentic"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "servers": [
+        {
+            "url": "https://api.acme.com"
+        }
+    ],
+    "security": [
+        {
+            "bearerAuth": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "test",
+            "description": "Test API"
+        }
+    ],
+    "paths": {
+        "/test": {
+            "get": {
+                "tags": [
+                    "test"
+                ],
+                "operationId": "getTest",
+                "description": "Test API",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+}
