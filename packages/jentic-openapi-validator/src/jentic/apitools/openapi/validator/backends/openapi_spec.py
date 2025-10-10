@@ -51,10 +51,6 @@ class OpenAPISpecValidatorBackend(BaseValidatorBackend):
         diagnostics: list[JenticDiagnostic] = []
         try:
             for error in validator.iter_errors():
-                # attrs:
-                #        "message", "path", "relative_path", "schema_path", "relative_schema_path",
-                #        "context", "cause", "validator", "validator_value",
-                #        "instance", "schema", "parent", "_type_checker"
                 diagnostic = JenticDiagnostic(
                     range=lsp.Range(
                         start=lsp.Position(line=0, character=0),
