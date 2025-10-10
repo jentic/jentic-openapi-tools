@@ -184,3 +184,22 @@ class OpenAPIParser:
 
     def load_uri(self, uri: str) -> str:
         return load_uri(uri, self.conn_timeout, self.read_timeout, self.logger)
+
+    @staticmethod
+    def list_backends() -> list[str]:
+        """
+        List all available parser backends registered via entry points.
+
+        This static method discovers and returns the names of all parser backends
+        that have been registered in the 'jentic.apitools.openapi.parser.backends'
+        entry point group.
+
+        Returns:
+            List of backend names that can be used when initializing OpenAPIParser.
+
+        Example:
+            >>> backends = OpenAPIParser.list_backends()
+            >>> print(backends)
+            ['pyyaml', 'ruamel']
+        """
+        return list(_PARSER_BACKENDS.keys())

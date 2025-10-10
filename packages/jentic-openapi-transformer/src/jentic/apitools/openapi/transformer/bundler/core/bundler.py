@@ -186,3 +186,22 @@ class OpenAPIBundler:
 
         # Scalar
         return value
+
+    @staticmethod
+    def list_backends() -> list[str]:
+        """
+        List all available bundler backends registered via entry points.
+
+        This static method discovers and returns the names of all bundler backends
+        that have been registered in the 'jentic.apitools.openapi.transformer.bundler.backends'
+        entry point group.
+
+        Returns:
+            List of backend names that can be used when initializing OpenAPIBundler.
+
+        Example:
+            >>> backends = OpenAPIBundler.list_backends()
+            >>> print(backends)
+            ['default', 'redocly']
+        """
+        return list(_BUNDLER_BACKENDS.keys())
