@@ -3,6 +3,9 @@ from dataclasses import dataclass, field
 from lsprotocol.types import Diagnostic
 
 
+__all__ = ["JenticDiagnostic", "ValidationResult"]
+
+
 class JenticDiagnostic(Diagnostic):
     def __init__(self, **data):
         super().__init__(**data)

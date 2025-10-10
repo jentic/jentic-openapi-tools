@@ -8,6 +8,16 @@ from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
 from .diagnostics import JenticDiagnostic, ValidationResult
 
 
+__all__ = ["OpenAPIValidator"]
+
+
+# Cache entry points at module level for performance
+_VALIDATOR_BACKENDS = {
+    ep.name: ep
+    for ep in importlib.metadata.entry_points(group="jentic.apitools.openapi.validator.backends")
+}
+
+
 class OpenAPIValidator:
     """
     Validates OpenAPI documents using pluggable validator backends.
@@ -45,14 +55,10 @@ class OpenAPIValidator:
         self.backends: list[BaseValidatorBackend] = []
         backends = ["default"] if not backends else backends
 
-        # Discover entry points for validator backends
-        eps = importlib.metadata.entry_points(group="jentic.apitools.openapi.validator.backends")
-        available_backends = {ep.name: ep for ep in eps}
-
         for backend in backends:
             if isinstance(backend, str):
-                if backend in available_backends:
-                    backend_class = available_backends[backend].load()  # loads the class
+                if backend in _VALIDATOR_BACKENDS:
+                    backend_class = _VALIDATOR_BACKENDS[backend].load()  # loads the class
                     self.backends.append(backend_class())
                 else:
                     raise ValueError(f"No validator backend named '{backend}' found")
@@ -175,9 +181,4 @@ class OpenAPIValidator:
             >>> print(backends)
             ['default', 'spectral']
         """
-        backends = []
-        eps = importlib.metadata.entry_points(group="jentic.apitools.openapi.validator.backends")
-        available_backends = {ep.name: ep for ep in eps}
-        for backend_name, backend in available_backends.items():
-            backends.append(backend_name)
-        return backends
+        return list(_VALIDATOR_BACKENDS.keys())
