@@ -14,7 +14,7 @@
     },
     "servers": [
         {
-            "url": "https://api.example.com"
+            "url": "https://api.acme.com"
         }
     ],
     "security": [
