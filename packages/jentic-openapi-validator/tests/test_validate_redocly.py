@@ -8,11 +8,11 @@ from jentic.apitools.openapi.validator.core import OpenAPIValidator
 def test_redocly_backend_discovery():
     """Test that the redocly backend can be discovered via entry points."""
     try:
-        validator = OpenAPIValidator(backends=["default", "redocly"])
+        validator = OpenAPIValidator(backends=["openapi-spec", "redocly"])
         assert len(validator.backends) == 2
 
         backend_names = [type(b).__name__ for b in validator.backends]
-        assert "DefaultValidatorBackend" in backend_names
+        assert "OpenAPISpecValidatorBackend" in backend_names
         assert "RedoclyValidatorBackend" in backend_names
     except ValueError as e:
         if "No validator backend named 'redocly' found" in str(e):
@@ -27,7 +27,7 @@ def test_redocly_backend_discovery():
 def test_redocly_validation_integration(sample_openapi_yaml):
     """Test that redocly validation works end-to-end."""
     try:
-        validator = OpenAPIValidator(backends=["default", "redocly"])
+        validator = OpenAPIValidator(backends=["openapi-spec", "redocly"])
         result = validator.validate(str(sample_openapi_yaml))
 
         assert result is not None

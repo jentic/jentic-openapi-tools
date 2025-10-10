@@ -8,11 +8,11 @@ from jentic.apitools.openapi.validator.core import OpenAPIValidator
 def test_spectral_backend_discovery():
     """Test that the spectral backend can be discovered via entry points."""
     try:
-        validator = OpenAPIValidator(backends=["default", "spectral"])
+        validator = OpenAPIValidator(backends=["openapi-spec", "spectral"])
         assert len(validator.backends) == 2
 
         backend_names = [type(b).__name__ for b in validator.backends]
-        assert "DefaultValidatorBackend" in backend_names
+        assert "OpenAPISpecValidatorBackend" in backend_names
         assert "SpectralValidatorBackend" in backend_names
     except ValueError as e:
         if "No validator backend named 'spectral' found" in str(e):
@@ -27,7 +27,7 @@ def test_spectral_backend_discovery():
 def test_spectral_validation_integration(sample_openapi_yaml):
     """Test that spectral validation works end-to-end."""
     try:
-        validator = OpenAPIValidator(backends=["default", "spectral"])
+        validator = OpenAPIValidator(backends=["openapi-spec", "spectral"])
         result = validator.validate(str(sample_openapi_yaml))
 
         assert result is not None
