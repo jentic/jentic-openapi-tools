@@ -77,11 +77,11 @@ print(f"Found {len(result)} issues")  # ValidationResult supports len()
 ### Using Multiple Backends
 
 ```python
-# Use default backend only
+# Use openapi-spec backend only (default)
 validator = OpenAPIValidator()
 
 # Use multiple backends (requires backends to be installed)
-validator = OpenAPIValidator(backends=["default", "spectral"])
+validator = OpenAPIValidator(backends=["openapi-spec", "spectral"])
 
 # Results from all backends are aggregated
 result = validator.validate(document)
@@ -91,15 +91,15 @@ result = validator.validate(document)
 
 ```python
 # Use backend by name
-validator = OpenAPIValidator(backends=["default"])
+validator = OpenAPIValidator(backends=["openapi-spec"])
 
 # Pass backend instance
-from jentic.apitools.openapi.validator.backends.default import DefaultValidatorBackend
-backend = DefaultValidatorBackend()
+from jentic.apitools.openapi.validator.backends.openapi_spec import OpenAPISpecValidatorBackend
+backend = OpenAPISpecValidatorBackend()
 validator = OpenAPIValidator(backends=[backend])
 
 # Pass backend class
-validator = OpenAPIValidator(backends=[DefaultValidatorBackend])
+validator = OpenAPIValidator(backends=[OpenAPISpecValidatorBackend])
 ```
 
 ### Custom Parser
@@ -162,10 +162,10 @@ class OpenAPIValidator:
 
 **Parameters:**
 - `backends`: List of validator backends to use. Each item can be:
-  - `str`: Name of a backend registered via entry points (e.g., "default", "spectral")
+  - `str`: Name of a backend registered via entry points (e.g., "openapi-spec", "spectral")
   - `BaseValidatorBackend`: Instance of a validator backend
   - `Type[BaseValidatorBackend]`: Class of a validator backend (will be instantiated)
-  - Defaults to `["default"]` if `None`
+  - Defaults to `["openapi-spec"]` if `None`
 - `parser`: Custom OpenAPIParser instance (optional)
 
 **Methods:**
