@@ -1,10 +1,26 @@
 import importlib.metadata
 import json
+import warnings
 from typing import Any, Mapping, Sequence, Type, TypeVar, cast, overload
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser
 from jentic.apitools.openapi.transformer.bundler.backends.base import BaseBundlerBackend
 
+
+__all__ = ["OpenAPIBundler"]
+
+
+# Cache entry points at module level for performance
+try:
+    _BUNDLER_BACKENDS = {
+        ep.name: ep
+        for ep in importlib.metadata.entry_points(
+            group="jentic.apitools.openapi.transformer.bundler.backends"
+        )
+    }
+except Exception as e:
+    warnings.warn(f"Failed to load bundler backend entry points: {e}", RuntimeWarning)
+    _BUNDLER_BACKENDS = {}
 
 T = TypeVar("T")
 
@@ -28,15 +44,9 @@ class OpenAPIBundler:
         self.parser = parser if parser else OpenAPIParser()
         backend = backend if backend else "default"
 
-        # Discover entry points for bundler backends
-        eps = importlib.metadata.entry_points(
-            group="jentic.apitools.openapi.transformer.bundler.backends"
-        )
-        backends = {ep.name: ep for ep in eps}
-
         if isinstance(backend, str):
-            if backend in backends:
-                backend_class = backends[backend].load()  # loads the class
+            if backend in _BUNDLER_BACKENDS:
+                backend_class = _BUNDLER_BACKENDS[backend].load()  # loads the class
                 self.backend = backend_class()
             else:
                 raise ValueError(f"No bundler backend named '{backend}' found")

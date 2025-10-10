@@ -1,5 +1,6 @@
 import importlib.metadata
 import logging
+import warnings
 from typing import Any, Mapping, Optional, Sequence, Type, TypeVar, cast, overload
 
 from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
@@ -13,6 +14,19 @@ from .exceptions import (
 )
 from .uri import is_uri_like, load_uri
 
+
+__all__ = ["OpenAPIParser"]
+
+
+# Cache entry points at module level for performance
+try:
+    _PARSER_BACKENDS = {
+        ep.name: ep
+        for ep in importlib.metadata.entry_points(group="jentic.apitools.openapi.parser.backends")
+    }
+except Exception as e:
+    warnings.warn(f"Failed to load parser backend entry points: {e}", RuntimeWarning)
+    _PARSER_BACKENDS = {}
 
 T = TypeVar("T")
 
@@ -46,20 +60,12 @@ class OpenAPIParser:
         self.conn_timeout = conn_timeout
         self.read_timeout = read_timeout
 
-        try:
-            # Discover entry points for parser backends
-            eps = importlib.metadata.entry_points(group="jentic.apitools.openapi.parser.backends")
-            backends = {ep.name: ep for ep in eps}
-        except Exception as e:
-            self.logger.warning(f"Failed to load backend entry points: {e}")
-            backends = {}
-
         if isinstance(backend, str):
             try:
-                if backend in backends:
+                if backend in _PARSER_BACKENDS:
                     try:
                         logger.debug(f"using parser backend '{backend}'")
-                        backend_class = backends[backend].load()  # loads the class
+                        backend_class = _PARSER_BACKENDS[backend].load()  # loads the class
                         self.backend = backend_class()
                     except Exception as e:
                         raise InvalidBackendError(
