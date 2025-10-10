@@ -31,3 +31,13 @@ def test_parse_default_backend(openapi_bundler_with_default_backend):
     )
     assert doc["openapi"] == "3.1.0"
     assert doc["info"]["title"] == "x"
+
+
+def test_list_backends():
+    """Test that list_backends returns available bundler backends."""
+    from jentic.apitools.openapi.transformer.bundler.core import OpenAPIBundler
+
+    backends = OpenAPIBundler.list_backends()
+    assert isinstance(backends, list)
+    assert len(backends) > 0
+    assert "default" in backends

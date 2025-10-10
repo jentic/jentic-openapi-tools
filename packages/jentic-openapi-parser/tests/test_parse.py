@@ -212,3 +212,11 @@ def test_to_plain_conversion(parser: OpenAPIParser, simple_openapi_string: str):
     result = parser.parse(complex_doc)
     assert isinstance(result["tags"], list)
     assert result["tags"] == ["a", "b"]
+
+
+def test_list_backends():
+    """Test that list_backends returns available parser backends."""
+    backends = OpenAPIParser.list_backends()
+    assert isinstance(backends, list)
+    assert len(backends) > 0
+    assert "pyyaml" in backends
