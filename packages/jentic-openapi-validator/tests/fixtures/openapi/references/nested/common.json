@@ -1,0 +1,751 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Common Components",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "Pet": {
+        "type": "object",
+        "required": ["id", "name", "status", "NON_EXISTING_PROPERTY"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the pet",
+            "example": 123456
+          },
+          "name": {
+            "type": "BAD_TYPE",
+            "description": "Name of the pet",
+            "example": "Fluffy",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "photoUrls": {
+            "type": "array",
+            "description": "URLs of photos of the pet",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "example": ["https://example.com/photos/pet1.jpg"]
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags associated with the pet",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
+          },
+          "status": {
+            "type": "string",
+            "description": "Pet status in the store",
+            "enum": ["available", "pending", "sold"],
+            "example": "available"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Birth date of the pet",
+            "example": "2020-01-15"
+          },
+          "weight": {
+            "type": "number",
+            "format": "float",
+            "description": "Weight of the pet in kilograms",
+            "minimum": 0.1,
+            "maximum": 1000.0,
+            "example": 5.5
+          },
+          "vaccinated": {
+            "type": "boolean",
+            "description": "Whether the pet is vaccinated",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the pet was added to the system",
+            "example": "2023-01-01T12:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the pet information was last updated",
+            "example": "2023-06-15T14:30:00Z"
+          }
+        }
+      },
+      "NewPet": {
+        "type": "object",
+        "required": ["name", "status"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the pet",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "Buddy"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "photoUrls": {
+            "type": "array",
+            "description": "URLs of photos of the pet",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags associated with the pet",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
+          },
+          "status": {
+            "type": "string",
+            "description": "Pet status in the store",
+            "enum": ["available", "pending", "sold"],
+            "default": "available"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Birth date of the pet"
+          },
+          "weight": {
+            "type": "number",
+            "format": "float",
+            "description": "Weight of the pet in kilograms",
+            "minimum": 0.1,
+            "maximum": 1000.0
+          },
+          "vaccinated": {
+            "type": "boolean",
+            "description": "Whether the pet is vaccinated",
+            "default": false
+          }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Category identifier",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Category name",
+            "example": "Dogs"
+          },
+          "description": {
+            "type": "string",
+            "description": "Category description",
+            "example": "All types of dogs"
+          }
+        }
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Tag identifier",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Tag name",
+            "example": "friendly"
+          },
+          "color": {
+            "type": "string",
+            "description": "Display color for the tag",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "example": "#FF5733"
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "required": ["id", "petId", "quantity", "status"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Order identifier",
+            "example": 789
+          },
+          "petId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Pet identifier",
+            "example": 123
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Quantity ordered",
+            "minimum": 1,
+            "example": 2
+          },
+          "shipDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Estimated ship date",
+            "example": "2023-07-01T10:00:00Z"
+          },
+          "status": {
+            "type": "string",
+            "description": "Order status",
+            "enum": ["placed", "approved", "delivered"],
+            "example": "placed"
+          },
+          "complete": {
+            "type": "boolean",
+            "description": "Indicates if the order is complete",
+            "default": false
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double",
+            "description": "Total order amount",
+            "minimum": 0,
+            "example": 199.99
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code",
+            "example": "USD",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "shippingAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the order was created",
+            "example": "2023-06-15T09:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the order was last updated",
+            "example": "2023-06-15T14:30:00Z"
+          }
+        }
+      },
+      "NewOrder": {
+        "type": "object",
+        "required": ["petId", "quantity"],
+        "properties": {
+          "petId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Pet identifier"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Quantity to order",
+            "minimum": 1,
+            "default": 1
+          },
+          "shipDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Requested ship date"
+          },
+          "shippingAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Special instructions for the order",
+            "maxLength": 500
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "required": ["id", "username", "email"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "User identifier",
+            "example": 456
+          },
+          "username": {
+            "type": "string",
+            "description": "Username",
+            "minLength": 3,
+            "maxLength": 50,
+            "pattern": "^[a-zA-Z0-9_]+$",
+            "example": "john_doe"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "First name",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Last name",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address",
+            "example": "john.doe@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone number",
+            "pattern": "^\\+?[1-9]\\d{1,14}$",
+            "example": "+1234567890"
+          },
+          "userStatus": {
+            "type": "integer",
+            "format": "int32",
+            "description": "User status",
+            "enum": [0, 1, 2],
+            "example": 1
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "preferences": {
+            "type": "object",
+            "description": "User preferences",
+            "properties": {
+              "newsletter": {
+                "type": "boolean",
+                "description": "Subscribe to newsletter"
+              },
+              "notifications": {
+                "type": "boolean",
+                "description": "Enable notifications"
+              },
+              "theme": {
+                "type": "string",
+                "enum": ["light", "dark", "auto"],
+                "default": "auto"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Account creation date"
+          },
+          "lastLogin": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last login timestamp"
+          }
+        }
+      },
+      "NewUser": {
+        "type": "object",
+        "required": ["username", "email", "password"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Username",
+            "minLength": 3,
+            "maxLength": 50,
+            "pattern": "^[a-zA-Z0-9_]+$"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "First name"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Last name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address"
+          },
+          "password": {
+            "type": "string",
+            "description": "Password",
+            "minLength": 8,
+            "maxLength": 128,
+            "format": "password"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone number",
+            "pattern": "^\\+?[1-9]\\d{1,14}$"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "preferences": {
+            "type": "object",
+            "properties": {
+              "newsletter": {
+                "type": "boolean",
+                "default": false
+              },
+              "notifications": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "street": {
+            "type": "string",
+            "description": "Street address",
+            "example": "123 Main St"
+          },
+          "city": {
+            "type": "string",
+            "description": "City",
+            "example": "New York"
+          },
+          "state": {
+            "type": "string",
+            "description": "State or province",
+            "example": "NY"
+          },
+          "zipCode": {
+            "type": "string",
+            "description": "ZIP or postal code",
+            "example": "10001"
+          },
+          "country": {
+            "type": "string",
+            "description": "Country",
+            "example": "USA"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Username or email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "Password"
+          },
+          "rememberMe": {
+            "type": "boolean",
+            "description": "Keep user logged in",
+            "default": false
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "JWT access token"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Refresh token"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "description": "Token expiration time in seconds"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Response code"
+          },
+          "type": {
+            "type": "string",
+            "description": "Response type"
+          },
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "description": "Additional response data"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Response timestamp"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error", "message"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error code",
+            "example": "VALIDATION_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "The provided data is invalid"
+          },
+          "details": {
+            "type": "array",
+            "description": "Detailed error information",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Field that caused the error"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "Specific error code"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Field-specific error message"
+                }
+              }
+            }
+          },
+          "requestId": {
+            "type": "string",
+            "description": "Unique request identifier for debugging"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Error timestamp"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Number of items per page",
+            "example": 20
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Number of items to skip",
+            "example": 0
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total number of items",
+            "example": 150
+          },
+          "hasNext": {
+            "type": "boolean",
+            "description": "Whether there are more items",
+            "example": true
+          },
+          "hasPrevious": {
+            "type": "boolean",
+            "description": "Whether there are previous items",
+            "example": false
+          }
+        }
+      }
+    },
+    "parameters": {
+      "PetIdParam": {
+        "name": "petId",
+        "in": "path",
+        "description": "ID of the pet",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        },
+        "example": 123456
+      },
+      "OrderIdParam": {
+        "name": "orderId",
+        "in": "path",
+        "description": "ID of the order",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        },
+        "example": 789
+      },
+      "UsernameParam": {
+        "name": "username",
+        "in": "path",
+        "description": "The username",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_]+$"
+        },
+        "example": "john_doe"
+      },
+      "LimitParam": {
+        "name": "limit",
+        "in": "query",
+        "description": "Number of items to return",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "OffsetParam": {
+        "name": "offset",
+        "in": "query",
+        "description": "Number of items to skip",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0,
+          "default": 0
+        }
+      }
+    },
+    "headers": {
+      "TotalCountHeader": {
+        "description": "Total number of items available",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "RateLimitRemainingHeader": {
+        "description": "Number of requests remaining in the current time window",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request - invalid input",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Access denied",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Rate limit exceeded",
+        "headers": {
+          "X-Rate-Limit-Remaining": {
+            "$ref": "#/components/headers/RateLimitRemainingHeader"
+          },
+          "Retry-After": {
+            "description": "Number of seconds to wait before retrying",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+}
