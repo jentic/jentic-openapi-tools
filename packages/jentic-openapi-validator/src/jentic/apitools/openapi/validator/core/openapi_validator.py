@@ -48,10 +48,10 @@ class OpenAPIValidator:
 
         Args:
             backends: List of validator backends to use. Each item can be:
-                - str: Name of a backend registered via entry points (e.g., "openapi-spec", "spectral")
+                - str: Name of a backend registered via entry points (e.g., "default", "openapi-spec", "spectral")
                 - BaseValidatorBackend: Instance of a validator backend
                 - Type[BaseValidatorBackend]: Class of a validator backend (will be instantiated)
-                Defaults to ["openapi-spec"] if None.
+                Defaults to ["default"] if None.
             parser: Custom OpenAPIParser instance. If None, creates a default parser.
 
         Raises:
@@ -60,7 +60,7 @@ class OpenAPIValidator:
         """
         self.parser = parser if parser else OpenAPIParser()
         self.backends: list[BaseValidatorBackend] = []
-        backends = ["openapi-spec"] if not backends else backends
+        backends = ["default"] if not backends else backends
 
         for backend in backends:
             if isinstance(backend, str):
