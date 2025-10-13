@@ -1,0 +1,729 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Pet Store API",
+    "version": "2.1.0",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.petstore.com/v2",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:8080/v1",
+      "description": "Staging server"
+    },
+    {
+      "url": "http://localhost:8080/v2",
+      "description": "Local development server"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    },
+    {
+      "apiKey": []
+    }
+  ],
+  "paths": {
+    "/pets": {
+      "get": {
+        "tags": ["pets"],
+        "summary": "List all pets",
+        "description": "Returns a paginated list of pets available in the store. You can filter by status, category, and other criteria.",
+        "operationId": "listPets",
+        "parameters": [
+          {
+            "$ref": "./nested/common.json#/components/parameters/LimitParam"
+          },
+          {
+            "$ref": "./nested/common.json#/components/parameters/OffsetParam"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter pets by status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["available", "pending", "sold"],
+              "default": "available"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter pets by category ID",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "tags",
+            "in": "query",
+            "description": "Filter pets by tags (comma-separated)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of pets",
+            "headers": {
+              "X-Total-Count": {
+                "$ref": "./nested/common.json#/components/headers/TotalCountHeader"
+              },
+              "X-Rate-Limit-Remaining": {
+                "$ref": "./nested/common.json#/components/headers/RateLimitRemainingHeader"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "./nested/common.json#/components/schemas/Pet"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "./nested/common.json#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./nested/common.json#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "./nested/common.json#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "./nested/common.json#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "./nested/common.json#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["pets"],
+        "summary": "Add a new pet",
+        "description": "Add a new pet to the store inventory. Requires authentication and proper permissions.",
+        "operationId": "addPet",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Pet object to be added to the store",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./nested/common.json#/components/schemas/NewPet"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "./nested/common.json#/components/schemas/NewPet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pet created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./nested/common.json#/components/schemas/Pet"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./nested/common.json#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "./nested/common.json#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "./nested/common.json#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "./nested/common.json#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/pets/{petId}": {
+      "get": {
+        "tags": ["pets"],
+        "summary": "Get pet by ID",
+        "description": "Returns detailed information about a specific pet",
+        "operationId": "getPetById",
+        "parameters": [
+          {
+            "$ref": "./nested/common.json#/components/parameters/PetIdParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pet details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./nested/common.json#/components/schemas/Pet"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "./nested/common.json#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "./nested/common.json#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": ["pets"],
+        "summary": "Update an existing pet",
+        "description": "Update pet information. Requires authentication.",
+        "operationId": "updatePet",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "./nested/common.json#/components/parameters/PetIdParam"
+          }
+        ],
+        "requestBody": {
+          "description": "Updated pet object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./nested/common.json#/components/schemas/NewPet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pet updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./nested/common.json#/components/schemas/Pet"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./nested/common.json#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "./nested/common.json#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "./nested/common.json#/components/responses/ValidationError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["pets"],
+        "summary": "Delete a pet",
+        "description": "Remove a pet from the store inventory",
+        "operationId": "deletePet",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "./nested/common.json#/components/parameters/PetIdParam"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Pet deleted successfully"
+          },
+          "401": {
+            "$ref": "./nested/common.json#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "./nested/common.json#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "./nested/common.json#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/pets/{petId}/photos": {
+      "post": {
+        "tags": ["pets"],
+        "summary": "Upload pet photo",
+        "description": "Upload a photo for a specific pet",
+        "operationId": "uploadPetPhoto",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "./nested/common.json#/components/parameters/PetIdParam"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The photo file to upload"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Optional description of the photo"
+                  }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Photo uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./nested/common.json#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./nested/common.json#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "./nested/common.json#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "tags": ["orders"],
+        "summary": "Get all orders",
+        "description": "Retrieve a list of all orders with filtering and pagination options",
+        "operationId": "getOrders",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "./nested/common.json#/components/parameters/LimitParam"
+          },
+          {
+            "$ref": "./nested/common.json#/components/parameters/OffsetParam"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter orders by status",
+            "schema": {
+              "type": "string",
+              "enum": ["placed", "approved", "delivered"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "./nested/common.json#/components/schemas/Order"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "./nested/common.json#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "./nested/common.json#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": ["orders"],
+        "summary": "Place an order",
+        "description": "Place a new order for pets",
+        "operationId": "placeOrder",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Order to be placed",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./nested/common.json#/components/schemas/NewOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order placed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./nested/common.json#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./nested/common.json#/components/responses/BadRequest"
+          },
+          "422": {
+            "$ref": "./nested/common.json#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/orders/{orderId}": {
+      "get": {
+        "tags": ["orders"],
+        "summary": "Get order by ID",
+        "description": "Get details of a specific order",
+        "operationId": "getOrderById",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "./nested/common.json#/components/parameters/OrderIdParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./nested/common.json#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "./nested/common.json#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["orders"],
+        "summary": "Cancel an order",
+        "description": "Cancel an existing order",
+        "operationId": "cancelOrder",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "./nested/common.json#/components/parameters/OrderIdParam"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Order cancelled successfully"
+          },
+          "404": {
+            "$ref": "./nested/common.json#/components/responses/NotFound"
+          },
+          "400": {
+            "$ref": "./nested/common.json#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/users": {
+      "post": {
+        "tags": ["users"],
+        "summary": "Create user",
+        "description": "Create a new user account",
+        "operationId": "createUser",
+        "requestBody": {
+          "description": "User object to be created",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./nested/common.json#/components/schemas/NewUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./nested/common.json#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./nested/common.json#/components/responses/BadRequest"
+          },
+          "422": {
+            "$ref": "./nested/common.json#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/users/login": {
+      "post": {
+        "tags": ["users"],
+        "summary": "User login",
+        "description": "Authenticate user and return access token",
+        "operationId": "loginUser",
+        "requestBody": {
+          "description": "Login credentials",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./nested/common.json#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "headers": {
+              "X-Rate-Limit-Remaining": {
+                "$ref": "./nested/common.json#/components/headers/RateLimitRemainingHeader"
+              },
+              "X-Expires-After": {
+                "description": "Token expiration time",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./nested/common.json#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./nested/common.json#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "./nested/common.json#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/users/{username}": {
+      "get": {
+        "tags": ["users"],
+        "summary": "Get user by username",
+        "description": "Get user information by username",
+        "operationId": "getUserByName",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "./nested/common.json#/components/parameters/UsernameParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./nested/common.json#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "./nested/common.json#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "tags": ["users"],
+        "summary": "Update user",
+        "description": "Update user information",
+        "operationId": "updateUser",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "./nested/common.json#/components/parameters/UsernameParam"
+          }
+        ],
+        "requestBody": {
+          "description": "Updated user object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./nested/common.json#/components/schemas/NewUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./nested/common.json#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./nested/common.json#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "./nested/common.json#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["users"],
+        "summary": "Delete user",
+        "description": "Delete a user account",
+        "operationId": "deleteUser",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "./nested/common.json#/components/parameters/UsernameParam"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User deleted successfully"
+          },
+          "404": {
+            "$ref": "./nested/common.json#/components/responses/NotFound"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "pets",
+      "description": "Everything about your pets",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "https://petstore.com/docs/pets"
+      }
+    },
+    {
+      "name": "orders",
+      "description": "Access to pet store orders",
+      "externalDocs": {
+        "description": "Find out more about our store",
+        "url": "https://petstore.com/docs/orders"
+      }
+    },
+    {
+      "name": "users",
+      "description": "Operations about user",
+      "externalDocs": {
+        "description": "Find out more about our store",
+        "url": "https://petstore.com/docs/users"
+      }
+    }
+  ],
+  "externalDocs": {
+    "description": "Find out more about Pet Store API",
+    "url": "https://petstore.com/docs"
+  }
+}

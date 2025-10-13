@@ -9,39 +9,9 @@ from jentic.apitools.openapi.validator.core import OpenAPIValidator
 
 
 @pytest.fixture
-def fixtures_dir() -> Path:
-    """Path to the test fixtures directory."""
-    return Path(__file__).parent / "fixtures"
-
-
-@pytest.fixture
-def openapi_fixtures_dir(fixtures_dir: Path) -> Path:
-    """Path to the OpenAPI test fixtures directory."""
-    return fixtures_dir / "openapi"
-
-
-@pytest.fixture
 def validator() -> OpenAPIValidator:
     """A default OpenAPIValidator instance."""
     return OpenAPIValidator()
-
-
-@pytest.fixture
-def validator_with_spectral() -> OpenAPIValidator:
-    """An OpenAPIValidator instance with spectral backend."""
-    return OpenAPIValidator(backends=["spectral"])
-
-
-@pytest.fixture
-def valid_openapi_path(openapi_fixtures_dir: Path) -> Path:
-    """Path to a valid OpenAPI document fixture."""
-    return openapi_fixtures_dir / "valid_openapi.json"
-
-
-@pytest.fixture
-def invalid_openapi_path(openapi_fixtures_dir: Path) -> Path:
-    """Path to an invalid OpenAPI document fixture."""
-    return openapi_fixtures_dir / "invalid_openapi.json"
 
 
 @pytest.fixture
