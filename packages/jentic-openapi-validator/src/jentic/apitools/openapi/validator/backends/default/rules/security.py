@@ -14,6 +14,10 @@ from . import BaseRule, ValidationIssue
 __all__ = ["SecuritySchemeReferenceRule", "UnusedSecuritySchemeRule"]
 
 
+# HTTP methods defined in OpenAPI 3.x specification
+_HTTP_METHODS = {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
+
+
 class SecuritySchemeReferenceRule(BaseRule):
     """
     Validates that all security scheme references point to defined schemes.
@@ -88,14 +92,12 @@ class SecuritySchemeReferenceRule(BaseRule):
         if not isinstance(paths, dict):
             return issues
 
-        http_methods = {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
-
         for path_str, path_item in paths.items():
             if not isinstance(path_item, dict):
                 continue
 
             for method, operation in path_item.items():
-                if method not in http_methods:
+                if method not in _HTTP_METHODS:
                     continue
 
                 if not isinstance(operation, dict):
@@ -168,14 +170,12 @@ class UnusedSecuritySchemeRule(BaseRule):
         # Check operation-level security
         paths = spec_data.get("paths", {})
         if isinstance(paths, dict):
-            http_methods = {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
-
             for path_item in paths.values():
                 if not isinstance(path_item, dict):
                     continue
 
                 for method, operation in path_item.items():
-                    if method not in http_methods or not isinstance(operation, dict):
+                    if method not in _HTTP_METHODS or not isinstance(operation, dict):
                         continue
 
                     op_security = operation.get("security", [])

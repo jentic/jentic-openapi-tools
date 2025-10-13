@@ -21,10 +21,10 @@ from .rules.server import ServerUrlRule
 from .rules.structural import InfoObjectRule, PathsRule
 
 
-__all__ = ["DefaultOpenAPIValidator"]
+__all__ = ["DefaultOpenAPIValidatorBackend"]
 
 
-class DefaultOpenAPIValidator(BaseValidatorBackend):
+class DefaultOpenAPIValidatorBackend(BaseValidatorBackend):
     """
     Default OpenAPI validator backend using a rule-based validation system.
 
