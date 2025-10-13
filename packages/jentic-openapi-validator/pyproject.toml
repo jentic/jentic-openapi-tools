@@ -39,4 +39,5 @@ build-backend = "uv_build"
 
 [project.entry-points."jentic.apitools.openapi.validator.backends"]
 base = "jentic.apitools.openapi.validator.backends.base:BaseValidatorBackend"
+default = "jentic.apitools.openapi.validator.backends.default:DefaultOpenAPIValidator"
 openapi-spec = "jentic.apitools.openapi.validator.backends.openapi_spec:OpenAPISpecValidatorBackend"
