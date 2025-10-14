@@ -73,7 +73,7 @@ class Tag(SpecificationObject):
                     self[key] = ExternalDocumentation(value)
                 else:
                     # Store as-is (already ExternalDocumentation, extension, or other)
-                    self[key] = value
+                    self[key] = self._copy_value(value)
 
     @property
     def name(self) -> str | None:

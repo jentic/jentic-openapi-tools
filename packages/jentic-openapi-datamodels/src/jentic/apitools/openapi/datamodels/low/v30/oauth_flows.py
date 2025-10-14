@@ -90,7 +90,7 @@ class OAuthFlows(SpecificationObject):
                     self[key] = OAuthFlow(value)
                 else:
                     # Store as-is (already OAuthFlow, extension, or other)
-                    self[key] = value
+                    self[key] = self._copy_value(value)
 
     @property
     def implicit(self) -> OAuthFlow | None:

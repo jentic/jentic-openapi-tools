@@ -96,7 +96,7 @@ class SecurityScheme(SpecificationObject):
                     self[key] = OAuthFlows(value)
                 else:
                     # Store as-is (already OAuthFlows, extension, or other)
-                    self[key] = value
+                    self[key] = self._copy_value(value)
 
     @property
     def type(self) -> str | None:

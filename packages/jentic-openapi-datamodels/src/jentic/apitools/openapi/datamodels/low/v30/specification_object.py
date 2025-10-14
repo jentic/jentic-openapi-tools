@@ -1,7 +1,8 @@
 """Base class for OpenAPI specification objects."""
 
 from abc import ABC
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Mapping, MutableMapping, Sequence
+from copy import copy
 from typing import Any, Iterator, TypeVar
 
 
@@ -36,7 +37,7 @@ class SpecificationObject(ABC, MutableMapping[str, Any]):
         """
         if data:
             for key, value in data.items():
-                self[key] = value
+                self[key] = self._copy_value(value)
 
     # MutableMapping abstract methods
     def __getitem__(self, key: str) -> Any:
@@ -167,6 +168,33 @@ class SpecificationObject(ABC, MutableMapping[str, Any]):
             return {k: cls._marshal_value(v) for k, v in value.items()}
         else:
             return value
+
+    @staticmethod
+    def _copy_value(value: Any) -> Any:
+        """
+        Defensive shallow copy for mutable collections.
+
+        Copies mutable types (list, dict, etc.) to prevent unintended mutation
+        of input data. Does not copy SpecificationObjects (already defensive).
+
+        Args:
+            value: Value to potentially copy
+
+        Returns:
+            Copy of value if mutable collection, otherwise value itself
+        """
+
+        # Don't copy SpecificationObjects (already create new instances)
+        if isinstance(value, SpecificationObject):
+            return value
+
+        # Copy mutable collections (dict, list, etc.)
+        # Exclude strings (they're Sequence but immutable)
+        if isinstance(value, (Mapping, Sequence)) and not isinstance(value, str):
+            return copy(value)
+
+        # Primitives and immutables - no copy needed
+        return value
 
     def __repr__(self) -> str:
         """Return a developer-friendly string representation."""

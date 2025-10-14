@@ -157,10 +157,10 @@ class Schema(SpecificationObject):
                     elif isinstance(value, Mapping):
                         self[key] = self._unmarshal_schema_or_reference(value)
                     else:
-                        self[key] = value
+                        self[key] = self._copy_value(value)
                 else:
-                    # Store as-is
-                    self[key] = value
+                    # Store as-is (with defensive copy)
+                    self[key] = self._copy_value(value)
 
     # JSON Schema Core - Metadata
     @property
