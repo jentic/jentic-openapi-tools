@@ -122,3 +122,58 @@ class TestSpecificationObject:
         assert "ConcreteSpecificationObject" in repr_str
         assert "1 field" in repr_str
         assert "1 specification extension" in repr_str
+
+    def test_underscore_prefixed_field_names(self):
+        """Test that field names starting with underscore are treated as data, not private attributes."""
+        # OpenAPI fields can legitimately start with underscore
+        obj = ConcreteSpecificationObject({"_id": "12345", "_metadata": {"version": 1}})
+
+        # Should be stored in the dict
+        assert obj["_id"] == "12345"
+        assert obj["_metadata"] == {"version": 1}
+
+        # Should be accessible via attribute access
+        assert obj._id == "12345"
+        assert obj._metadata == {"version": 1}
+
+        # Should be included in length and iteration
+        assert len(obj) == 2
+        assert "_id" in obj
+        assert "_metadata" in obj
+
+        # Should be included in to_mapping
+        result = obj.to_mapping()
+        assert result["_id"] == "12345"
+        assert result["_metadata"] == {"version": 1}
+
+        # Should support assignment via attribute access
+        obj._custom = "value"
+        assert obj["_custom"] == "value"
+
+    def test_internal_class_attribute_collision(self):
+        """Test that OpenAPI fields don't collide with internal class attributes."""
+        # Create object with field names that match internal class attributes
+        obj = ConcreteSpecificationObject(
+            {
+                "_supports_extensions": "collision_data",
+                "_fixed_fields": ["field1", "field2"],
+                "x-custom": "extension_value",
+            }
+        )
+
+        # Instance data should be accessible
+        assert obj["_supports_extensions"] == "collision_data"
+        assert obj["_fixed_fields"] == ["field1", "field2"]
+        assert obj._supports_extensions == "collision_data"  # Via attribute access
+        assert obj._fixed_fields == ["field1", "field2"]
+
+        # But internal methods should still use class attributes correctly
+        # get_extensions() should work because it uses type(self)._supports_extensions
+        extensions = obj.get_extensions()
+        assert extensions == {"x-custom": "extension_value"}
+
+        # get_fields() should exclude x-* because class attribute is True
+        fields = obj.get_fields()
+        assert "_supports_extensions" in fields
+        assert "_fixed_fields" in fields
+        assert "x-custom" not in fields  # Excluded because class supports extensions

@@ -100,7 +100,7 @@ class SpecificationObject(ABC, MutableMapping[str, Any]):
         Returns:
             Mapping of extension fields (keys starting with 'x-')
         """
-        if not self._supports_extensions:
+        if not type(self)._supports_extensions:
             return {}
         return {k: v for k, v in self.items() if isinstance(k, str) and k.startswith("x-")}
 
@@ -115,7 +115,7 @@ class SpecificationObject(ABC, MutableMapping[str, Any]):
         Returns:
             Mapping of regular fields (excluding x-* if extensions are supported)
         """
-        if not self._supports_extensions:
+        if not type(self)._supports_extensions:
             return dict(self)
         return {k: v for k, v in self.items() if isinstance(k, str) and not k.startswith("x-")}
 
