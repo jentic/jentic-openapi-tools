@@ -98,10 +98,10 @@ class XML(SpecificationObject):
         """
         Declares whether the property is an XML attribute.
 
-        Default is False when not present.
-
         Returns:
-            True if attribute, False/None if element
+            True if the property is an XML attribute,
+            False if present and set to false,
+            or None if not present.
         """
         return self.get("attribute")
 
