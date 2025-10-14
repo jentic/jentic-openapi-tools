@@ -118,10 +118,10 @@ class XML(SpecificationObject):
         """
         For arrays, wraps the array in a containing element.
 
-        Only affects arrays. Default is False when not present.
+        Only affects arrays. Returns None when not set.
 
         Returns:
-            True if wrapped, False/None if not wrapped
+            True if wrapped, None if not set or not wrapped
         """
         return self.get("wrapped")
 
