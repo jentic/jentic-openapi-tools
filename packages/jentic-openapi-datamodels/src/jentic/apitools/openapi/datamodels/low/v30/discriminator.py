@@ -43,14 +43,6 @@ class Discriminator(SpecificationObject):
         'petType'
         >>> disc.mapping["dog"]
         '#/components/schemas/Dog'
-        >>> disc.has_mapping()
-        True
-
-        >>> # Check mapping entries
-        >>> disc.get_mapped_schema("dog")
-        '#/components/schemas/Dog'
-        >>> print(disc.get_mapped_schema("bird"))
-        None
     """
 
     _supports_extensions: bool = True

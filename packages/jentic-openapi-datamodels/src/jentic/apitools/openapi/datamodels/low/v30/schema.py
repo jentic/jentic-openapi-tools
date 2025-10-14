@@ -27,7 +27,7 @@ class Schema(SpecificationObject):
     Represents a Schema Object from OpenAPI 3.0.4.
 
     The Schema Object allows the definition of input and output data types.
-    Based on JSON Schema Draft 2020-12 with OpenAPI-specific extensions.
+    Based on a subset of JSON Schema Draft 4/5 with OpenAPI-specific extensions.
 
     Supports specification extensions (x-* fields).
 

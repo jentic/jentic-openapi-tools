@@ -47,8 +47,6 @@ class Tag(SpecificationObject):
         ... })
         >>> tag.external_docs.url
         'http://example.com'
-        >>> tag.has_external_docs()
-        True
     """
 
     _supports_extensions: bool = True
