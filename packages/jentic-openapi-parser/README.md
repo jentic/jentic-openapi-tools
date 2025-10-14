@@ -68,8 +68,8 @@ doc = parser.parse(yaml_doc, return_type=CommentedMap, strict=True)
 parser = OpenAPIParser("pyyaml")
 doc = parser.parse("file:///path/to/openapi.yaml")
 
-# Use ruamel.yaml backend
-parser = OpenAPIParser("ruamel")
+# Use ruamel.yaml backend (safe mode)
+parser = OpenAPIParser("ruamel-safe")
 doc = parser.parse("file:///path/to/openapi.yaml")
 
 # Use ruamel.yaml roundtrip mode (preserves comments and formatting info)
@@ -153,7 +153,7 @@ class OpenAPIParser:
 
 **Parameters:**
 - `backend`: Parser backend to use. Can be:
-  - `str`: Name of a backend registered via entry points (e.g., "pyyaml", "ruamel", "ruamel-roundtrip")
+  - `str`: Name of a backend registered via entry points (e.g., "pyyaml", "ruamel-safe", "ruamel-roundtrip")
   - `BaseParserBackend`: Instance of a parser backend
   - `Type[BaseParserBackend]`: Class of a parser backend (will be instantiated)
   - Defaults to `"pyyaml"` if `None`
@@ -238,20 +238,20 @@ parser = OpenAPIParser("pyyaml")
 doc = parser.parse(content)
 ```
 
-### ruamel
+### ruamel-safe
 ruamel.yaml-based parser with safe loading. Provides better YAML 1.2 support than PyYAML.
 
-**Accepts:** `text` (JSON/YAML strings)
+**Accepts:** `text` (JSON/YAML strings), `uri` (file paths/URLs)
 
 ```python
-parser = OpenAPIParser("ruamel")
+parser = OpenAPIParser("ruamel-safe")
 doc = parser.parse(content)
 ```
 
 ### ruamel-roundtrip
 ruamel.yaml roundtrip mode that preserves comments, formatting, and provides line/column information.
 
-**Accepts:** `text` (JSON/YAML strings)
+**Accepts:** `text` (JSON/YAML strings), `uri` (file paths/URLs)
 
 ```python
 from ruamel.yaml import CommentedMap
