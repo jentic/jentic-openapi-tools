@@ -31,6 +31,6 @@ build-backend = "uv_build"
 [project.entry-points."jentic.apitools.openapi.parser.backends"]
 base = "jentic.apitools.openapi.parser.backends.base:BaseParserBackend"
 pyyaml = "jentic.apitools.openapi.parser.backends.pyyaml:PyYAMLParserBackend"
-ruamel = "jentic.apitools.openapi.parser.backends.ruamel:RuamelParserBackend"
+ruamel-safe = "jentic.apitools.openapi.parser.backends.ruamel_safe:RuamelSafeParserBackend"
 ruamel-roundtrip = "jentic.apitools.openapi.parser.backends.ruamel_roundtrip:RuamelRoundTripParserBackend"
 

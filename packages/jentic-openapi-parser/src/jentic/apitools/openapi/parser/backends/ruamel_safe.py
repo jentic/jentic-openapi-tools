@@ -9,10 +9,10 @@ from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
 from jentic.apitools.openapi.parser.core.uri import is_uri_like, load_uri
 
 
-__all__ = ["RuamelParserBackend"]
+__all__ = ["RuamelSafeParserBackend"]
 
 
-class RuamelParserBackend(BaseParserBackend):
+class RuamelSafeParserBackend(BaseParserBackend):
     def __init__(self, typ: str = "safe", pure: bool = True):
         self.yaml = YAML(typ=typ, pure=pure)
         self.yaml.default_flow_style = False

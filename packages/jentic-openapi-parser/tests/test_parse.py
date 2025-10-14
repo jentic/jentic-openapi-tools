@@ -62,9 +62,9 @@ def test_parse_pyyaml_backend(parser_pyyaml: OpenAPIParser, simple_openapi_strin
 
 
 def test_parse_ruamel_backend(parser_ruamel: OpenAPIParser, simple_openapi_string: str):
-    """Test ruamel parser backend."""
+    """Test ruamel-safe parser backend."""
     backend_name = type(parser_ruamel.backend).__name__
-    assert backend_name == "RuamelParserBackend"
+    assert backend_name == "RuamelSafeParserBackend"
 
     doc = parser_ruamel.parse(simple_openapi_string)
     assert doc["openapi"] == "3.1.0"
@@ -175,8 +175,9 @@ def test_backend_accepts_method():
     parser_pyyaml = OpenAPIParser("pyyaml")
     assert "text" in parser_pyyaml.backend.accepts()
 
-    parser_ruamel = OpenAPIParser("ruamel")
+    parser_ruamel = OpenAPIParser("ruamel-safe")
     assert "text" in parser_ruamel.backend.accepts()
+    assert "uri" in parser_ruamel.backend.accepts()
 
     parser_roundtrip = OpenAPIParser("ruamel-roundtrip")
     assert "text" in parser_roundtrip.backend.accepts()
