@@ -10,6 +10,7 @@ members = [
     "jentic-openapi-tools",
     "jentic-openapi-transformer",
     "jentic-openapi-transformer-redocly",
+    "jentic-openapi-traverse",
     "jentic-openapi-validator",
     "jentic-openapi-validator-redocly",
     "jentic-openapi-validator-spectral",
@@ -344,6 +345,11 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'test'" },
 ]
 provides-extras = ["test"]
+
+[[package]]
+name = "jentic-openapi-traverse"
+version = "0.1.0"
+source = { editable = "packages/jentic-openapi-traverse" }
 
 [[package]]
 name = "jentic-openapi-validator"
