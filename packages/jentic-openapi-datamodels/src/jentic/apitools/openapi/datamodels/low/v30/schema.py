@@ -336,12 +336,9 @@ class Schema(SpecificationObject):
             self["minProperties"] = value
 
     @property
-    def required(self) -> list[str]:
+    def required(self) -> list[str] | None:
         """List of required property names (for object types)."""
-        req = self.get("required")
-        if req is None:
-            return []
-        return list(req) if isinstance(req, list) else []
+        return self.get("required")
 
     @required.setter
     def required(self, value: list[str] | None) -> None:
@@ -351,12 +348,9 @@ class Schema(SpecificationObject):
             self["required"] = value
 
     @property
-    def enum(self) -> list[Any]:
+    def enum(self) -> list[Any] | None:
         """Allowed values."""
-        enum = self.get("enum")
-        if enum is None:
-            return []
-        return list(enum) if isinstance(enum, list) else []
+        return self.get("enum")
 
     @enum.setter
     def enum(self, value: list[Any] | None) -> None:
@@ -379,12 +373,9 @@ class Schema(SpecificationObject):
             self["type"] = value
 
     @property
-    def all_of(self) -> list[Schema | Reference]:
+    def all_of(self) -> list[Schema | Reference] | None:
         """Schemas that must all be valid (list of Schema or Reference objects)."""
-        all_of = self.get("allOf")
-        if all_of is None:
-            return []
-        return list(all_of) if isinstance(all_of, list) else []
+        return self.get("allOf")
 
     @all_of.setter
     def all_of(self, value: list[Schema | Reference] | None) -> None:
@@ -394,12 +385,9 @@ class Schema(SpecificationObject):
             self["allOf"] = value
 
     @property
-    def one_of(self) -> list[Schema | Reference]:
+    def one_of(self) -> list[Schema | Reference] | None:
         """Schemas where exactly one must be valid (list of Schema or Reference objects)."""
-        one_of = self.get("oneOf")
-        if one_of is None:
-            return []
-        return list(one_of) if isinstance(one_of, list) else []
+        return self.get("oneOf")
 
     @one_of.setter
     def one_of(self, value: list[Schema | Reference] | None) -> None:
@@ -409,12 +397,9 @@ class Schema(SpecificationObject):
             self["oneOf"] = value
 
     @property
-    def any_of(self) -> list[Schema | Reference]:
+    def any_of(self) -> list[Schema | Reference] | None:
         """Schemas where at least one must be valid (list of Schema or Reference objects)."""
-        any_of = self.get("anyOf")
-        if any_of is None:
-            return []
-        return list(any_of) if isinstance(any_of, list) else []
+        return self.get("anyOf")
 
     @any_of.setter
     def any_of(self, value: list[Schema | Reference] | None) -> None:
@@ -454,12 +439,9 @@ class Schema(SpecificationObject):
             self["items"] = value
 
     @property
-    def properties(self) -> dict[str, Schema | Reference]:
+    def properties(self) -> dict[str, Schema | Reference] | None:
         """Object properties (map of property name to Schema or Reference)."""
-        props = self.get("properties")
-        if props is None:
-            return {}
-        return dict(props) if isinstance(props, Mapping) else {}
+        return self.get("properties")
 
     @properties.setter
     def properties(self, value: Mapping[str, Schema | Reference] | None) -> None:

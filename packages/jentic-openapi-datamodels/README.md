@@ -9,7 +9,7 @@ This package provides data model classes for representing OpenAPI specification 
 - **Dict-like**: Implement `MutableMapping` for easy data access
 - **Unvalidated**: Separate parsing from validation for performance
 - **Extensible**: Support OpenAPI specification extensions (x-* fields)
-**Version-aware**: Currently implements OpenAPI 3.0.x (3.1.x planned)
+- **Version-aware**: Currently implements OpenAPI 3.0.x (3.1.x planned)
 
 ## Structure
 
