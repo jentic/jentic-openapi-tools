@@ -1,6 +1,6 @@
-from collections.abc import MutableMapping, MutableSequence
+from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from dataclasses import dataclass
-from typing import Any, Iterator, TypeAlias
+from typing import Iterator, TypeAlias, Union
 
 
 # Path segment can be a dict key (str) or list index (int)
@@ -9,13 +9,19 @@ PathSeg: TypeAlias = str | int
 # Path is an immutable tuple of segments from root to a node
 JSONPath: TypeAlias = tuple[PathSeg, ...]
 
-# Container types that can be traversed
-JSONContainer: TypeAlias = MutableMapping[str, Any] | MutableSequence[Any]
-
 # Any JSON-like value
-JSONValue: TypeAlias = (
-    None | bool | int | float | str | MutableMapping[str, Any] | MutableSequence[Any]
-)
+JSONValue: TypeAlias = Union[
+    None,
+    bool,
+    int,
+    float,
+    str,
+    Mapping[str, "JSONValue"],
+    Sequence["JSONValue"],
+]
+
+# Container types that can be traversed
+JSONContainer: TypeAlias = MutableMapping[str, JSONValue] | MutableSequence[JSONValue]
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,7 +62,7 @@ class TraversalNode:
         return "".join(parts)
 
 
-def walk_nodes(root: JSONValue) -> Iterator[TraversalNode]:
+def traverse(root: JSONValue) -> Iterator[TraversalNode]:
     """
     Depth-first traversal of nested data structures.
 
@@ -73,7 +79,7 @@ def walk_nodes(root: JSONValue) -> Iterator[TraversalNode]:
 
     Example:
         >>> data = {"users": [{"name": "Alice"}, {"name": "Bob"}]}
-        >>> for node in walk_nodes(data):
+        >>> for node in traverse(data):
         ...     print(f"{node.format_path()}: {node.value} (depth: {len(node.ancestors)})")
         users: [{'name': 'Alice'}, {'name': 'Bob'}] (depth: 0)
         users[0]: {'name': 'Alice'} (depth: 1)
@@ -84,12 +90,12 @@ def walk_nodes(root: JSONValue) -> Iterator[TraversalNode]:
     stack: list[tuple[JSONPath, JSONValue, tuple[JSONValue, ...]]] = [((), root, ())]
     while stack:
         path, current, ancestors = stack.pop()
-        if isinstance(current, MutableMapping):
+        if isinstance(current, Mapping):
             for k, v in current.items():
-                yield TraversalNode(path, current, k, v, ancestors)
+                yield TraversalNode(path, current, k, v, ancestors)  # type: ignore[arg-type]
                 # push child with updated ancestors
                 stack.append((path + (k,), v, ancestors + (current,)))
-        elif isinstance(current, MutableSequence):
+        elif isinstance(current, Sequence) and not isinstance(current, str):
             for i, v in enumerate(current):
-                yield TraversalNode(path, current, i, v, ancestors)
+                yield TraversalNode(path, current, i, v, ancestors)  # type: ignore[arg-type]
                 stack.append((path + (i,), v, ancestors + (current,)))
