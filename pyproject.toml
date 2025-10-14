@@ -57,6 +57,7 @@ line-length = 100
 src = [
   "src",
   "packages/jentic-openapi-common/src",
+  "packages/jentic-openapi-datamodels/src",
   "packages/jentic-openapi-parser/src",
   "packages/jentic-openapi-transformer/src",
   "packages/jentic-openapi-transformer-redocly/src",
@@ -101,6 +102,7 @@ allow_zero_version = true
 version_pattern = [
     "pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-common/pyproject.toml:version = \"{version}\"",
+    "packages/jentic-openapi-datamodels/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-parser/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-transformer/pyproject.toml:version = \"{version}\"",
     "packages/jentic-openapi-transformer-redocly/pyproject.toml:version = \"{version}\"",

@@ -22,6 +22,7 @@ git config commit.template .gitmessage # commit message template
 
 ```bash
 uv run --package jentic-openapi-common                 pytest packages/jentic-openapi-common/tests -q
+uv run --package jentic-openapi-datamodels             pytest packages/jentic-openapi-datamodels/tests -q
 uv run --package jentic-openapi-parser                 pytest packages/jentic-openapi-parser/tests -q
 uv run --package jentic-openapi-transformer            pytest packages/jentic-openapi-transformer/tests -q
 uv run --package jentic-openapi-transformer-redocly    pytest packages/jentic-openapi-transformer-redocly/tests -q
@@ -51,6 +52,7 @@ uv run poe typecheck
 
 ```bash
 uv build --package jentic-openapi-common
+uv build --package jentic-openapi-datamodels
 uv build --package jentic-openapi-parser
 uv build --package jentic-openapi-transformer
 uv build --package jentic-openapi-transformer-redocly
@@ -76,6 +78,7 @@ You can install the packages directly from your Git repository. In your client p
 [project]
 dependencies = [
     "jentic-openapi-common @ git+https://github.com/jentic/jentic-openapi-tools.git#subdirectory=packages/jentic-openapi-common",
+    "jentic-openapi-datamodels @ git+https://github.com/jentic/jentic-openapi-tools.git#subdirectory=packages/jentic-openapi-datamodels",
     "jentic-openapi-parser @ git+https://github.com/jentic/jentic-openapi-tools.git#subdirectory=packages/jentic-openapi-parser",
     "jentic-openapi-transformer @ git+https://github.com/jentic/jentic-openapi-tools.git#subdirectory=packages/jentic-openapi-transformer",
     "jentic-openapi-transformer-redocly @ git+https://github.com/jentic/jentic-openapi-tools.git#subdirectory=packages/jentic-openapi-transformer-redocly",
@@ -93,6 +96,7 @@ If you're developing locally and want to use the packages from a local path, you
 [project]
 dependencies = [
     "jentic-openapi-common @ file:///path/to/jentic-openapi-tools/packages/jentic-openapi-common",
+    "jentic-openapi-datamodels @ file:///path/to/jentic-openapi-tools/packages/jentic-openapi-datamodels",
     "jentic-openapi-parser @ file:///path/to/jentic-openapi-tools/packages/jentic-openapi-parser",
     "jentic-openapi-transformer @ file:///path/to/jentic-openapi-tools/packages/jentic-openapi-transformer",
     "jentic-openapi-transformer-redocly @ file:///path/to/jentic-openapi-tools/packages/jentic-openapi-transformer-redocly",
@@ -108,6 +112,7 @@ For active development where you want changes to be immediately reflected:
 
 ```bash
 pip install -e /path/to/jentic-openapi-tools/packages/jentic-openapi-common
+pip install -e /path/to/jentic-openapi-tools/packages/jentic-openapi-datamodels
 pip install -e /path/to/jentic-openapi-tools/packages/jentic-openapi-parser
 pip install -e /path/to/jentic-openapi-tools/packages/jentic-openapi-transformer
 pip install -e /path/to/jentic-openapi-tools/packages/jentic-openapi-transformer-redocly

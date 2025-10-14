@@ -39,8 +39,8 @@ def parser_pyyaml() -> OpenAPIParser:
 
 @pytest.fixture
 def parser_ruamel() -> OpenAPIParser:
-    """An OpenAPIParser instance with ruamel backend."""
-    return OpenAPIParser("ruamel")
+    """An OpenAPIParser instance with ruamel-safe backend."""
+    return OpenAPIParser("ruamel-safe")
 
 
 @pytest.fixture

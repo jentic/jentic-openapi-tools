@@ -5,6 +5,7 @@ requires-python = ">=3.11"
 [manifest]
 members = [
     "jentic-openapi-common",
+    "jentic-openapi-datamodels",
     "jentic-openapi-parser",
     "jentic-openapi-tools",
     "jentic-openapi-transformer",
@@ -252,6 +253,11 @@ wheels = [
 name = "jentic-openapi-common"
 version = "0.1.0"
 source = { editable = "packages/jentic-openapi-common" }
+
+[[package]]
+name = "jentic-openapi-datamodels"
+version = "0.1.0"
+source = { editable = "packages/jentic-openapi-datamodels" }
 
 [[package]]
 name = "jentic-openapi-parser"
