@@ -245,7 +245,7 @@ class SecurityScheme(SpecificationObject):
             self["flows"] = value
 
     @property
-    def openid_connect_url(self) -> str | None:
+    def open_id_connect_url(self) -> str | None:
         """
         OpenID Connect URL to discover OAuth2 configuration values.
 
@@ -256,8 +256,8 @@ class SecurityScheme(SpecificationObject):
         """
         return self.get("openIdConnectUrl")
 
-    @openid_connect_url.setter
-    def openid_connect_url(self, value: str | None) -> None:
+    @open_id_connect_url.setter
+    def open_id_connect_url(self, value: str | None) -> None:
         """Set the OpenID Connect URL."""
         if value is None:
             self.pop("openIdConnectUrl", None)

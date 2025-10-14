@@ -76,7 +76,17 @@ class SpecificationObject(ABC, MutableMapping[str, Any]):
         Set an attribute via attribute access.
 
         This allows both dict-style (obj["key"] = val) and attribute-style (obj.key = val).
+        For properties and other descriptors, delegates to the descriptor.
         """
+        # Check if this is a data descriptor (property, etc.) on the class
+        cls = type(self)
+        if hasattr(cls, name):
+            attr = getattr(cls, name)
+            # If it's a data descriptor (has __set__), use normal attribute setting
+            if hasattr(attr, "__set__"):
+                object.__setattr__(self, name, value)
+                return
+        # Otherwise, store in the dict
         self[name] = value
 
     def get_extensions(self) -> Mapping[str, Any]:
