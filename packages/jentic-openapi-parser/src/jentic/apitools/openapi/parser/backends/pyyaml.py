@@ -1,4 +1,3 @@
-import json
 import logging
 from collections.abc import Sequence
 from typing import Literal, Mapping
@@ -35,17 +34,14 @@ class PyYAMLParserBackend(BaseParserBackend):
         return self._parse_text(load_uri(uri, 5, 10, logger), logger)
 
     def _parse_text(self, text: str, logger: logging.Logger) -> dict:
-        data: Mapping | None = None
+        if not isinstance(text, (bytes, str)):
+            raise TypeError(f"Unsupported document type: {type(text)!r}")
 
-        try:
-            data = yaml.safe_load(text)
-            logger.debug("YAML document successfully parsed")
-        except Exception:
-            if isinstance(text, (bytes, str)):
-                logger.debug("Attempting to parse document as JSON")
-                text = text.decode() if isinstance(text, bytes) else text
-                data = json.loads(text)
-                logger.debug("JSON document successfully parsed")
+        if isinstance(text, bytes):
+            text = text.decode()
+
+        data = yaml.safe_load(text)
+        logger.debug("Document successfully parsed")
 
         if not isinstance(data, Mapping):
             raise TypeError(f"Parsed document is not a mapping: {type(data)!r}")
