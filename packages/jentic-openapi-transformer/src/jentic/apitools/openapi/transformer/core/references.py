@@ -100,7 +100,7 @@ def rewrite_urls_inplace(root: Any, opts: RewriteOptions) -> int:
     return changed
 
 
-def set_or_replace_top_level_json_id(root: Any, base_url: str, forse_on_30: bool = False) -> None:
+def set_or_replace_top_level_json_id(root: Any, base_url: str, force_on_30: bool = False) -> None:
     """
     Ensure the document has a top-level '$id' equal to base_url.
     (This is *not* an OpenAPI requirement; it's provided per your request
@@ -108,7 +108,7 @@ def set_or_replace_top_level_json_id(root: Any, base_url: str, forse_on_30: bool
     """
     if isinstance(root, MutableMapping):
         if "openapi" in root and (
-            (str(root["openapi"]).startswith("3.0") and forse_on_30)
+            (str(root["openapi"]).startswith("3.0") and force_on_30)
             or (str(root["openapi"]).startswith("3.1"))
         ):
             root["$id"] = base_url
