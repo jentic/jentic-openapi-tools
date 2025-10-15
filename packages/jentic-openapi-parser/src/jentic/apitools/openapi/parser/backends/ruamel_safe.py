@@ -19,37 +19,9 @@ class RuamelSafeParserBackend(BaseParserBackend):
 
     def parse(self, document: str, *, logger: logging.Logger | None = None) -> Any:
         logger = logger or logging.getLogger(__name__)
-        text = document
-        try:
-            if is_uri_like(document):
-                logger.debug("Starting download of %s", document)
-                text = load_uri(document, 5, 10, logger)
-
-            data = self.parse_text(text)
-        except Exception:
-            msg = f"Unsupported document type: {type(document)!r}"
-            logger.exception(msg)
-            raise TypeError(msg)
-        return data
-
-    def parse_uri(self, uri: str, logger: logging.Logger | None = None) -> Any:
-        return self.parse_text(load_uri(uri, 5, 10, logger))
-
-    def parse_text(self, text: str, logger: logging.Logger | None = None) -> Any:
-        logger = logger or logging.getLogger(__name__)
-        try:
-            data = self.yaml.load(text)
-            logger.debug("loaded YAML")
-        except Exception:
-            if isinstance(text, (bytes, str)):
-                text = text.decode() if isinstance(text, bytes) else text
-                data = json.loads(text)
-                logger.debug("loaded JSON")
-        if isinstance(data, Mapping):
-            return data
-        msg = f"Unsupported document type: {type(text)!r}"
-        logger.error(msg)
-        raise TypeError(msg)
+        if is_uri_like(document):
+            return self._parse_uri(document, logger)
+        return self._parse_text(document, logger)
 
     @staticmethod
     def accepts() -> Sequence[Literal["uri", "text"]]:
@@ -61,3 +33,25 @@ class RuamelSafeParserBackend(BaseParserBackend):
             - "text": String (JSON/YAML) representation
         """
         return ["uri", "text"]
+
+    def _parse_uri(self, uri: str, logger: logging.Logger) -> Any:
+        logger.debug("Starting download of %s", uri)
+        return self._parse_text(load_uri(uri, 5, 10, logger), logger)
+
+    def _parse_text(self, text: str, logger: logging.Logger) -> Any:
+        data: Mapping | None = None
+
+        try:
+            data = self.yaml.load(text)
+            logger.debug("YAML document successfully parsed")
+        except Exception:
+            if isinstance(text, (bytes, str)):
+                logger.debug("Attempting to parse document as JSON")
+                text = text.decode() if isinstance(text, bytes) else text
+                data = json.loads(text)
+                logger.debug("JSON document successfully parsed")
+
+        if not isinstance(data, Mapping):
+            raise TypeError(f"Parsed document is not a mapping: {type(data)!r}")
+
+        return data
