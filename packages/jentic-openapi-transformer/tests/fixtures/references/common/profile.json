@@ -1,0 +1,13 @@
+{
+  "Profile": {
+    "type": "object",
+    "properties": {
+      "bio": {
+        "type": "string"
+      },
+      "avatar": {
+        "type": "string"
+      }
+    }
+  }
+}
