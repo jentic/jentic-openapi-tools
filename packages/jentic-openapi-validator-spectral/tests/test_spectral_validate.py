@@ -45,7 +45,7 @@ class TestSpectralValidatorUnit:
         validator = SpectralValidatorBackend()
         assert validator.spectral_path == "npx --yes @stoplight/spectral-cli@^6.15.0"
         assert validator.ruleset_path is None
-        assert validator.timeout == 30.0
+        assert validator.timeout == 600.0
 
     def test_initialization_with_custom_spectral_path(self):
         """Test SpectralValidator with a custom spectral path."""

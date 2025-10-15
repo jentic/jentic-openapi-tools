@@ -71,7 +71,7 @@ class TestRedoclyBundlerUnit:
         """Test RedoclyBundlerBackend initialization with default values."""
         bundler = RedoclyBundlerBackend()
         assert bundler.redocly_path == "npx --yes @redocly/cli@^2.4.0"
-        assert bundler.timeout == 30.0
+        assert bundler.timeout == 600.0
 
     def test_init_with_custom_path(self, redocly_bundler_with_custom_path: RedoclyBundlerBackend):
         """Test RedoclyBundlerBackend initialization with custom redocly path."""
