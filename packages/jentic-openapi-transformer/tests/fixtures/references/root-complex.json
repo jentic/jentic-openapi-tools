@@ -1,0 +1,65 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Complex API",
+    "version": "2.0.0",
+    "termsOfService": "https://example.com/terms",
+    "contact": {
+      "url": "https://example.com/contact"
+    }
+  },
+  "externalDocs": {
+    "url": "https://example.com/docs"
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com/v1"
+    },
+    {
+      "url": "/api/v2"
+    }
+  ],
+  "paths": {
+    "/items": {
+      "get": {
+        "externalDocs": {
+          "url": "https://docs.example.com/items"
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "schemas/item.json#/Item"
+                },
+                "examples": {
+                  "example1": {
+                    "externalValue": "https://example.com/examples/item1.json"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "oauth": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.example.com/oauth/authorize",
+            "tokenUrl": "https://auth.example.com/oauth/token"
+          }
+        }
+      },
+      "openid": {
+        "type": "openIdConnect",
+        "openIdConnectUrl": "https://auth.example.com/.well-known/openid-configuration"
+      }
+    }
+  }
+}
