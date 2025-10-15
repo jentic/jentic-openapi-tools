@@ -2,9 +2,11 @@
 
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import pytest
 
+from jentic.apitools.openapi.parser.core import OpenAPIParser, load_uri
 from jentic.apitools.openapi.transformer.bundler.core import OpenAPIBundler
 
 
@@ -18,6 +20,12 @@ def fixtures_dir() -> Path:
 def openapi_fixtures_dir(fixtures_dir: Path) -> Path:
     """Return the path to the OpenAPI test fixtures directory."""
     return fixtures_dir / "openapi"
+
+
+@pytest.fixture
+def references_fixtures_dir(fixtures_dir: Path) -> Path:
+    """Return the path to the references test fixtures directory."""
+    return fixtures_dir / "references"
 
 
 @pytest.fixture
@@ -42,6 +50,29 @@ def simple_openapi_path(openapi_fixtures_dir: Path) -> Path:
 def simple_openapi_uri(simple_openapi_path: Path) -> str:
     """Return URI to a simple OpenAPI document."""
     return simple_openapi_path.as_uri()
+
+
+@pytest.fixture
+def root_relative_refs_path(references_fixtures_dir: Path) -> Path:
+    """Return path to root-relative-refs.json fixture."""
+    return references_fixtures_dir / "root-relative-refs.json"
+
+
+@pytest.fixture
+def root_relative_refs_uri(root_relative_refs_path: Path) -> str:
+    """Return URI to root-relative-refs.json fixture."""
+    return root_relative_refs_path.as_uri()
+
+
+@pytest.fixture
+def root_relative_refs_doc(root_relative_refs_uri: str) -> Any:
+    """Load and parse the root-relative-refs.json document.
+
+    This fixture is not cached (scope=function by default) so each test
+    gets a fresh copy to modify without affecting other tests.
+    """
+    spec_text = load_uri(root_relative_refs_uri, 300, 300)
+    return OpenAPIParser().parse(spec_text)
 
 
 @pytest.fixture
