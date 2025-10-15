@@ -58,7 +58,7 @@ class TestRedoclyValidatorUnit:
         validator = RedoclyValidatorBackend()
         assert validator.redocly_path == "npx --yes @redocly/cli@2.4.0"
         assert validator.ruleset_path is None
-        assert validator.timeout == 30.0
+        assert validator.timeout == 600.0
 
     def test_initialization_with_custom_redocly_path(self):
         """Test RedoclyValidator with a custom redocly path."""

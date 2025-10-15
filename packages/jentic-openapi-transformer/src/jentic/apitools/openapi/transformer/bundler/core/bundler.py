@@ -1,5 +1,6 @@
 import importlib.metadata
 import json
+import logging
 import warnings
 from typing import Any, Mapping, Sequence, Type, TypeVar, cast, overload
 
@@ -8,6 +9,8 @@ from jentic.apitools.openapi.transformer.bundler.backends.base import BaseBundle
 
 
 __all__ = ["OpenAPIBundler"]
+
+logger = logging.getLogger(__name__)
 
 
 # Cache entry points at module level for performance
@@ -162,9 +165,10 @@ class OpenAPIBundler:
         if backend_document is not None:
             try:
                 result = self.backend.bundle(backend_document)
-            except Exception as e:
+            except Exception:
                 # TODO(fracensco@jentic.com): Add to parser/validation chain result
-                print(f"Error parsing document: {e}")
+                logger.exception("Error bundling document")
+                raise
 
         if result is None:
             raise ValueError("No valid document found")

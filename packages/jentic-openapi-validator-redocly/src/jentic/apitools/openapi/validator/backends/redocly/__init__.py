@@ -31,7 +31,7 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
         self,
         redocly_path: str = "npx --yes @redocly/cli@2.4.0",
         ruleset_path: str | None = None,
-        timeout: float = 30.0,
+        timeout: float = 600.0,
     ):
         """
         Initialize the RedoclyValidatorBackend.
