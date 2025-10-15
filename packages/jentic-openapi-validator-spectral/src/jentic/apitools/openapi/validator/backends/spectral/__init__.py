@@ -30,7 +30,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         self,
         spectral_path: str = "npx --yes @stoplight/spectral-cli@^6.15.0",
         ruleset_path: str | None = None,
-        timeout: float = 30.0,
+        timeout: float = 600,
     ):
         """
         Initialize the SpectralValidatorBackend.

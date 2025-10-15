@@ -1,3 +1,4 @@
+import textwrap
 from collections.abc import Sequence
 from typing import Literal
 
@@ -65,6 +66,7 @@ class OpenAPISpecValidatorBackend(BaseValidatorBackend):
                 diagnostic.set_target(target)
                 diagnostics.append(diagnostic)
         except Exception as e:
+            error_msg = textwrap.shorten(str(e), width=500, placeholder="...")
             diagnostic = JenticDiagnostic(
                 range=lsp.Range(
                     start=lsp.Position(line=0, character=0),
@@ -73,7 +75,7 @@ class OpenAPISpecValidatorBackend(BaseValidatorBackend):
                 severity=lsp.DiagnosticSeverity.Error,
                 code="openapi-spec-validator-error",
                 source="openapi-spec-validator",
-                message=f"Error validating spec - {str(e)}",
+                message=f"Error validating spec - {error_msg}",
             )
             diagnostic.set_target(target)
             diagnostics.append(diagnostic)

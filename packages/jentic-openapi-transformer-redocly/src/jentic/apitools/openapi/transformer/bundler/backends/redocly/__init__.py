@@ -14,7 +14,7 @@ __all__ = ["RedoclyBundlerBackend"]
 
 
 class RedoclyBundlerBackend(BaseBundlerBackend):
-    def __init__(self, redocly_path: str = "npx --yes @redocly/cli@^2.4.0", timeout: float = 30.0):
+    def __init__(self, redocly_path: str = "npx --yes @redocly/cli@^2.4.0", timeout: float = 600):
         """
         Initialize the RedoclyBundler.
 
@@ -86,7 +86,7 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
             result = run_subprocess(cmd, timeout=self.timeout)
 
             # Check if bundling was successful based on return code
-            if result.returncode not in (0, 1):
+            if result.returncode != 0:
                 err = (result.stderr or "").strip()
                 msg = err or f"Redocly exited with code {result.returncode}"
                 raise RuntimeError(msg)
