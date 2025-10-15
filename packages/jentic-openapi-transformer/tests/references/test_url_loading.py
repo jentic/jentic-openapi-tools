@@ -7,7 +7,6 @@ from jentic.apitools.openapi.transformer.core.references import (
     RewriteOptions,
     find_relative_urls,
     rewrite_urls_inplace,
-    set_or_replace_top_level_json_id,
 )
 
 
@@ -30,10 +29,6 @@ class TestWithFileUrls:
         opts = RewriteOptions(base_url=spec_uri)
         changed = rewrite_urls_inplace(spec_doc, opts)
         assert changed > 0
-
-        # Set document ID
-        set_or_replace_top_level_json_id(spec_doc, spec_uri)
-        assert spec_doc["$id"] == spec_uri
 
     def test_load_complex_document_from_file(self, references_fixtures_dir):
         """Test loading and processing complex document from file."""

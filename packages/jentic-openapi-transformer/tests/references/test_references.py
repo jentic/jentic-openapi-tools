@@ -7,7 +7,6 @@ from jentic.apitools.openapi.transformer.core.references import (
     RewriteOptions,
     find_relative_urls,
     rewrite_urls_inplace,
-    set_or_replace_top_level_json_id,
 )
 
 
@@ -18,7 +17,6 @@ def test_references(root_relative_refs_doc: Any) -> None:
     - Finding relative URLs in OpenAPI documents
     - Rewriting relative URLs to absolute URLs
     - Verifying that fragment-only refs are excluded
-    - Setting top-level $id on OpenAPI 3.1 documents
     """
     spec_doc = root_relative_refs_doc
 
@@ -55,37 +53,6 @@ def test_references(root_relative_refs_doc: Any) -> None:
     # Verify the rewritten document contains absolute URLs
     spec_text = json_dumps(spec_doc)
     assert "http://localhost:8080/" in spec_text, "Rewritten document should contain absolute URLs"
-
-    # Test set_or_replace_top_level_json_id
-    original_id = spec_doc.get("$id")
-    set_or_replace_top_level_json_id(spec_doc, base_url)
-
-    # Should set ID on OpenAPI 3.1 when forced (the fixture is 3.0.3)
-    # But since force_on_30 defaults to False, it won't be set
-    openapi_version = spec_doc.get("openapi", "")
-    if openapi_version.startswith("3.1"):
-        assert spec_doc.get("$id") == base_url, "Should set $id on OpenAPI 3.1"
-    elif openapi_version.startswith("3.0"):
-        # Default behavior for 3.0 - no $id should be set
-        assert "$id" not in spec_doc or spec_doc.get("$id") == original_id, (
-            "Should not set $id on OpenAPI 3.0 by default"
-        )
-
-
-def test_references_with_force_id_on_30(root_relative_refs_doc: Any) -> None:
-    """Test setting $id on OpenAPI 3.0 documents when explicitly forced.
-
-    By default, $id is only set on OpenAPI 3.1+ documents. This test verifies
-    that the force_on_30 parameter allows setting $id on OpenAPI 3.0 documents.
-    """
-    spec_doc = root_relative_refs_doc
-    base_url = "http://localhost:8080/root-relative-refs.json"
-
-    # Force $id on OpenAPI 3.0
-    set_or_replace_top_level_json_id(spec_doc, base_url, force_on_30=True)
-
-    # Should now have $id set regardless of OpenAPI version
-    assert spec_doc.get("$id") == base_url, "Should force $id on OpenAPI 3.0 when requested"
 
 
 def test_references_retarget_absolute_urls(root_relative_refs_doc: Any) -> None:
