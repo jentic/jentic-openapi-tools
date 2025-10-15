@@ -14,7 +14,7 @@ __all__ = ["RedoclyBundlerBackend"]
 
 
 class RedoclyBundlerBackend(BaseBundlerBackend):
-    def __init__(self, redocly_path: str = "npx --yes @redocly/cli@^2.4.0", timeout: float = 600):
+    def __init__(self, redocly_path: str = "npx --yes @redocly/cli@^2.4.0", timeout: float = 600.0):
         """
         Initialize the RedoclyBundler.
 
