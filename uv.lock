@@ -310,6 +310,7 @@ version = "0.1.0"
 source = { editable = "packages/jentic-openapi-transformer" }
 dependencies = [
     { name = "jentic-openapi-parser" },
+    { name = "jentic-openapi-traverse" },
 ]
 
 [package.optional-dependencies]
@@ -321,6 +322,7 @@ redocly = [
 requires-dist = [
     { name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" },
     { name = "jentic-openapi-transformer-redocly", marker = "extra == 'redocly'", editable = "packages/jentic-openapi-transformer-redocly" },
+    { name = "jentic-openapi-traverse", editable = "packages/jentic-openapi-traverse" },
 ]
 provides-extras = ["redocly"]
 
