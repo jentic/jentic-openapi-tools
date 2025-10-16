@@ -81,6 +81,7 @@ class TestSchema:
         assert schema.required == ["name"]
         assert schema.min_properties == 1
         assert schema.max_properties == 10
+        assert schema.properties is not None
         assert "name" in schema.properties
         assert "age" in schema.properties
         assert isinstance(schema.properties["name"], Schema)
@@ -91,18 +92,21 @@ class TestSchema:
         schema = Schema(
             {"allOf": [{"type": "object"}, {"properties": {"name": {"type": "string"}}}]}
         )
+        assert schema.all_of is not None
         assert len(schema.all_of) == 2
         assert all(isinstance(s, Schema) for s in schema.all_of)
 
     def test_one_of_composition(self):
         """Test oneOf composition."""
         schema = Schema({"oneOf": [{"type": "string"}, {"type": "number"}]})
+        assert schema.one_of is not None
         assert len(schema.one_of) == 2
         assert all(isinstance(s, Schema) for s in schema.one_of)
 
     def test_any_of_composition(self):
         """Test anyOf composition."""
         schema = Schema({"anyOf": [{"type": "string"}, {"type": "null"}]})
+        assert schema.any_of is not None
         assert len(schema.any_of) == 2
         assert all(isinstance(s, Schema) for s in schema.any_of)
 
@@ -115,6 +119,7 @@ class TestSchema:
     def test_reference_in_composition(self):
         """Test reference in composition."""
         schema = Schema({"allOf": [{"$ref": "#/components/schemas/Base"}]})
+        assert schema.all_of is not None
         assert len(schema.all_of) == 1
         assert isinstance(schema.all_of[0], Reference)
         assert schema.all_of[0].ref == "#/components/schemas/Base"
@@ -184,11 +189,14 @@ class TestSchema:
                 },
             }
         )
+        assert schema.properties is not None
         assert isinstance(schema.properties["person"], Schema)
-        assert isinstance(schema.properties["person"].properties["address"], Schema)
-        assert isinstance(
-            schema.properties["person"].properties["address"].properties["street"], Schema
-        )
+        person_schema = schema.properties["person"]
+        assert person_schema.properties is not None
+        assert isinstance(person_schema.properties["address"], Schema)
+        address_schema = person_schema.properties["address"]
+        assert address_schema.properties is not None
+        assert isinstance(address_schema.properties["street"], Schema)
 
     def test_to_mapping(self):
         """Test converting schema back to mapping."""
@@ -250,6 +258,7 @@ class TestSchema:
         """Test that unmarshaling works with different sequence types."""
         # Simulate ruamel.yaml CommentedSeq behavior with a list
         schema = Schema({"allOf": [{"type": "object"}, {"type": "string"}]})
+        assert schema.all_of is not None
         assert len(schema.all_of) == 2
         assert all(isinstance(s, Schema) for s in schema.all_of)
 
@@ -267,5 +276,6 @@ class TestSchemaInheritance:
         schema = CustomSchema({"properties": {"name": {"type": "string"}}})
 
         # Nested schemas should be CustomSchema instances
+        assert schema.properties is not None
         assert isinstance(schema.properties["name"], CustomSchema)
         assert schema.properties["name"].custom_method() == "custom"
