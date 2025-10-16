@@ -74,7 +74,7 @@ extend-select = ["I"]
 lines-after-imports = 2
 
 [tool.pyright]
-include = ["src", "packages/*/src/**"]
+include = ["src", "packages/*/src/**", "packages/*/tests/**"]
 pythonVersion = "3.11"
 typeCheckingMode = "standard"
 
