@@ -10,13 +10,57 @@ uv add jentic-openapi-common
 
 ## Modules
 
+### uri
+
+URI/URL/path utilities for working with OpenAPI document references.
+
+**Available functions:**
+
+- `is_uri_like(s: str | None) -> bool` - Check if a string looks like a URI/URL/path
+- `is_http_https_url(s: str | None) -> bool` - Check if string is an HTTP(S) URL
+- `is_file_uri(s: str | None) -> bool` - Check if string is a file:// URI
+- `is_path(s: str | None) -> bool` - Check if string is a filesystem path (not a URL)
+- `resolve_to_absolute(uri: str, base_uri: str | None = None) -> str` - Resolve relative URIs to absolute
+
+**Exceptions:**
+
+- `URIResolutionError` - Raised when URI resolution fails
+
 ### subproc
 
 Subprocess execution utilities with enhanced error handling and cross-platform support.
 
 ## Usage Examples
 
-### Basic Command Execution
+### URI Utilities
+
+```python
+from jentic.apitools.openapi.common.uri import (
+    is_uri_like,
+    is_http_https_url,
+    is_file_uri,
+    is_path,
+    resolve_to_absolute,
+    URIResolutionError,
+)
+
+# Check URI types
+is_uri_like("https://example.com/spec.yaml")  # True
+is_http_https_url("https://example.com/spec.yaml")  # True
+is_file_uri("file:///home/user/spec.yaml")  # True
+is_path("/home/user/spec.yaml")  # True
+is_path("https://example.com/spec.yaml")  # False
+
+# Resolve relative URIs
+absolute = resolve_to_absolute("../spec.yaml", "/home/user/project/docs/")
+# Returns: "/home/user/project/spec.yaml"
+
+absolute = resolve_to_absolute("spec.yaml")  # Resolves against current working directory
+```
+
+### Subprocess Execution
+
+#### Basic Command Execution
 
 ```python
 from jentic.apitools.openapi.common.subproc import run_subprocess

@@ -9,7 +9,9 @@ license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
     "attrs",
+    "jentic-openapi-common",
     "pyyaml",
+    "requests",
     "ruamel-yaml"
 ]
 
@@ -23,6 +25,9 @@ package = true
 namespace = true
 module-name = "jentic.apitools.openapi.parser"
 module-root = "src/"
+
+[tool.uv.sources]
+jentic-openapi-common = { workspace = true }
 
 [build-system]
 requires = ["uv_build>=0.8.15,<0.9.0"]

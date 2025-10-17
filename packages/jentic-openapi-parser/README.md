@@ -20,6 +20,9 @@ pip install jentic-openapi-parser
 **Prerequisites:**
 - Python 3.11+
 
+**Dependencies:**
+- `jentic-openapi-common` - Common utilities for URI handling and path security
+
 ## Quick Start
 
 ### Basic Parsing
@@ -173,11 +176,11 @@ class OpenAPIParser:
   - `strict`: If `True`, raises `TypeConversionError` if result doesn't match `return_type`
   - Returns: Parsed document
 
-- `is_uri_like(s: str | None) -> bool`
-  - Static method to check if a string looks like a URI
-
 - `load_uri(uri: str) -> str`
-  - Load content from a URI
+  - Load content from a URI (HTTP(S), file://, or local file path)
+
+- `list_backends() -> list[str]`
+  - Static method to list all available parser backends
 
 ### JSON Serialization
 
@@ -220,6 +223,7 @@ json_str = json_dumps(data, indent=2)
 from jentic.apitools.openapi.parser.core.exceptions import (
     OpenAPIParserError,        # Base exception
     DocumentParseError,        # Parsing failed
+    DocumentLoadError,         # URI loading failed
     InvalidBackendError,       # Backend initialization failed
     BackendNotFoundError,      # Backend not found
     TypeConversionError,       # Type conversion failed

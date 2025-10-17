@@ -3,6 +3,7 @@ import logging
 import warnings
 from typing import Any, Mapping, Optional, Sequence, Type, TypeVar, cast, overload
 
+from jentic.apitools.openapi.common.uri import is_uri_like
 from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
 
 from .exceptions import (
@@ -12,7 +13,7 @@ from .exceptions import (
     OpenAPIParserError,
     TypeConversionError,
 )
-from .uri import is_uri_like, load_uri
+from .loader import load_uri
 
 
 __all__ = ["OpenAPIParser"]

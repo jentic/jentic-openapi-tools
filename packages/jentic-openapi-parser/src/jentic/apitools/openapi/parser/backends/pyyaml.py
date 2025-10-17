@@ -4,8 +4,9 @@ from typing import Literal, Mapping
 
 import yaml
 
+from jentic.apitools.openapi.common.uri import is_uri_like
 from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
-from jentic.apitools.openapi.parser.core.uri import is_uri_like, load_uri
+from jentic.apitools.openapi.parser.core.loader import load_uri
 
 
 __all__ = ["PyYAMLParserBackend"]

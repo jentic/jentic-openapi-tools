@@ -6,17 +6,15 @@ from .exceptions import (
     OpenAPIParserError,
     TypeConversionError,
 )
+from .loader import load_uri
 from .openapi_parser import OpenAPIParser
 from .serialization import json_dumps
-from .uri import UriResolutionError, is_uri_like, load_uri, resolve_to_absolute
 
 
 __all__ = [
     "OpenAPIParser",
-    "is_uri_like",
+    # URI utilities
     "load_uri",
-    "resolve_to_absolute",
-    "UriResolutionError",
     # Serialization
     "json_dumps",
     # Parser exceptions

@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from jentic.apitools.openapi.parser.core import UriResolutionError, resolve_to_absolute
+from jentic.apitools.openapi.common.uri import URIResolutionError, is_path, resolve_to_absolute
 
 
 # -----------------------
@@ -46,7 +46,7 @@ def test_absolute_http_url_with_empty_path_gets_slash():
 
 
 def test_malformed_http_missing_host_raises():
-    with pytest.raises(UriResolutionError):
+    with pytest.raises(URIResolutionError):
         resolve_to_absolute("https:///nohost")
 
 
@@ -133,7 +133,7 @@ def test_scheme_relative_needs_url_base():
     out = resolve_to_absolute("//example.com/path")
     assert out == "/example.com/path"
     # With a URL base, it should fail
-    with pytest.raises(UriResolutionError):
+    with pytest.raises(URIResolutionError):
         out = resolve_to_absolute("//example.com/path", base_uri="https://base.example")
 
 
@@ -171,7 +171,7 @@ def test_resolve_local_path_against_http_base():
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows path literal in URL mixing")
 def test_cannot_resolve_windows_drive_path_against_http_base_windows():
-    with pytest.raises(UriResolutionError):
+    with pytest.raises(URIResolutionError):
         resolve_to_absolute(r"C:\folder\file.yaml", base_uri="https://example.com/base/")
 
 
@@ -200,7 +200,7 @@ def test_other_schemes_are_returned_as_is(value: str):
 
 
 def test_multiline_input_raises():
-    with pytest.raises(UriResolutionError):
+    with pytest.raises(URIResolutionError):
         resolve_to_absolute("a\nb")
 
 
@@ -224,3 +224,67 @@ def test_dot_and_dotdot_paths(tmp_path: Path):
 def test_url_normalization_collapses_dot_segments_in_join():
     out = resolve_to_absolute("x/../y/./z", base_uri="https://ex.com/a/b/")
     assert out == "https://ex.com/a/b/y/z"
+
+
+# -----------------------
+# is_path() tests
+# -----------------------
+
+
+def test_is_path_returns_true_for_absolute_posix_path():
+    """Absolute POSIX paths should be recognized as paths."""
+    assert is_path("/home/user/file.txt")
+    assert is_path("/etc/config.yaml")
+    assert is_path("/")
+
+
+def test_is_path_returns_true_for_relative_paths():
+    """Relative paths should be recognized as paths."""
+    assert is_path("./config.yaml")
+    assert is_path("../parent/file.txt")
+    assert is_path("relative/path/file.txt")
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows path test")
+def test_is_path_returns_true_for_windows_paths():
+    """Windows paths should be recognized as paths."""
+    assert is_path(r"C:\Windows\System32\file.txt")
+    assert is_path(r"C:/Windows/System32/file.txt")
+    assert is_path(r"\\server\share\folder\file.txt")
+
+
+def test_is_path_returns_false_for_http_urls():
+    """HTTP URLs should NOT be recognized as paths."""
+    assert not is_path("http://example.com")
+    assert not is_path("http://example.com/path/to/file.txt")
+
+
+def test_is_path_returns_false_for_https_urls():
+    """HTTPS URLs should NOT be recognized as paths."""
+    assert not is_path("https://example.com")
+    assert not is_path("https://api.example.com/v1/openapi.yaml")
+
+
+def test_is_path_returns_false_for_file_uris():
+    """file:// URIs should NOT be recognized as paths."""
+    assert not is_path("file:///home/user/file.txt")
+    assert not is_path("file://localhost/etc/config.yaml")
+
+
+def test_is_path_returns_false_for_other_uri_schemes():
+    """Other URI schemes should NOT be recognized as paths."""
+    assert not is_path("mailto:test@example.com")
+    assert not is_path("data:text/plain;base64,SGVsbG8=")
+    assert not is_path("ftp://ftp.example.com/pub/file.txt")
+    assert not is_path("ssh://server.com/path")
+
+
+def test_is_path_returns_false_for_empty_string():
+    """Empty strings should NOT be recognized as paths."""
+    assert not is_path("")
+    assert not is_path("   ")  # whitespace only
+
+
+def test_is_path_returns_false_for_none():
+    """None should NOT be recognized as a path."""
+    assert not is_path(None)
