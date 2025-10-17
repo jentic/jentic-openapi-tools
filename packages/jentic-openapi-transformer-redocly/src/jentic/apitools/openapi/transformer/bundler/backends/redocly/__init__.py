@@ -1,4 +1,5 @@
 import json
+import shlex
 import tempfile
 from collections.abc import Sequence
 from pathlib import Path
@@ -19,7 +20,8 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
         Initialize the RedoclyBundler.
 
         Args:
-            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@^2.4.0")
+            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@^2.4.0").
+                Uses shell-safe parsing to handle quoted arguments properly.
             timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 30.0)
         """
         self.redocly_path = redocly_path
@@ -70,7 +72,7 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
         try:
             # Build redocly command
             cmd = [
-                *self.redocly_path.split(),
+                *shlex.split(self.redocly_path),
                 "bundle",
                 doc_path,
                 "-o",

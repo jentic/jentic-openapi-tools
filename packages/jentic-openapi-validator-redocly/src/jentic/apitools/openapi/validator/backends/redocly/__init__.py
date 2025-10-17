@@ -1,4 +1,5 @@
 import json
+import shlex
 import tempfile
 from collections.abc import Sequence
 from importlib.resources import as_file, files
@@ -37,7 +38,8 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
         Initialize the RedoclyValidatorBackend.
 
         Args:
-            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@2.4.0")
+            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@2.4.0").
+                Uses shell-safe parsing to handle quoted arguments properly.
             ruleset_path: Path to a custom ruleset file. If None, uses bundled default ruleset.
             timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 30.0)
         """
@@ -109,7 +111,7 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
             with as_file(ruleset_file) as ruleset_path:
                 # Build redocly command
                 cmd = [
-                    *self.redocly_path.split(),
+                    *shlex.split(self.redocly_path),
                     "lint",
                     "--config",
                     self.ruleset_path or ruleset_path,

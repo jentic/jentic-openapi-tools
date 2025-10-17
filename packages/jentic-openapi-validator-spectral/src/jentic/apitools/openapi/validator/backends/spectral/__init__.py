@@ -1,4 +1,5 @@
 import json
+import shlex
 import tempfile
 from collections.abc import Sequence
 from importlib.resources import as_file, files
@@ -36,7 +37,8 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         Initialize the SpectralValidatorBackend.
 
         Args:
-            spectral_path: Path to the spectral CLI executable (default: "npx --yes @stoplight/spectral-cli@^6.15.0")
+            spectral_path: Path to the spectral CLI executable (default: "npx --yes @stoplight/spectral-cli@^6.15.0").
+                Uses shell-safe parsing to handle quoted arguments properly.
             ruleset_path: Path to a custom ruleset file. If None, uses bundled default ruleset.
             timeout: Maximum time in seconds to wait for Spectral CLI execution (default: 30.0)
         """
@@ -108,7 +110,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             with as_file(ruleset_file) as ruleset_path:
                 # Build spectral command
                 cmd = [
-                    *self.spectral_path.split(),
+                    *shlex.split(self.spectral_path),
                     "lint",
                     "-r",
                     self.ruleset_path or ruleset_path,
