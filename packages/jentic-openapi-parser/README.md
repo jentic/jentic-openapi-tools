@@ -20,9 +20,6 @@ pip install jentic-openapi-parser
 **Prerequisites:**
 - Python 3.11+
 
-**Dependencies:**
-- `jentic-openapi-common` - Common utilities for URI handling and path security
-
 ## Quick Start
 
 ### Basic Parsing
