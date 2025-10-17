@@ -25,6 +25,7 @@ def load_uri(
             resp = requests.get(resolved_uri, timeout=(conn_timeout, read_timeout))
             logger.info(
                 "Load of URI %s completed, status: %s, content length: %s",
+                resolved_uri,
                 resp.status_code,
                 len(resp.content),
             )
