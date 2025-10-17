@@ -87,6 +87,7 @@ def run_subprocess(
             check=False,
             capture_output=True,
             text=True,
+            shell=False,
             encoding=encoding,  # ensure the CompletedProcess has stdout/stderr
             errors=errors,
             timeout=timeout,
