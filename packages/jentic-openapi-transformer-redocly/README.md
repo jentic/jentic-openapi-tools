@@ -14,11 +14,11 @@ A Python library that provides OpenAPI document bundling functionality using [Re
 ## Installation
 
 ```bash
-pip install jentic-openapi-validator-redocly
+pip install jentic-openapi-transformer-redocly
 ```
 
 **Prerequisites:**
-- Node.js and npm (for Spectral CLI)
+- Node.js and npm (for Redocly CLI)
 - Python 3.11+
 
 The Redocly CLI will be automatically downloaded via npx on first use, or you can install it globally:
@@ -107,7 +107,7 @@ The bundler accepts the following input formats (returned by `accepts()` method)
 
 ### Integration Tests
 
-The integration tests require Redocly CLI to be available. They will be automatically skipped if Spectral is not installed.
+The integration tests require Redocly CLI to be available. They will be automatically skipped if Redocly is not installed.
 
 **Run the integration test:**
 
@@ -124,13 +124,15 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
     def __init__(
         self,
         redocly_path: str = "npx --yes @redocly/cli@^2.4.0",
-        timeout: float = 30.0,
+        timeout: float = 600.0,
+        allowed_base_dir: str | Path | None = None,
     ) -> None
 ```
 
 **Parameters:**
 - `redocly_path`: Path to Redocly CLI executable
 - `timeout`: Maximum execution time in seconds
+- `allowed_base_dir`: Optional base directory for path security validation. When set, all document paths are validated to be within this directory, providing defense against path traversal attacks. When `None` (default), only file extension validation is performed (no base directory containment check). Recommended for web services or untrusted input (optional)
 
 **Methods:**
 
@@ -141,3 +143,5 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
 - `TypeError`: Document type is not supported
 - `RuntimeError`: Redocly execution fails or produces invalid output
 - `SubprocessExecutionError`: Redocly times out or fails to start
+- `PathTraversalError`: Document path attempts to escape allowed_base_dir (only when `allowed_base_dir` is set)
+- `InvalidExtensionError`: Document path has disallowed file extension (always checked for filesystem paths)

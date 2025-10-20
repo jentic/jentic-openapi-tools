@@ -1,7 +1,13 @@
 """Tests for RedoclyBundlerBackend functionality."""
 
+import os
+
 import pytest
 
+from jentic.apitools.openapi.common.path_security import (
+    InvalidExtensionError,
+    PathTraversalError,
+)
 from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
 from jentic.apitools.openapi.transformer.bundler.backends.redocly import RedoclyBundlerBackend
 
@@ -134,3 +140,139 @@ class TestRedoclyBundlerErrorHandling:
         # Should fail because it's not a valid OpenAPI document
         with pytest.raises(RuntimeError):
             redocly_bundler.bundle(invalid_dict)
+
+
+class TestRedoclyBundlerPathSecurity:
+    """Test path security features."""
+
+    def test_initialization_with_allowed_base_dir(self, tmp_path):
+        """Test RedoclyBundler initialization with allowed_base_dir."""
+        bundler = RedoclyBundlerBackend(allowed_base_dir=str(tmp_path))
+        assert bundler.allowed_base_dir == str(tmp_path)
+
+    def test_initialization_without_allowed_base_dir(self):
+        """Test RedoclyBundler initialization without allowed_base_dir (default None)."""
+        bundler = RedoclyBundlerBackend()
+        assert bundler.allowed_base_dir is None
+
+    def test_path_validation_disabled_when_allowed_base_dir_is_none(self, tmp_path):
+        """Test that path traversal is NOT blocked when allowed_base_dir is None."""
+        bundler = RedoclyBundlerBackend(allowed_base_dir=None)
+
+        # Create a test file outside any restricted directory
+        test_file = tmp_path / "spec.yaml"
+        test_file.write_text("openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0\npaths: {}")
+
+        # This should not raise PathTraversalError (but may fail for other reasons like missing Redocly)
+        try:
+            bundler.bundle(str(test_file))
+        except PathTraversalError:
+            pytest.fail("PathTraversalError should not be raised when allowed_base_dir=None")
+        except (SubprocessExecutionError, RuntimeError):
+            # Expected if Redocly is not available
+            pass
+
+    def test_valid_path_within_allowed_base_dir(self, tmp_path):
+        """Test that paths within allowed_base_dir are accepted."""
+        test_file = tmp_path / "spec.yaml"
+        test_file.write_text("openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0\npaths: {}")
+
+        bundler = RedoclyBundlerBackend(allowed_base_dir=str(tmp_path))
+
+        # Should not raise PathTraversalError
+        try:
+            bundler.bundle(str(test_file))
+        except PathTraversalError:
+            pytest.fail("Valid path should not raise PathTraversalError")
+        except (SubprocessExecutionError, RuntimeError):
+            # May fail for Redocly-related reasons
+            pass
+
+    def test_path_traversal_attempt_blocked(self, tmp_path):
+        """Test that path traversal attempts are blocked."""
+        # Create a restricted directory
+        restricted_dir = tmp_path / "restricted"
+        restricted_dir.mkdir()
+
+        # Create a file outside the restricted directory
+        outside_file = tmp_path / "outside.yaml"
+        outside_file.write_text("openapi: 3.0.0")
+
+        bundler = RedoclyBundlerBackend(allowed_base_dir=str(restricted_dir))
+
+        # Attempt to access file outside allowed directory
+        with pytest.raises(PathTraversalError):
+            bundler.bundle(str(outside_file))
+
+    def test_invalid_file_extension_rejected(self, tmp_path):
+        """Test that files with invalid extensions are rejected."""
+        test_file = tmp_path / "malicious.exe"
+        test_file.write_text("fake executable")
+
+        bundler = RedoclyBundlerBackend(allowed_base_dir=str(tmp_path))
+
+        with pytest.raises(InvalidExtensionError):
+            bundler.bundle(str(test_file))
+
+    def test_http_url_bypasses_path_validation(self):
+        """Test that HTTP(S) URLs bypass path validation."""
+        bundler = RedoclyBundlerBackend(allowed_base_dir="/restricted/path")
+
+        # HTTP URLs should bypass path validation (though they may fail for other reasons)
+        try:
+            bundler.bundle("https://example.com/openapi.yaml")
+        except PathTraversalError:
+            pytest.fail("HTTP URLs should bypass path validation")
+        except (SubprocessExecutionError, RuntimeError):
+            # Expected - Redocly may fail to fetch the URL
+            pass
+
+    def test_file_uri_with_path_validation(self, tmp_path):
+        """Test that file:// URIs are validated correctly."""
+        test_file = tmp_path / "spec.yaml"
+        test_file.write_text("openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0\npaths: {}")
+
+        bundler = RedoclyBundlerBackend(allowed_base_dir=str(tmp_path))
+
+        # file:// URI should be validated
+        try:
+            bundler.bundle(test_file.as_uri())
+        except PathTraversalError:
+            pytest.fail("Valid file URI should not raise PathTraversalError")
+        except (SubprocessExecutionError, RuntimeError):
+            pass
+
+    def test_valid_yaml_extensions_accepted(self, tmp_path):
+        """Test that .yaml, .yml, and .json extensions are all accepted."""
+        bundler = RedoclyBundlerBackend(allowed_base_dir=str(tmp_path))
+
+        for ext in [".yaml", ".yml", ".json"]:
+            test_file = tmp_path / f"spec{ext}"
+            test_file.write_text("openapi: 3.0.0")
+
+            try:
+                bundler.bundle(str(test_file))
+            except InvalidExtensionError:
+                pytest.fail(f"Extension {ext} should be accepted")
+            except (SubprocessExecutionError, RuntimeError):
+                pass
+
+    def test_relative_path_resolved_and_validated(self, tmp_path):
+        """Test that relative paths are resolved before validation."""
+        # Create a test file
+        test_file = tmp_path / "spec.yaml"
+        test_file.write_text("openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0\npaths: {}")
+
+        bundler = RedoclyBundlerBackend(allowed_base_dir=str(tmp_path))
+
+        # Use relative path - should be resolved and validated (no PathTraversalError)
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmp_path)
+            try:
+                bundler.bundle("./spec.yaml")
+            except (SubprocessExecutionError, RuntimeError):
+                # May fail for Redocly reasons, but path validation passed
+                pass
+        finally:
+            os.chdir(original_cwd)
