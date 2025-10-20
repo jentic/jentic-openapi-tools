@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from jentic.apitools.openapi.common.path_security import (
@@ -290,8 +292,6 @@ class TestRedoclyValidatorPathSecurity:
         validator = RedoclyValidatorBackend(allowed_base_dir=str(tmp_path))
 
         # Use relative path - should be resolved and validated (no PathTraversalError)
-        import os
-
         original_cwd = os.getcwd()
         try:
             os.chdir(tmp_path)
