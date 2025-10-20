@@ -7,7 +7,9 @@ from typing import Literal
 from urllib.parse import urlparse
 from urllib.request import url2pathname
 
+from jentic.apitools.openapi.common.path_security import validate_path
 from jentic.apitools.openapi.common.subproc import run_subprocess
+from jentic.apitools.openapi.common.uri import is_path
 from jentic.apitools.openapi.transformer.bundler.backends.base import BaseBundlerBackend
 
 
@@ -15,17 +17,30 @@ __all__ = ["RedoclyBundlerBackend"]
 
 
 class RedoclyBundlerBackend(BaseBundlerBackend):
-    def __init__(self, redocly_path: str = "npx --yes @redocly/cli@^2.4.0", timeout: float = 600.0):
+    def __init__(
+        self,
+        redocly_path: str = "npx --yes @redocly/cli@^2.4.0",
+        timeout: float = 600.0,
+        allowed_base_dir: str | Path | None = None,
+    ):
         """
         Initialize the RedoclyBundler.
 
         Args:
             redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@^2.4.0").
                 Uses shell-safe parsing to handle quoted arguments properly.
-            timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 30.0)
+            timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 600.0)
+            allowed_base_dir: Optional base directory for path security validation.
+                When set, all document paths will be validated to ensure they
+                are within this directory. This provides defense against path traversal attacks
+                and is recommended for web services or when processing untrusted input.
+                If None (default), only file extension validation is performed (no base directory
+                containment check). Extension validation ensures only .yaml, .yml, and .json files
+                are processed.
         """
         self.redocly_path = redocly_path
         self.timeout = timeout
+        self.allowed_base_dir = allowed_base_dir
 
     @staticmethod
     def accepts() -> Sequence[Literal["uri", "dict"]]:
@@ -53,6 +68,8 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
             TypeError: If a document type is not supported
             SubprocessExecutionError: If Redocly execution times out or fails to start
             RuntimeError: If Redocly execution fails
+            PathTraversalError: Document path attempts to escape allowed_base_dir (only when allowed_base_dir is set)
+            InvalidExtensionError: Document path has disallowed file extension (always checked for filesystem paths)
         """
         if isinstance(document, str):
             return self._bundle_uri(document, base_url)
@@ -67,6 +84,17 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
             url2pathname(parsed_doc_url.path) if parsed_doc_url.scheme == "file" else document
         )
 
+        # Validate document path if it's a filesystem path (skip non-path URIs like HTTP(S))
+        validated_doc_path = (
+            validate_path(
+                doc_path,
+                allowed_base=self.allowed_base_dir,
+                allowed_extensions=(".yaml", ".yml", ".json"),
+            )
+            if is_path(doc_path)
+            else doc_path
+        )
+
         # Create a temporary output file path
         temp_output_path = tempfile.mktemp(suffix=".json")
         try:
@@ -74,7 +102,7 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
             cmd = [
                 *shlex.split(self.redocly_path),
                 "bundle",
-                doc_path,
+                validated_doc_path,
                 "-o",
                 temp_output_path,
                 "--ext",
