@@ -26,6 +26,21 @@ URI/URL/path utilities for working with OpenAPI document references.
 
 - `URIResolutionError` - Raised when URI resolution fails
 
+### path_security
+
+Path security utilities for validating and securing filesystem access. Provides defense-in-depth protection against path traversal attacks, directory escapes, and unauthorized file access.
+
+**Available functions:**
+
+- `validate_path(path, *, allowed_base=None, allowed_extensions=None, resolve_symlinks=True, as_string=True) -> str | Path` - Validate and canonicalize a filesystem path with security checks. Returns `str` by default, or `Path` when `as_string=False`
+
+**Exceptions:**
+
+- `PathSecurityError` - Base exception for path security violations
+- `PathTraversalError` - Path attempts to escape allowed base directory
+- `InvalidExtensionError` - Path has disallowed file extension
+- `SymlinkSecurityError` - Path contains symlinks when not allowed or symlink escapes boundary
+
 ### subproc
 
 Subprocess execution utilities with enhanced error handling and cross-platform support.
@@ -56,6 +71,87 @@ absolute = resolve_to_absolute("../spec.yaml", "/home/user/project/docs/")
 # Returns: "/home/user/project/spec.yaml"
 
 absolute = resolve_to_absolute("spec.yaml")  # Resolves against current working directory
+```
+
+### Path Security
+
+```python
+from pathlib import Path
+from jentic.apitools.openapi.common.path_security import (
+    validate_path,
+    PathSecurityError,
+    PathTraversalError,
+    InvalidExtensionError,
+    SymlinkSecurityError,
+)
+
+# Basic validation - converts to absolute path (returns string by default)
+safe_path = validate_path("./specs/openapi.yaml")
+print(safe_path)  # '/current/working/dir/specs/openapi.yaml'
+print(type(safe_path))  # <class 'str'>
+
+# Request Path object with as_string=False
+safe_path_obj = validate_path("./specs/openapi.yaml", as_string=False)
+print(safe_path_obj)  # Path('/current/working/dir/specs/openapi.yaml')
+print(type(safe_path_obj))  # <class 'pathlib.Path'>
+
+# Return type control with as_string parameter
+# - as_string=True (default): Returns str - best for subprocess commands
+# - as_string=False: Returns Path - best for file operations with pathlib
+
+# Example: Using with subprocess commands (default string return)
+import subprocess
+doc_path = validate_path("./specs/openapi.yaml")
+subprocess.run(["cat", doc_path])  # Works directly, no str() conversion needed
+
+# Example: Using with pathlib operations (Path return)
+from pathlib import Path
+doc_path = validate_path("./specs/openapi.yaml", as_string=False)
+if doc_path.exists():
+    content = doc_path.read_text()  # Path methods available
+
+# Boundary enforcement - restrict access to specific directory
+try:
+    safe_path = validate_path(
+        "/var/app/data/spec.yaml",
+        allowed_base="/var/app",
+    )
+    print(f"Access granted: {safe_path}")
+except PathTraversalError as e:
+    print(f"Access denied: {e}")
+
+# Block directory traversal attacks
+try:
+    safe_path = validate_path(
+        "/var/app/../../../etc/passwd",
+        allowed_base="/var/app",
+    )
+except PathTraversalError:
+    print("Path traversal attack blocked!")
+
+# Extension validation - whitelist approach
+try:
+    safe_path = validate_path(
+        "spec.yaml",
+        allowed_extensions=(".yaml", ".yml", ".json"),
+    )
+    print(f"Valid extension: {safe_path}")
+except InvalidExtensionError:
+    print("Invalid file extension")
+
+# Combined security checks (recommended for web services)
+try:
+    safe_path = validate_path(
+        user_provided_path,
+        allowed_base="/var/app/uploads",
+        allowed_extensions=(".yaml", ".yml", ".json"),
+        resolve_symlinks=True,  # Default: resolve and check symlinks
+    )
+    # Safe to use safe_path for file operations
+    with open(safe_path) as f:
+        content = f.read()
+except PathSecurityError as e:
+    print(f"Security validation failed: {e}")
 ```
 
 ### Subprocess Execution
