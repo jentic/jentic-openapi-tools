@@ -152,28 +152,6 @@ try:
         content = f.read()
 except PathSecurityError as e:
     print(f"Security validation failed: {e}")
-
-# Use with validators/transformers (skip validation for HTTP(S) URLs)
-from urllib.parse import urlparse
-
-def validate_document_path(document: str, allowed_base: str | None) -> str:
-    """Validate document path, skipping HTTP(S) URLs."""
-    parsed = urlparse(document)
-
-    # Skip validation for HTTP(S) URLs
-    if parsed.scheme in ("http", "https"):
-        return document
-
-    # Validate local paths when allowed_base is set
-    if allowed_base is not None:
-        validated = validate_path(
-            document,
-            allowed_base=allowed_base,
-            allowed_extensions=(".yaml", ".yml", ".json"),
-        )
-        return validated  # Returns str by default
-
-    return document
 ```
 
 ### Subprocess Execution
