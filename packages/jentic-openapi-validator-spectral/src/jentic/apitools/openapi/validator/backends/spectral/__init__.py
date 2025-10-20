@@ -10,11 +10,13 @@ from urllib.request import url2pathname
 
 from lsprotocol.types import DiagnosticSeverity, Position, Range
 
+from jentic.apitools.openapi.common.path_security import validate_path
 from jentic.apitools.openapi.common.subproc import (
     SubprocessExecutionError,
     SubprocessExecutionResult,
     run_subprocess,
 )
+from jentic.apitools.openapi.common.uri import is_path
 from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
 from jentic.apitools.openapi.validator.core import JenticDiagnostic, ValidationResult
 
@@ -32,6 +34,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         spectral_path: str = "npx --yes @stoplight/spectral-cli@^6.15.0",
         ruleset_path: str | None = None,
         timeout: float = 600.0,
+        allowed_base_dir: str | Path | None = None,
     ):
         """
         Initialize the SpectralValidatorBackend.
@@ -40,11 +43,19 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             spectral_path: Path to the spectral CLI executable (default: "npx --yes @stoplight/spectral-cli@^6.15.0").
                 Uses shell-safe parsing to handle quoted arguments properly.
             ruleset_path: Path to a custom ruleset file. If None, uses bundled default ruleset.
-            timeout: Maximum time in seconds to wait for Spectral CLI execution (default: 30.0)
+            timeout: Maximum time in seconds to wait for Spectral CLI execution (default: 600.0)
+            allowed_base_dir: Optional base directory for path security validation.
+                When set, all document and ruleset paths will be validated to ensure they
+                are within this directory. This provides defense against path traversal attacks
+                and is recommended for web services or when processing untrusted input.
+                If None (default), only file extension validation is performed (no base directory
+                containment check). Extension validation ensures only .yaml, .yml, and .json files
+                are processed.
         """
         self.spectral_path = spectral_path
         self.ruleset_path = ruleset_path if isinstance(ruleset_path, str) else None
         self.timeout = timeout
+        self.allowed_base_dir = allowed_base_dir
 
     @staticmethod
     def accepts() -> Sequence[Literal["uri", "dict"]]:
@@ -76,6 +87,8 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             RuntimeError: If Spectral execution fails
             SubprocessExecutionError: If Spectral execution times out or fails to start
             TypeError: If a document type is not supported
+            PathTraversalError: Document or ruleset path attempts to escape allowed_base_dir (only when allowed_base_dir is set)
+            InvalidExtensionError: Document or ruleset path has disallowed file extension (always checked for filesystem paths)
         """
         if isinstance(document, str):
             return self._validate_uri(document, base_url=base_url, target=target)
@@ -98,25 +111,44 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         """
         result: SubprocessExecutionResult | None = None
 
-        if self.ruleset_path is not None and not Path(self.ruleset_path).exists():
-            raise FileNotFoundError(f"Custom ruleset not found at {self.ruleset_path}")
-
         try:
             parsed_doc_url = urlparse(document)
             doc_path = (
                 url2pathname(parsed_doc_url.path) if parsed_doc_url.scheme == "file" else document
             )
 
-            with as_file(ruleset_file) as ruleset_path:
+            # Validate document path if it's a filesystem path (skip non-path URIs like HTTP(S))
+            validated_doc_path = (
+                validate_path(
+                    doc_path,
+                    allowed_base=self.allowed_base_dir,
+                    allowed_extensions=(".yaml", ".yml", ".json"),
+                )
+                if is_path(doc_path)
+                else doc_path
+            )
+
+            # Validate ruleset path if it's a filesystem path (skip non-path URIs)
+            validated_ruleset_path = (
+                validate_path(
+                    self.ruleset_path,
+                    allowed_base=self.allowed_base_dir,
+                    allowed_extensions=(".yaml", ".yml"),
+                )
+                if self.ruleset_path is not None and is_path(self.ruleset_path)
+                else self.ruleset_path
+            )
+
+            with as_file(ruleset_file) as default_ruleset_path:
                 # Build spectral command
                 cmd = [
                     *shlex.split(self.spectral_path),
                     "lint",
                     "-r",
-                    self.ruleset_path or ruleset_path,
+                    validated_ruleset_path or default_ruleset_path,
                     "-f",
                     "json",
-                    doc_path,
+                    validated_doc_path,
                 ]
                 result = run_subprocess(cmd, timeout=self.timeout)
 
