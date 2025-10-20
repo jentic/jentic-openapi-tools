@@ -44,12 +44,14 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
             redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@2.4.0").
                 Uses shell-safe parsing to handle quoted arguments properly.
             ruleset_path: Path to a custom ruleset file. If None, uses bundled default ruleset.
-            timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 30.0)
+            timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 600.0)
             allowed_base_dir: Optional base directory for path security validation.
                 When set, all document and ruleset paths will be validated to ensure they
                 are within this directory. This provides defense against path traversal attacks
                 and is recommended for web services or when processing untrusted input.
-                If None (default), no path validation is performed.
+                If None (default), only file extension validation is performed (no base directory
+                containment check). Extension validation ensures only .yaml, .yml, and .json files
+                are processed.
         """
         self.redocly_path = redocly_path
         self.ruleset_path = ruleset_path if isinstance(ruleset_path, str) else None
