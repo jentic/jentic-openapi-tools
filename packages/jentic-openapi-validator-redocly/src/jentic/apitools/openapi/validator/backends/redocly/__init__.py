@@ -11,11 +11,13 @@ from urllib.request import url2pathname
 from jsonpointer import JsonPointer
 from lsprotocol.types import DiagnosticSeverity, Position, Range
 
+from jentic.apitools.openapi.common.path_security import validate_path
 from jentic.apitools.openapi.common.subproc import (
     SubprocessExecutionError,
     SubprocessExecutionResult,
     run_subprocess,
 )
+from jentic.apitools.openapi.common.uri import is_path
 from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
 from jentic.apitools.openapi.validator.core import JenticDiagnostic, ValidationResult
 
@@ -33,6 +35,7 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
         redocly_path: str = "npx --yes @redocly/cli@2.4.0",
         ruleset_path: str | None = None,
         timeout: float = 600.0,
+        allowed_base_dir: str | Path | None = None,
     ):
         """
         Initialize the RedoclyValidatorBackend.
@@ -42,10 +45,16 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
                 Uses shell-safe parsing to handle quoted arguments properly.
             ruleset_path: Path to a custom ruleset file. If None, uses bundled default ruleset.
             timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 30.0)
+            allowed_base_dir: Optional base directory for path security validation.
+                When set, all document and ruleset paths will be validated to ensure they
+                are within this directory. This provides defense against path traversal attacks
+                and is recommended for web services or when processing untrusted input.
+                If None (default), no path validation is performed.
         """
         self.redocly_path = redocly_path
         self.ruleset_path = ruleset_path if isinstance(ruleset_path, str) else None
         self.timeout = timeout
+        self.allowed_base_dir = allowed_base_dir
 
     @staticmethod
     def accepts() -> Sequence[Literal["uri", "dict"]]:
@@ -99,25 +108,44 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
         """
         result: SubprocessExecutionResult | None = None
 
-        if self.ruleset_path is not None and not Path(self.ruleset_path).exists():
-            raise FileNotFoundError(f"Custom ruleset not found at {self.ruleset_path}")
-
         try:
             parsed_doc_url = urlparse(document)
             doc_path = (
                 url2pathname(parsed_doc_url.path) if parsed_doc_url.scheme == "file" else document
             )
 
-            with as_file(ruleset_file) as ruleset_path:
+            # Validate document path if it's a filesystem path (skip non-path URIs like HTTP(S))
+            validated_doc_path = (
+                validate_path(
+                    doc_path,
+                    allowed_base=self.allowed_base_dir,
+                    allowed_extensions=(".yaml", ".yml", ".json"),
+                )
+                if is_path(doc_path)
+                else doc_path
+            )
+
+            # Validate ruleset path if it's a filesystem path (skip non-path URIs)
+            validated_ruleset_path = (
+                validate_path(
+                    self.ruleset_path,
+                    allowed_base=self.allowed_base_dir,
+                    allowed_extensions=(".yaml", ".yml"),
+                )
+                if self.ruleset_path is not None and is_path(self.ruleset_path)
+                else self.ruleset_path
+            )
+
+            with as_file(ruleset_file) as default_ruleset_path:
                 # Build redocly command
                 cmd = [
                     *shlex.split(self.redocly_path),
                     "lint",
                     "--config",
-                    self.ruleset_path or ruleset_path,
+                    validated_ruleset_path or default_ruleset_path,
                     "--format",
                     "json",
-                    doc_path,
+                    validated_doc_path,
                 ]
                 result = run_subprocess(cmd, timeout=self.timeout)
 
