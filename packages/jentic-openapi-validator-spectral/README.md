@@ -135,7 +135,7 @@ result = validator.validate("https://example.com/openapi.yaml")
 validator = SpectralValidatorBackend(
     allowed_base_dir="/var/app/uploads",
     ruleset_path="/var/app/config/custom-rules.yaml",  # Also validated
-    timeout=30.0
+    timeout=600.0
 )
 ```
 
