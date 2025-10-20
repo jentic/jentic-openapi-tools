@@ -98,6 +98,56 @@ validator = RedoclyValidatorBackend(
 )
 ```
 
+### Path Security
+
+Use `allowed_base_dir` to restrict file access when processing untrusted input or running as a web service:
+
+```python
+from jentic.apitools.openapi.common.path_security import (
+    PathTraversalError,
+    InvalidExtensionError,
+)
+
+# Restrict file access to /var/app/documents directory
+validator = RedoclyValidatorBackend(
+    allowed_base_dir="/var/app/documents"
+)
+
+# Valid paths within allowed directory work normally
+result = validator.validate("/var/app/documents/specs/openapi.yaml")
+
+# Path traversal attempts are blocked
+try:
+    result = validator.validate("/var/app/documents/../../etc/passwd")
+except PathTraversalError as e:
+    print(f"Security violation: {e}")
+
+# Invalid file extensions are rejected
+try:
+    result = validator.validate("/var/app/documents/malicious.exe")
+except InvalidExtensionError as e:
+    print(f"Invalid file type: {e}")
+
+# HTTP(S) URLs bypass path validation (as expected)
+result = validator.validate("https://example.com/openapi.yaml")
+
+# Combined security configuration for web services
+validator = RedoclyValidatorBackend(
+    allowed_base_dir="/var/app/uploads",
+    ruleset_path="/var/app/config/custom-rules.yaml",  # Also validated
+    timeout=30.0
+)
+```
+
+**Security Benefits:**
+- Prevents path traversal attacks (`../../etc/passwd`)
+- Restricts access to allowed directories only (when `allowed_base_dir` is set)
+- Validates file extensions (`.yaml`, `.yml`, `.json`) - **always enforced**, even when `allowed_base_dir=None`
+- Checks symlinks don't escape boundaries (when `allowed_base_dir` is set)
+- Validates both document and ruleset paths
+
+**Note:** File extension validation (`.yaml`, `.yml`, `.json`) is always performed for filesystem paths, regardless of whether `allowed_base_dir` is set. When `allowed_base_dir=None`, only the base directory containment check is skipped.
+
 ## Advanced Usage
 
 ### Error Handling
@@ -189,7 +239,8 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
         self,
         redocly_path: str = "npx --yes @redocly/cli@2.4.0",
         ruleset_path: str | None = None,
-        timeout: float = 30.0,
+        timeout: float = 600.0,
+        allowed_base_dir: str | Path | None = None,
     ) -> None
 ```
 
@@ -197,6 +248,7 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
 - `redocly_path`: Path to Redocly CLI executable
 - `ruleset_path`: Path to a custom ruleset file (optional)
 - `timeout`: Maximum execution time in seconds
+- `allowed_base_dir`: Optional base directory for path security validation. When set, all document and ruleset paths are validated to be within this directory, providing defense against path traversal attacks. When `None` (default), only file extension validation is performed (no base directory containment check). Recommended for web services or untrusted input (optional)
 
 **Methods:**
 
@@ -208,6 +260,8 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
 - `RuntimeError`: Redocly execution fails
 - `SubprocessExecutionError`: Redocly times out or fails to start
 - `TypeError`: Unsupported document type
+- `PathTraversalError`: Document or ruleset path attempts to escape allowed_base_dir (only when `allowed_base_dir` is set)
+- `InvalidExtensionError`: Document or ruleset path has disallowed file extension (always checked for filesystem paths)
 
 ## Exit Codes
 
