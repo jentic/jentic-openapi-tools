@@ -88,7 +88,8 @@ def sync_versions(root_dir: Path, new_version: str) -> None:
 
 def main() -> int:
     """Main entry point."""
-    root_dir = Path(__file__).parent.parent
+    # Script is in .github/scripts/, so root is two levels up
+    root_dir = Path(__file__).parent.parent.parent
 
     try:
         # Get current version from root pyproject.toml
