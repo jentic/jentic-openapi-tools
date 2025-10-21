@@ -7,7 +7,7 @@ authors = [{ name = "Jentic", email = "hello@jentic.com" }]
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
-dependencies = ["jentic-openapi-parser", "jentic-openapi-traverse"]
+dependencies = ["jentic-openapi-parser~=0.1.0", "jentic-openapi-traverse~=0.1.0"]
 
 [tool.uv]
 package = true
@@ -18,7 +18,7 @@ module-name = "jentic.apitools.openapi.transformer"
 module-root = "src/"
 
 [project.optional-dependencies]
-redocly = ["jentic-openapi-transformer-redocly"]
+redocly = ["jentic-openapi-transformer-redocly~=0.1.0"]
 
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
@@ -30,7 +30,7 @@ jentic-openapi-transformer-redocly = { workspace = true }
 
 
 [build-system]
-requires = ["uv_build>=0.8.15,<0.9.0"]
+requires = ["uv_build~=0.8.15"]
 build-backend = "uv_build"
 
 [project.entry-points."jentic.apitools.openapi.transformer.bundler.backends"]

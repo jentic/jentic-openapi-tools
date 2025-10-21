@@ -8,9 +8,9 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
-  "jentic-openapi-common",
-  "jentic-openapi-validator",
-  "lsprotocol"
+  "jentic-openapi-common~=0.1.0",
+  "jentic-openapi-validator~=0.1.0",
+  "lsprotocol~=2025.0"
 ]
 
 [project.urls]
@@ -29,7 +29,7 @@ jentic-openapi-common = { workspace = true }
 jentic-openapi-validator = { workspace = true }
 
 [build-system]
-requires = ["uv_build>=0.8.15,<0.9.0"]
+requires = ["uv_build~=0.8.15"]
 build-backend = "uv_build"
 
 [project.entry-points."jentic.apitools.openapi.validator.backends"]

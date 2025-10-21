@@ -8,14 +8,14 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
-  "jentic-openapi-parser",
-  "openapi-spec-validator",
-  "lsprotocol"
+  "jentic-openapi-parser~=0.1.0",
+  "openapi-spec-validator~=0.7",
+  "lsprotocol~=2025.0"
 ]
 
 [project.optional-dependencies]
-spectral = ["jentic-openapi-validator-spectral"]
-redocly = ["jentic-openapi-validator-redocly"]
+spectral = ["jentic-openapi-validator-spectral~=0.1.0"]
+redocly = ["jentic-openapi-validator-redocly~=0.1.0"]
 
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
@@ -34,7 +34,7 @@ module-name = "jentic.apitools.openapi.validator"
 module-root = "src/"
 
 [build-system]
-requires = ["uv_build>=0.8.15,<0.9.0"]
+requires = ["uv_build~=0.8.15"]
 build-backend = "uv_build"
 
 [project.entry-points."jentic.apitools.openapi.validator.backends"]

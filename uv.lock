@@ -294,11 +294,11 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "attrs" },
+    { name = "attrs", specifier = "~=25.4" },
     { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
-    { name = "pyyaml" },
-    { name = "requests" },
-    { name = "ruamel-yaml" },
+    { name = "pyyaml", specifier = "~=6.0" },
+    { name = "requests", specifier = "~=2.32" },
+    { name = "ruamel-yaml", specifier = "~=0.18" },
 ]
 
 [[package]]
@@ -320,12 +320,12 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "poethepoet", specifier = ">=0.37.0" },
-    { name = "pre-commit", specifier = ">=4.0.1" },
-    { name = "pyright", specifier = ">=1.1.391" },
-    { name = "pytest", specifier = ">=8.3.4" },
-    { name = "python-semantic-release", specifier = ">=10.0.0" },
-    { name = "ruff", specifier = ">=0.8.6" },
+    { name = "poethepoet", specifier = "~=0.37" },
+    { name = "pre-commit", specifier = "~=4.0" },
+    { name = "pyright", specifier = "~=1.1" },
+    { name = "pytest", specifier = "~=8.3" },
+    { name = "python-semantic-release", specifier = "~=10.0" },
+    { name = "ruff", specifier = "~=0.8" },
 ]
 
 [[package]]
@@ -368,7 +368,7 @@ test = [
 requires-dist = [
     { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
     { name = "jentic-openapi-transformer", editable = "packages/jentic-openapi-transformer" },
-    { name = "pytest", marker = "extra == 'test'" },
+    { name = "pytest", marker = "extra == 'test'", specifier = "~=8.4" },
 ]
 provides-extras = ["test"]
 
@@ -400,8 +400,8 @@ requires-dist = [
     { name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" },
     { name = "jentic-openapi-validator-redocly", marker = "extra == 'redocly'", editable = "packages/jentic-openapi-validator-redocly" },
     { name = "jentic-openapi-validator-spectral", marker = "extra == 'spectral'", editable = "packages/jentic-openapi-validator-spectral" },
-    { name = "lsprotocol" },
-    { name = "openapi-spec-validator" },
+    { name = "lsprotocol", specifier = "~=2025.0" },
+    { name = "openapi-spec-validator", specifier = "~=0.7" },
 ]
 provides-extras = ["spectral", "redocly"]
 
@@ -420,8 +420,8 @@ dependencies = [
 requires-dist = [
     { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
     { name = "jentic-openapi-validator", editable = "packages/jentic-openapi-validator" },
-    { name = "jsonpointer", specifier = ">=3.0,<4.0" },
-    { name = "lsprotocol", specifier = ">=2025.0.0" },
+    { name = "jsonpointer", specifier = "~=3.0" },
+    { name = "lsprotocol", specifier = "~=2025.0" },
 ]
 
 [[package]]
@@ -438,7 +438,7 @@ dependencies = [
 requires-dist = [
     { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
     { name = "jentic-openapi-validator", editable = "packages/jentic-openapi-validator" },
-    { name = "lsprotocol" },
+    { name = "lsprotocol", specifier = "~=2025.0" },
 ]
 
 [[package]]

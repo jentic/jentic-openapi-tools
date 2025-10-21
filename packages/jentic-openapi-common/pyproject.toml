@@ -21,7 +21,7 @@ module-root = "src/"
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
 
 [build-system]
-requires = ["uv_build>=0.8.15,<0.9.0"]
+requires = ["uv_build~=0.8.15"]
 build-backend = "uv_build"
 
 
