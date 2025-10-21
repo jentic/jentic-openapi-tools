@@ -150,9 +150,8 @@ jobs:
             --notes "$CHANGELOG_CONTENT" \
             dist/*.whl dist/*.tar.gz
 
-      # TODO: Enable after setting up Trusted Publishers on PyPI for each package
-      # - name: Publish to PyPI
-      #   uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 
       - name: Release Summary
         run: |
