@@ -34,55 +34,16 @@ jobs:
           uv sync --all-packages
           npm install
 
-      - name: Check if release is needed
-        id: check_release
-        run: |
-          # Check semantic release and capture next version
-          NEXT_VERSION=$(uv run semantic-release --noop version --print 2>/dev/null)
-          if [ $? -eq 0 ] && [ -n "$NEXT_VERSION" ]; then
-            echo "release_needed=true" >> $GITHUB_OUTPUT
-            echo "reason=conventional_commits" >> $GITHUB_OUTPUT
-            echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
-          else
-            echo "release_needed=false" >> $GITHUB_OUTPUT
-            echo "reason=no_changes" >> $GITHUB_OUTPUT
-          fi
-
-      - name: No Release Needed
-        if: steps.check_release.outputs.release_needed == 'false'
-        run: |
-          echo "ℹ️ No release needed - no significant commits since last release"
-          echo "To trigger a release, make commits with conventional commit messages:"
-          echo "  feat: for new features (minor version bump)"
-          echo "  fix: for bug fixes (patch version bump)"
-          echo "  feat: with BREAKING CHANGE: for breaking changes (major version bump)"
-
-      - name: Get current version info
-        if: steps.check_release.outputs.release_needed == 'true'
+      - name: Get current version
         id: version_info
         run: |
           CURRENT_VERSION=$(grep "^version = " pyproject.toml | sed 's/^version = "\([^"]*\)".*/\1/')
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "next_version=${{ steps.check_release.outputs.next_version }}" >> $GITHUB_OUTPUT
-
-      - name: Lint code
-        if: steps.check_release.outputs.release_needed == 'true'
-        run: uv run poe lint
-
-      - name: Typecheck code
-        if: steps.check_release.outputs.release_needed == 'true'
-        run: uv run poe typecheck
-
-      - name: Run tests
-        if: steps.check_release.outputs.release_needed == 'true'
-        run: uv run poe test
 
       - name: Show release plan
-        if: steps.check_release.outputs.release_needed == 'true'
         run: |
           echo "📋 RELEASE PLAN"
           echo "Current Version: ${{ steps.version_info.outputs.current_version }}"
-          echo "Next Version: ${{ steps.version_info.outputs.next_version }}"
           echo ""
           echo "🔍 Commits since last release:"
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
@@ -92,8 +53,16 @@ jobs:
             echo "- No previous tags found"
           fi
 
+      - name: Lint code
+        run: uv run poe lint
+
+      - name: Typecheck code
+        run: uv run poe typecheck
+
+      - name: Run tests
+        run: uv run poe test
+
       - name: Semantic Release
-        if: steps.check_release.outputs.release_needed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -134,7 +103,6 @@ jobs:
           git push origin main --tags --force-with-lease
 
       - name: Get released version
-        if: steps.check_release.outputs.release_needed == 'true'
         id: released_version
         run: |
           RELEASED_VERSION=$(grep "^version = " pyproject.toml | sed 's/^version = "\([^"]*\)".*/\1/')
@@ -142,19 +110,16 @@ jobs:
           echo "Released version: $RELEASED_VERSION"
 
       - name: Build packages
-        if: steps.check_release.outputs.release_needed == 'true'
         run: |
           echo "📦 Building all packages..."
           uv build --all-packages
 
       - name: Show build artifacts
-        if: steps.check_release.outputs.release_needed == 'true'
         run: |
           echo "📦 Built artifacts:"
           ls -la dist/
 
       - name: Create GitHub Release
-        if: steps.check_release.outputs.release_needed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -171,11 +136,9 @@ jobs:
             dist/*.whl dist/*.tar.gz
 
       - name: Publish to PyPI
-        if: steps.check_release.outputs.release_needed == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
 
       - name: Release Summary
-        if: steps.check_release.outputs.release_needed == 'true'
         run: |
           echo "🎉 RELEASE COMPLETED"
           echo "Released version: ${{ steps.released_version.outputs.version }}"
