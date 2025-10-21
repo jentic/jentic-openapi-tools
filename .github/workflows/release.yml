@@ -117,8 +117,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "🚀 Running semantic release for alpha..."
+
+          # Configure git for commits
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
           # Run semantic-release but don't push yet
-          uv run semantic-release version --prerelease --no-push --no-vcs-release
+          # Use --major on first release to start at 1.0.0
+          if [ "${{ steps.check_release.outputs.reason }}" = "first_release" ]; then
+            uv run semantic-release version --prerelease --major --no-push --no-vcs-release
+          else
+            uv run semantic-release version --prerelease --no-push --no-vcs-release
+          fi
 
           # Get the version that was just released
           RELEASED_VERSION=$(grep "^version = " pyproject.toml | sed 's/^version = "\([^"]*\)".*/\1/')
