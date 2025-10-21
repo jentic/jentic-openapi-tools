@@ -294,11 +294,11 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "attrs", specifier = "~=25.4" },
+    { name = "attrs", specifier = "~=25.4.0" },
     { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
-    { name = "pyyaml", specifier = "~=6.0" },
-    { name = "requests", specifier = "~=2.32" },
-    { name = "ruamel-yaml", specifier = "~=0.18" },
+    { name = "pyyaml", specifier = "~=6.0.3" },
+    { name = "requests", specifier = "~=2.32.5" },
+    { name = "ruamel-yaml", specifier = "~=0.18.15" },
 ]
 
 [[package]]
@@ -320,12 +320,12 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "poethepoet", specifier = "~=0.37" },
-    { name = "pre-commit", specifier = "~=4.0" },
-    { name = "pyright", specifier = "~=1.1" },
-    { name = "pytest", specifier = "~=8.3" },
-    { name = "python-semantic-release", specifier = "~=10.0" },
-    { name = "ruff", specifier = "~=0.8" },
+    { name = "poethepoet", specifier = "~=0.37.0" },
+    { name = "pre-commit", specifier = "~=4.3.0" },
+    { name = "pyright", specifier = "~=1.1.406" },
+    { name = "pytest", specifier = "~=8.4.2" },
+    { name = "python-semantic-release", specifier = "~=10.4.1" },
+    { name = "ruff", specifier = "~=0.14.1" },
 ]
 
 [[package]]
@@ -359,18 +359,11 @@ dependencies = [
     { name = "jentic-openapi-transformer" },
 ]
 
-[package.optional-dependencies]
-test = [
-    { name = "pytest" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
     { name = "jentic-openapi-transformer", editable = "packages/jentic-openapi-transformer" },
-    { name = "pytest", marker = "extra == 'test'", specifier = "~=8.4" },
 ]
-provides-extras = ["test"]
 
 [[package]]
 name = "jentic-openapi-traverse"
@@ -400,8 +393,8 @@ requires-dist = [
     { name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" },
     { name = "jentic-openapi-validator-redocly", marker = "extra == 'redocly'", editable = "packages/jentic-openapi-validator-redocly" },
     { name = "jentic-openapi-validator-spectral", marker = "extra == 'spectral'", editable = "packages/jentic-openapi-validator-spectral" },
-    { name = "lsprotocol", specifier = "~=2025.0" },
-    { name = "openapi-spec-validator", specifier = "~=0.7" },
+    { name = "lsprotocol", specifier = "~=2025.0.0" },
+    { name = "openapi-spec-validator", specifier = "~=0.7.2" },
 ]
 provides-extras = ["spectral", "redocly"]
 
@@ -420,8 +413,8 @@ dependencies = [
 requires-dist = [
     { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
     { name = "jentic-openapi-validator", editable = "packages/jentic-openapi-validator" },
-    { name = "jsonpointer", specifier = "~=3.0" },
-    { name = "lsprotocol", specifier = "~=2025.0" },
+    { name = "jsonpointer", specifier = "~=3.0.0" },
+    { name = "lsprotocol", specifier = "~=2025.0.0" },
 ]
 
 [[package]]
@@ -438,7 +431,7 @@ dependencies = [
 requires-dist = [
     { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
     { name = "jentic-openapi-validator", editable = "packages/jentic-openapi-validator" },
-    { name = "lsprotocol", specifier = "~=2025.0" },
+    { name = "lsprotocol", specifier = "~=2025.0.0" },
 ]
 
 [[package]]
@@ -911,15 +904,15 @@ wheels = [
 
 [[package]]
 name = "python-gitlab"
-version = "6.4.0"
+version = "5.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests" },
     { name = "requests-toolbelt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/46/5c/0075364e3d7e64171dafc62fc09a940c136f82e4407d1625eae8c8bddf8f/python_gitlab-6.4.0.tar.gz", hash = "sha256:55ed94fb47932124b7f9df8e72b29352d3d0ee01ecf44f081dd070f4bad8700d", size = 397816, upload-time = "2025-09-28T01:15:45.394Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d6/08/d35d0f28549c43611e942f39b6321a7b35c02189d5badceefe601c0207ce/python_gitlab-5.6.0.tar.gz", hash = "sha256:bc531e8ba3e5641b60409445d4919ace68a2c18cb0ec6d48fbced6616b954166", size = 396148, upload-time = "2025-01-28T16:33:39.136Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/e8/2b93f465d4056464f8f5aae5e1dc583636f49eb31921655913afcd9eb80b/python_gitlab-6.4.0-py3-none-any.whl", hash = "sha256:2f264162b552463885871295ec4754441c4aa936746f333faa362de422aad4c8", size = 144394, upload-time = "2025-09-28T01:15:43.503Z" },
+    { url = "https://files.pythonhosted.org/packages/b4/5e/2e1ed7145835afaad87664b2f675a1d7b6e1211ad6ecfe57e200ae45f0bd/python_gitlab-5.6.0-py3-none-any.whl", hash = "sha256:68980cd70929fc7f8f06d8a7b09bd046a6b79e1995c19d61249f046005099100", size = 148836, upload-time = "2025-01-28T16:33:36.818Z" },
 ]
 
 [[package]]

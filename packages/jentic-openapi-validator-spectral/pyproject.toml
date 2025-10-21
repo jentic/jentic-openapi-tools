@@ -10,7 +10,7 @@ requires-python = ">=3.11"
 dependencies = [
   "jentic-openapi-common~=0.1.0",
   "jentic-openapi-validator~=0.1.0",
-  "lsprotocol~=2025.0"
+  "lsprotocol~=2025.0.0"
 ]
 
 [project.urls]

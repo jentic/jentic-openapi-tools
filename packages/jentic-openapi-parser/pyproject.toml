@@ -8,11 +8,11 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
-    "attrs~=25.4",
+    "attrs~=25.4.0",
     "jentic-openapi-common~=0.1.0",
-    "pyyaml~=6.0",
-    "requests~=2.32",
-    "ruamel-yaml~=0.18"
+    "pyyaml~=6.0.3",
+    "requests~=2.32.5",
+    "ruamel-yaml~=0.18.15"
 ]
 
 [project.urls]

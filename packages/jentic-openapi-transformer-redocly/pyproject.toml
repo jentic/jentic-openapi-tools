@@ -12,11 +12,6 @@ dependencies = [
   "jentic-openapi-transformer~=0.1.0"
 ]
 
-[project.optional-dependencies]
-test = [
-  "pytest~=8.4",
-]
-
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
 
