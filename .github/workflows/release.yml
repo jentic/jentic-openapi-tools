@@ -63,6 +63,7 @@ jobs:
 #        run: uv run poe test
 
       - name: Semantic Release
+        id: semantic_release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -86,6 +87,9 @@ jobs:
           # Extract the version from "The next version is: X.Y.Z!" line
           RELEASED_VERSION=$(echo "$SEMANTIC_OUTPUT" | grep "The next version is:" | sed 's/.*The next version is: \([^ !]*\).*/\1/')
           echo "Released version: $RELEASED_VERSION"
+
+          # Make version available to subsequent steps
+          echo "version=$RELEASED_VERSION" >> $GITHUB_OUTPUT
 
           # Sync inter-package dependency versions
           echo "🔄 Syncing inter-package dependency versions..."
@@ -115,7 +119,8 @@ jobs:
       - name: Get released version
         id: released_version
         run: |
-          RELEASED_VERSION=$(grep "^version = " pyproject.toml | sed 's/^version = "\([^"]*\)".*/\1/')
+          # Use the version from semantic-release step
+          RELEASED_VERSION="${{ steps.semantic_release.outputs.version }}"
           echo "version=$RELEASED_VERSION" >> $GITHUB_OUTPUT
           echo "Released version: $RELEASED_VERSION"
 

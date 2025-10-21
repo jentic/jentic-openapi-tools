@@ -35,8 +35,15 @@ def update_dependency_version(content: str, package_name: str, new_version: str)
     return re.sub(pattern, replacement, content)
 
 
+def update_package_version(content: str, new_version: str) -> str:
+    """Update the version field in pyproject.toml content."""
+    pattern = r'^version = "([^"]+)"'
+    replacement = f'version = "{new_version}"'
+    return re.sub(pattern, replacement, content, flags=re.MULTILINE)
+
+
 def sync_versions(root_dir: Path, new_version: str) -> None:
-    """Sync all jentic-openapi-* dependency versions to new_version."""
+    """Sync all jentic-openapi-* dependency versions and package versions to new_version."""
     packages_dir = root_dir / "packages"
 
     # List of all jentic-openapi packages
@@ -52,7 +59,7 @@ def sync_versions(root_dir: Path, new_version: str) -> None:
         "jentic-openapi-validator-spectral",
     ]
 
-    # Update root pyproject.toml
+    # Update root pyproject.toml (dependencies only, version already updated by semantic-release)
     root_pyproject = root_dir / "pyproject.toml"
     content = root_pyproject.read_text()
     for package in jentic_packages:
@@ -72,6 +79,9 @@ def sync_versions(root_dir: Path, new_version: str) -> None:
 
         content = pyproject.read_text()
         original_content = content
+
+        # Update the package version field
+        content = update_package_version(content, new_version)
 
         # Update all jentic-openapi-* dependencies
         for package in jentic_packages:
