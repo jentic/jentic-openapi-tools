@@ -72,11 +72,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Run semantic-release but don't push yet
-          uv run semantic-release version --prerelease --no-push
+          # Run semantic-release and capture the new version
+          SEMANTIC_OUTPUT=$(uv run semantic-release version --prerelease --no-push 2>&1)
+          echo "$SEMANTIC_OUTPUT"
 
-          # Get the version that semantic-release just wrote to pyproject.toml
-          RELEASED_VERSION=$(grep "^version = " pyproject.toml | sed 's/^version = "\([^"]*\)".*/\1/')
+          # Extract the version from semantic-release output (first line)
+          RELEASED_VERSION=$(echo "$SEMANTIC_OUTPUT" | head -n 1 | tr -d '[:space:]')
           echo "Released version: $RELEASED_VERSION"
 
           # Sync inter-package dependency versions
@@ -93,7 +94,9 @@ jobs:
             git add .
             git commit --amend --no-edit
             # Update the tag to point to the amended commit
-            git tag -f "v$RELEASED_VERSION"
+            # Delete the old tag first, then create it again at the amended commit
+            git tag -d "v$RELEASED_VERSION"
+            git tag "v$RELEASED_VERSION"
           else
             echo "✓ No dependency version changes needed"
           fi
