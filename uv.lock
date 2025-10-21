@@ -305,6 +305,17 @@ requires-dist = [
 name = "jentic-openapi-tools"
 version = "0.1.0"
 source = { editable = "." }
+dependencies = [
+    { name = "jentic-openapi-common" },
+    { name = "jentic-openapi-datamodels" },
+    { name = "jentic-openapi-parser" },
+    { name = "jentic-openapi-transformer" },
+    { name = "jentic-openapi-transformer-redocly" },
+    { name = "jentic-openapi-traverse" },
+    { name = "jentic-openapi-validator" },
+    { name = "jentic-openapi-validator-redocly" },
+    { name = "jentic-openapi-validator-spectral" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -317,6 +328,17 @@ dev = [
 ]
 
 [package.metadata]
+requires-dist = [
+    { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
+    { name = "jentic-openapi-datamodels", editable = "packages/jentic-openapi-datamodels" },
+    { name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" },
+    { name = "jentic-openapi-transformer", editable = "packages/jentic-openapi-transformer" },
+    { name = "jentic-openapi-transformer-redocly", editable = "packages/jentic-openapi-transformer-redocly" },
+    { name = "jentic-openapi-traverse", editable = "packages/jentic-openapi-traverse" },
+    { name = "jentic-openapi-validator", editable = "packages/jentic-openapi-validator" },
+    { name = "jentic-openapi-validator-redocly", editable = "packages/jentic-openapi-validator-redocly" },
+    { name = "jentic-openapi-validator-spectral", editable = "packages/jentic-openapi-validator-spectral" },
+]
 
 [package.metadata.requires-dev]
 dev = [

@@ -4,10 +4,19 @@ version = "0.1.0"
 description = "Workspace root for Jentic OpenAPI Tools"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
-license = "Apache-2.0"
-license-files = ["LICENSE", "NOTICE"]
+license = {text = "Apache-2.0"}
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+  "jentic-openapi-common~=0.1.0",
+  "jentic-openapi-datamodels~=0.1.0",
+  "jentic-openapi-parser~=0.1.0",
+  "jentic-openapi-transformer~=0.1.0",
+  "jentic-openapi-transformer-redocly~=0.1.0",
+  "jentic-openapi-traverse~=0.1.0",
+  "jentic-openapi-validator~=0.1.0",
+  "jentic-openapi-validator-redocly~=0.1.0",
+  "jentic-openapi-validator-spectral~=0.1.0"
+]
 
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
@@ -44,18 +53,35 @@ sequence = [
   { cmd = "uv run --all-packages pytest --import-mode=importlib" }
 ]
 
+[tool.uv]
+package = true
+
 [tool.uv.workspace]
 members = ["packages/*"]
 
+[tool.uv.sources]
+jentic-openapi-common = { workspace = true }
+jentic-openapi-datamodels = { workspace = true }
+jentic-openapi-parser = { workspace = true }
+jentic-openapi-transformer = { workspace = true }
+jentic-openapi-transformer-redocly = { workspace = true }
+jentic-openapi-traverse = { workspace = true }
+jentic-openapi-validator = { workspace = true }
+jentic-openapi-validator-redocly = { workspace = true }
+jentic-openapi-validator-spectral = { workspace = true }
+
 [build-system]
-requires = ["uv_build~=0.8.15"]
-build-backend = "uv_build"
+requires = ["setuptools~=75.8.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = []
+license-files = ["LICENSE", "NOTICE"]
 
 [tool.ruff]
 target-version = "py311"
 line-length = 100
 src = [
-  "src",
   "packages/jentic-openapi-common/src",
   "packages/jentic-openapi-datamodels/src",
   "packages/jentic-openapi-parser/src",
@@ -74,7 +100,7 @@ extend-select = ["I"]
 lines-after-imports = 2
 
 [tool.pyright]
-include = ["src", "packages/*/src/**", "packages/*/tests/**"]
+include = ["packages/*/src/**", "packages/*/tests/**"]
 pythonVersion = "3.11"
 typeCheckingMode = "standard"
 
