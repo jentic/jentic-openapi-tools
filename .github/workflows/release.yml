@@ -126,7 +126,7 @@ jobs:
 
           # Sync inter-package dependency versions
           echo "🔄 Syncing inter-package dependency versions..."
-          python scripts/sync-versions.py
+          python .github/scripts/sync-versions.py
 
           # Update lock file with new dependency versions
           echo "🔒 Updating lock file..."
