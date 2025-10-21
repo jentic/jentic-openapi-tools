@@ -67,7 +67,7 @@ jobs:
         if: steps.check_release.outputs.release_needed == 'true'
         id: version_info
         run: |
-          CURRENT_VERSION=$(grep 'version = ' pyproject.toml | head -1 | sed 's/.*version = "\([^"]*\)".*/\1/')
+          CURRENT_VERSION=$(grep "^version = " pyproject.toml | sed 's/^version = "\([^"]*\)".*/\1/')
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
           # Set next version based on release reason
@@ -116,19 +116,42 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ steps.check_release.outputs.reason }}" = "first_release" ]; then
-            echo "🚀 Running semantic release for first release..."
-            uv run semantic-release version --major
+          echo "🚀 Running semantic release for alpha..."
+          # Run semantic-release but don't push yet
+          uv run semantic-release version --prerelease --no-push --no-vcs-release
+
+          # Get the version that was just released
+          RELEASED_VERSION=$(grep "^version = " pyproject.toml | sed 's/^version = "\([^"]*\)".*/\1/')
+          echo "Released version: $RELEASED_VERSION"
+
+          # Sync inter-package dependency versions
+          echo "🔄 Syncing inter-package dependency versions..."
+          python .github/scripts/sync-versions.py
+
+          # Update lock file with new dependency versions
+          echo "🔒 Updating lock file..."
+          uv sync --all-packages
+
+          # Check if there are changes to commit
+          if ! git diff --quiet; then
+            echo "📝 Amending semantic-release commit with synced dependencies..."
+            git add .
+            git commit --amend --no-edit
+            # Update the tag to point to the amended commit
+            git tag -f "v$RELEASED_VERSION"
           else
-            echo "🚀 Running semantic release..."
-            uv run semantic-release version
+            echo "✓ No dependency version changes needed"
           fi
+
+          # Push commit and tags
+          echo "⬆️  Pushing changes to remote..."
+          git push origin main --tags --force-with-lease
 
       - name: Get released version
         if: steps.check_release.outputs.release_needed == 'true'
         id: released_version
         run: |
-          RELEASED_VERSION=$(grep 'version = ' pyproject.toml | head -1 | sed 's/.*version = "\([^"]*\)".*/\1/')
+          RELEASED_VERSION=$(grep "^version = " pyproject.toml | sed 's/^version = "\([^"]*\)".*/\1/')
           echo "version=$RELEASED_VERSION" >> $GITHUB_OUTPUT
           echo "Released version: $RELEASED_VERSION"
 
