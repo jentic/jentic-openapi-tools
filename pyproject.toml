@@ -166,8 +166,9 @@ type = "github"
 
 # Branches configuration
 [tool.semantic_release.branches.main]
-match = "(main|master)"
-prerelease = false
+match = "main"
+prerelease = true
+prerelease_token = "alpha"
 
 # Publishing configuration - disable built-in publishing since we use uv
 [tool.semantic_release.publish]

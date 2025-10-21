@@ -116,13 +116,34 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ steps.check_release.outputs.reason }}" = "first_release" ]; then
-            echo "🚀 Running semantic release for first release..."
-            uv run semantic-release version --major
+          echo "🚀 Creating alpha release..."
+
+          # Get current version
+          CURRENT_VERSION=$(grep 'version = ' pyproject.toml | head -1 | sed 's/.*version = "\([^"]*\)".*/\1/')
+
+          # Increment alpha counter
+          if [[ "$CURRENT_VERSION" =~ 1\.0\.0-alpha\.([0-9]+) ]]; then
+            ALPHA_NUM=$((${BASH_REMATCH[1]} + 1))
           else
-            echo "🚀 Running semantic release..."
-            uv run semantic-release version
+            ALPHA_NUM=1
           fi
+          NEW_VERSION="1.0.0-alpha.$ALPHA_NUM"
+
+          echo "Bumping from $CURRENT_VERSION to $NEW_VERSION"
+
+          # Update version in all pyproject.toml files
+          sed -i "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" pyproject.toml
+          for pkg in packages/*/pyproject.toml; do
+            sed -i "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" "$pkg"
+          done
+
+          # Commit and tag
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml packages/*/pyproject.toml
+          git commit -m "chore(release): $NEW_VERSION"
+          git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
+          git push origin main --tags
 
       - name: Get released version
         if: steps.check_release.outputs.release_needed == 'true'
