@@ -75,13 +75,15 @@ jobs:
           # Run semantic-release but don't push yet
           uv run semantic-release version --prerelease --no-push --no-vcs-release
 
-          # Get the version that was just released
-          RELEASED_VERSION=$(grep "^version = " pyproject.toml | sed 's/^version = "\([^"]*\)".*/\1/')
+          # Get the version from the tag that semantic-release just created
+          RELEASED_VERSION=$(git describe --tags --abbrev=0)
+          # Remove the 'v' prefix
+          RELEASED_VERSION=${RELEASED_VERSION#v}
           echo "Released version: $RELEASED_VERSION"
 
           # Sync inter-package dependency versions
           echo "🔄 Syncing inter-package dependency versions..."
-          python .github/scripts/sync-versions.py
+          python .github/scripts/sync-versions.py "$RELEASED_VERSION"
 
           # Update lock file with new dependency versions
           echo "🔒 Updating lock file..."

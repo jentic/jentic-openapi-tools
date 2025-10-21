@@ -92,14 +92,17 @@ def main() -> int:
     root_dir = Path(__file__).parent.parent.parent
 
     try:
-        # Get current version from root pyproject.toml
-        root_pyproject = root_dir / "pyproject.toml"
-        if not root_pyproject.exists():
-            print(f"Error: {root_pyproject} not found", file=sys.stderr)
-            return 1
-
-        current_version = get_current_version(root_pyproject)
-        print(f"Current version: {current_version}")
+        # Get version from command-line argument or root pyproject.toml
+        if len(sys.argv) > 1:
+            current_version = sys.argv[1]
+            print(f"Using version from argument: {current_version}")
+        else:
+            root_pyproject = root_dir / "pyproject.toml"
+            if not root_pyproject.exists():
+                print(f"Error: {root_pyproject} not found", file=sys.stderr)
+                return 1
+            current_version = get_current_version(root_pyproject)
+            print(f"Current version from pyproject.toml: {current_version}")
 
         # Sync all dependency versions
         sync_versions(root_dir, current_version)
