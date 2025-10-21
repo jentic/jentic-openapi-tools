@@ -73,12 +73,10 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Run semantic-release but don't push yet
-          uv run semantic-release version --prerelease --no-push --no-vcs-release
+          uv run semantic-release version --prerelease --no-push
 
-          # Get the version from the tag that semantic-release just created
-          RELEASED_VERSION=$(git describe --tags --abbrev=0)
-          # Remove the 'v' prefix
-          RELEASED_VERSION=${RELEASED_VERSION#v}
+          # Get the version that semantic-release just wrote to pyproject.toml
+          RELEASED_VERSION=$(grep "^version = " pyproject.toml | sed 's/^version = "\([^"]*\)".*/\1/')
           echo "Released version: $RELEASED_VERSION"
 
           # Sync inter-package dependency versions
@@ -137,8 +135,9 @@ jobs:
             --notes "$CHANGELOG_CONTENT" \
             dist/*.whl dist/*.tar.gz
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      # TODO: Enable after setting up Trusted Publishers on PyPI for each package
+      # - name: Publish to PyPI
+      #   uses: pypa/gh-action-pypi-publish@release/v1
 
       - name: Release Summary
         run: |
