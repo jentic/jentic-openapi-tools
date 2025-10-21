@@ -73,11 +73,12 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Run semantic-release and capture the new version
-          SEMANTIC_OUTPUT=$(uv run semantic-release version --prerelease --no-push 2>&1)
+          # Note: --prerelease flag not needed since main branch is configured as prerelease in pyproject.toml
+          SEMANTIC_OUTPUT=$(uv run semantic-release version --no-push 2>&1)
           echo "$SEMANTIC_OUTPUT"
 
-          # Extract the version from semantic-release output (first line)
-          RELEASED_VERSION=$(echo "$SEMANTIC_OUTPUT" | head -n 1 | tr -d '[:space:]')
+          # Extract the version from "The next version is: X.Y.Z!" line
+          RELEASED_VERSION=$(echo "$SEMANTIC_OUTPUT" | grep "The next version is:" | sed 's/.*The next version is: \([^ !]*\).*/\1/')
           echo "Released version: $RELEASED_VERSION"
 
           # Sync inter-package dependency versions
