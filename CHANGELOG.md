@@ -2,6 +2,9 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.6 (2025-10-22)
+
+
 ## v1.0.0-alpha.5 (2025-10-22)
 
 ### Continuous Integration
