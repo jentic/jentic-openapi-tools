@@ -9,9 +9,9 @@ If you believe you've found an exploitable security issue in jentic-openapi-tool
 This is the list of versions of `jentic-openapi-tools` which are
 currently being supported with security updates.
 
-| Version                  | Supported          | Notes                           |
-|--------------------------|--------------------|---------------------------------|
-| &gt;=1.0.0-0 &lt;2.0.0 | :white_check_mark: |                       |
+| Version                    | Supported          | Notes                 |
+|----------------------------|--------------------|-----------------------|
+| &gt;=1.0.0-alpha &lt;2.0.0 | :white_check_mark: | Includes pre-releases |
 
 ## Reporting a vulnerability
 
