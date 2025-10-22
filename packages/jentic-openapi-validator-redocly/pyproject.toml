@@ -1,6 +1,6 @@
 [project]
 name = "jentic-openapi-validator-redocly"
-version = "1.0.0-alpha.4"
+version = "1.0.0-alpha.5"
 description = "Jentic OpenAPI Redocly Validator Backend"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
@@ -8,8 +8,8 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
-  "jentic-openapi-common~=1.0.0-alpha.4",
-  "jentic-openapi-validator~=1.0.0-alpha.4",
+  "jentic-openapi-common~=1.0.0-alpha.5",
+  "jentic-openapi-validator~=1.0.0-alpha.5",
   "lsprotocol~=2025.0.0",
   "jsonpointer~=3.0.0"
 ]

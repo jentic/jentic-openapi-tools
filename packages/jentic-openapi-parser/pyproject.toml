@@ -1,6 +1,6 @@
 [project]
 name = "jentic-openapi-parser"
-version = "1.0.0-alpha.4"
+version = "1.0.0-alpha.5"
 description = "Jentic OpenAPI Parser"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
@@ -9,7 +9,7 @@ license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
     "attrs~=25.4.0",
-    "jentic-openapi-common~=1.0.0-alpha.4",
+    "jentic-openapi-common~=1.0.0-alpha.5",
     "pyyaml~=6.0.3",
     "requests~=2.32.5",
     "ruamel-yaml~=0.18.15"

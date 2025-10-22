@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.5 (2025-10-22)
+
+### Continuous Integration
+
+- **release**: Fix issue in version bumping
+  ([#94](https://github.com/jentic/jentic-openapi-tools/pull/94),
+  [`98c7f8f`](https://github.com/jentic/jentic-openapi-tools/commit/98c7f8fd522c68559fdd3770dbc490093ca30bc1))
+
+
 ## v1.0.0-alpha.4 (2025-10-22)
 
 
