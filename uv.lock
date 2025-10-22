@@ -303,7 +303,7 @@ requires-dist = [
 
 [[package]]
 name = "jentic-openapi-tools"
-version = "1.0.0a0"
+version = "1.0.0a4"
 source = { editable = "." }
 dependencies = [
     { name = "jentic-openapi-common" },
