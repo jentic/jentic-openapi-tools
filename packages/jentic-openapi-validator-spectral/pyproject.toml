@@ -1,6 +1,6 @@
 [project]
 name = "jentic-openapi-validator-spectral"
-version = "1.0.0-alpha.2"
+version = "1.0.0-alpha.3"
 description = "Jentic OpenAPI Spectral Validator Backend"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
@@ -8,8 +8,8 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
-  "jentic-openapi-common~=1.0.0-alpha.2",
-  "jentic-openapi-validator~=1.0.0-alpha.2",
+  "jentic-openapi-common~=1.0.0-alpha.3",
+  "jentic-openapi-validator~=1.0.0-alpha.3",
   "lsprotocol~=2025.0.0"
 ]
 
