@@ -1,6 +1,6 @@
 [project]
 name = "jentic-openapi-tools"
-version = "1.0.0-alpha.0"
+version = "1.0.0-alpha.4"
 description = "Workspace root for Jentic OpenAPI Tools"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
@@ -125,19 +125,18 @@ branch = "main"
 tag_format = "v{version}"
 # Allow first release from current version
 allow_zero_version = true
-# Version pattern to match in files
-version_pattern = [
-    "pyproject.toml:version = \"{version}\"",
-    "packages/jentic-openapi-common/pyproject.toml:version = \"{version}\"",
-    "packages/jentic-openapi-datamodels/pyproject.toml:version = \"{version}\"",
-    "packages/jentic-openapi-parser/pyproject.toml:version = \"{version}\"",
-    "packages/jentic-openapi-traverse/pyproject.toml:version = \"{version}\"",
-    "packages/jentic-openapi-transformer/pyproject.toml:version = \"{version}\"",
-    "packages/jentic-openapi-transformer-redocly/pyproject.toml:version = \"{version}\"",
-    "packages/jentic-openapi-validator/pyproject.toml:version = \"{version}\"",
-    "packages/jentic-openapi-validator-spectral/pyproject.toml:version = \"{version}\"",
-    "packages/jentic-openapi-validator-redocly/pyproject.toml:version = \"{version}\"",
-
+# Version files to update (using version_toml for TOML parsing)
+version_toml = [
+    "pyproject.toml:project.version",
+    "packages/jentic-openapi-common/pyproject.toml:project.version",
+    "packages/jentic-openapi-datamodels/pyproject.toml:project.version",
+    "packages/jentic-openapi-parser/pyproject.toml:project.version",
+    "packages/jentic-openapi-traverse/pyproject.toml:project.version",
+    "packages/jentic-openapi-transformer/pyproject.toml:project.version",
+    "packages/jentic-openapi-transformer-redocly/pyproject.toml:project.version",
+    "packages/jentic-openapi-validator/pyproject.toml:project.version",
+    "packages/jentic-openapi-validator-spectral/pyproject.toml:project.version",
+    "packages/jentic-openapi-validator-redocly/pyproject.toml:project.version",
 ]
 
 # Commit author for version commits

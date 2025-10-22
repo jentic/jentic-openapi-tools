@@ -59,11 +59,17 @@ def sync_versions(root_dir: Path, new_version: str) -> None:
         "jentic-openapi-validator-spectral",
     ]
 
-    # Update root pyproject.toml (dependencies only, version already updated by semantic-release)
+    # Update root pyproject.toml (both version and dependencies)
     root_pyproject = root_dir / "pyproject.toml"
     content = root_pyproject.read_text()
+
+    # Update the root package version field
+    content = update_package_version(content, new_version)
+
+    # Update all jentic-openapi-* dependencies
     for package in jentic_packages:
         content = update_dependency_version(content, package, new_version)
+
     root_pyproject.write_text(content)
     print(f"✓ Updated {root_pyproject}")
 
