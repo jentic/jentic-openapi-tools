@@ -1,1 +1,0 @@
-"""Redocly ruleset test fixtures."""

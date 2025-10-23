@@ -1,1 +1,0 @@
-"""Spectral ruleset test fixtures."""

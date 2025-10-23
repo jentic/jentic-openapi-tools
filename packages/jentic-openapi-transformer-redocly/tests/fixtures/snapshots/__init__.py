@@ -1,1 +1,0 @@
-"""Snapshot test fixtures."""
