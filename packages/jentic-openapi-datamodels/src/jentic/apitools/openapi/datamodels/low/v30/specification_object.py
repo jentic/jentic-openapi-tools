@@ -28,13 +28,19 @@ class SpecificationObject(ABC, MutableMapping[str, Any]):
 
     _supports_extensions: bool = False
 
-    def __init__(self, data: Mapping[str, Any] | None = None):
+    def __init__(
+        self, data: Mapping[str, Any] | None = None, *, meta: Mapping[str, Any] | None = None
+    ):
         """
         Initialize a SpecificationObject.
 
         Args:
             data: Optional mapping to initialize the object with
+            meta: Optional mapping of metadata to initialize with
         """
+        # Initialize metadata storage (bypasses custom __setattr__)
+        object.__setattr__(self, "_meta", dict(meta) if meta else {})
+
         if data:
             for key, value in data.items():
                 self[key] = self._copy_value(value)
@@ -42,23 +48,31 @@ class SpecificationObject(ABC, MutableMapping[str, Any]):
     # MutableMapping abstract methods
     def __getitem__(self, key: str) -> Any:
         """Get an item."""
+        if key == "_meta":
+            raise KeyError(key)
         return self.__dict__[key]
 
     def __setitem__(self, key: str, value: Any) -> None:
         """Set an item."""
+        if key == "_meta":
+            raise KeyError(
+                "Cannot set '_meta' as OpenAPI data - it's reserved for internal metadata"
+            )
         self.__dict__[key] = value
 
     def __delitem__(self, key: str) -> None:
         """Delete an item."""
+        if key == "_meta":
+            raise KeyError("Cannot delete internal '_meta' attribute")
         del self.__dict__[key]
 
     def __iter__(self) -> Iterator[str]:
-        """Iterate over keys."""
-        return iter(self.__dict__)
+        """Iterate over keys, excluding internal _meta."""
+        return (k for k in self.__dict__ if k != "_meta")
 
     def __len__(self) -> int:
-        """Return the number of items."""
-        return len(self.__dict__)
+        """Return the number of items, excluding internal _meta."""
+        return sum(1 for k in self.__dict__ if k != "_meta")
 
     def __getattr__(self, name: str) -> Any:
         """
@@ -67,6 +81,17 @@ class SpecificationObject(ABC, MutableMapping[str, Any]):
         This allows both dict-style (obj["key"]) and attribute-style (obj.key) access.
         Called only when the attribute is not found through normal lookup.
         """
+        # Special handling for internal metadata attribute
+        if name == "_meta":
+            # This should rarely be hit since _meta is set in __init__,
+            # but handle it defensively
+            try:
+                return object.__getattribute__(self, "_meta")
+            except AttributeError:
+                # Initialize if somehow missing
+                object.__setattr__(self, "_meta", {})
+                return object.__getattribute__(self, "_meta")
+
         try:
             return self[name]
         except KeyError:
@@ -79,6 +104,11 @@ class SpecificationObject(ABC, MutableMapping[str, Any]):
         This allows both dict-style (obj["key"] = val) and attribute-style (obj.key = val).
         For properties and other descriptors, delegates to the descriptor.
         """
+        # Special handling for internal metadata attribute
+        if name == "_meta":
+            object.__setattr__(self, name, value)
+            return
+
         # Check if this is a data descriptor (property, etc.) on the class
         cls = type(self)
         if hasattr(cls, name):
@@ -119,6 +149,43 @@ class SpecificationObject(ABC, MutableMapping[str, Any]):
         if not type(self)._supports_extensions:
             return dict(self)
         return {k: v for k, v in self.items() if isinstance(k, str) and not k.startswith("x-")}
+
+    def get_meta(self, key: str, default: Any = None) -> Any:
+        """
+        Get a metadata value.
+
+        Metadata is stored separately from OpenAPI specification data and is not
+        serialized by to_mapping().
+
+        Args:
+            key: Metadata key to retrieve
+            default: Default value if key not found
+
+        Returns:
+            Metadata value or default if not found
+        """
+        return self._meta.get(key, default)
+
+    def set_meta(self, key: str, value: Any) -> None:
+        """
+        Set a metadata value.
+
+        Metadata is stored separately from OpenAPI specification data and is not
+        serialized by to_mapping().
+
+        Args:
+            key: Metadata key to set
+            value: Metadata value to store
+        """
+        self._meta[key] = value
+
+    def clear_meta(self) -> None:
+        """
+        Clear all metadata.
+
+        This removes all metadata entries but does not affect OpenAPI specification data.
+        """
+        self._meta.clear()
 
     @classmethod
     def from_mapping(cls: type[T], data: Mapping[str, Any]) -> T:
