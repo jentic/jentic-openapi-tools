@@ -4,76 +4,52 @@
 
 ## v1.0.0-alpha.10 (2025-10-23)
 
+- initial release of `jentic-openapi-validator-spectral` pypi package
 
 ## v1.0.0-alpha.9 (2025-10-23)
 
+- initial release of `jentic-openapi-validator-redocly` pypi package
 
 ## v1.0.0-alpha.8 (2025-10-23)
 
 ### Continuous Integration
 
-- **release**: Generate artifact attestations for release artifacts
-  ([#95](https://github.com/jentic/jentic-openapi-tools/pull/95),
-  [`20c95c1`](https://github.com/jentic/jentic-openapi-tools/commit/20c95c15a449238c995024758febe9d7ad990c23))
+- **release**: Generate artifact attestations for release artifacts ([#95](https://github.com/jentic/jentic-openapi-tools/pull/95), [`20c95c1`](https://github.com/jentic/jentic-openapi-tools/commit/20c95c15a449238c995024758febe9d7ad990c23))
 
 
 ## v1.0.0-alpha.7 (2025-10-22)
 
+- initial release of `jentic-openapi-validator` pypi package
 
 ## v1.0.0-alpha.6 (2025-10-22)
 
+- initial release of `jentic-openapi-traverse` pypi package
 
 ## v1.0.0-alpha.5 (2025-10-22)
 
-### Continuous Integration
-
-- **release**: Fix issue in version bumping
-  ([#94](https://github.com/jentic/jentic-openapi-tools/pull/94),
-  [`98c7f8f`](https://github.com/jentic/jentic-openapi-tools/commit/98c7f8fd522c68559fdd3770dbc490093ca30bc1))
+- initial release of `jentic-openapi-transformer` pypi package
 
 
 ## v1.0.0-alpha.4 (2025-10-22)
 
+- failed initial release of `jentic-openapi-transformer` pypi package
 
 ## v1.0.0-alpha.3 (2025-10-22)
 
+- initial release of `jentic-openapi-parser` pypi package
 
 ## v1.0.0-alpha.2 (2025-10-22)
+
+- initial release of `jentic-openapi-datamodels` pypi package
 
 
 ## v1.0.0-alpha.1 (2025-10-22)
 
-### Continuous Integration
-
-- **release**: Always release when requested
-  ([`8453a18`](https://github.com/jentic/jentic-openapi-tools/commit/8453a18319f0bac28f07c4baed0269e6d61e389b))
-
-- **release**: Avoid mixing released version
-  ([`a5af5e3`](https://github.com/jentic/jentic-openapi-tools/commit/a5af5e3370148d483445e3d29e01b0cfe1f32017))
-
-- **release**: Capture version and use that exclusively
-  ([`fd764de`](https://github.com/jentic/jentic-openapi-tools/commit/fd764de14242a35e7621cdbc3b36dd6b21177289))
-
-- **release**: Enable publishing to PyPI
-  ([`3cd7b48`](https://github.com/jentic/jentic-openapi-tools/commit/3cd7b489c9614b6855a3a23f49234e15cb5c7e5c))
-
-- **release**: Fix issue with tag update
-  ([`d089ecb`](https://github.com/jentic/jentic-openapi-tools/commit/d089ecbb351bb021b09c4b76a7381a02aa3ceee5))
-
-- **release**: Fix next version passing
-  ([`795c84e`](https://github.com/jentic/jentic-openapi-tools/commit/795c84e5f09fde8fa184b035b9394c8eb1532a2b))
-
-- **release**: Fix version extraction
-  ([`9e599bb`](https://github.com/jentic/jentic-openapi-tools/commit/9e599bb00f7a3fb61e841271bbea34d5336a4c55))
-
-- **release**: Use explicit prerelease opt
-  ([`c756646`](https://github.com/jentic/jentic-openapi-tools/commit/c756646cd879226d3339af2c97b8a29019cd35e3))
+- initial release of `jentic-openapi-common` pypi package
 
 ### Documentation
 
-- **SECURITY**: Provide currently supported version range
-  ([#93](https://github.com/jentic/jentic-openapi-tools/pull/93),
-  [`6662893`](https://github.com/jentic/jentic-openapi-tools/commit/6662893795efaecc17c32aeac8983125e10ccfdc))
+- **SECURITY**: Provide currently supported version range ([#93](https://github.com/jentic/jentic-openapi-tools/pull/93), [`6662893`](https://github.com/jentic/jentic-openapi-tools/commit/6662893795efaecc17c32aeac8983125e10ccfdc))
 
 
 ## v1.0.0 (2025-10-21)
