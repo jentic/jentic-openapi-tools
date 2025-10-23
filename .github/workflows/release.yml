@@ -11,6 +11,7 @@ jobs:
     permissions:
       contents: write  # For git operations and GitHub releases
       id-token: write  # For PyPI OIDC publishing
+      attestations: write # For GitHub Attestations
 
     steps:
       - name: Checkout repository
@@ -133,6 +134,13 @@ jobs:
         run: |
           echo "📦 Built artifacts:"
           ls -la dist/
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            dist/*.whl
+            dist/*.tar.gz
 
       - name: Create GitHub Release
         env:
