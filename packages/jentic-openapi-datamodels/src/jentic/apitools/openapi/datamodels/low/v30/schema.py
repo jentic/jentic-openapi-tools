@@ -620,7 +620,7 @@ class Schema(SpecificationObject):
 
         # Check if it's a reference (has $ref field)
         if "$ref" in value:
-            return Reference(value)
+            return Reference(value, meta={"referenced-object-type": "Schema"})
         else:
             # Otherwise treat as Schema (or subclass)
             return cls(value)

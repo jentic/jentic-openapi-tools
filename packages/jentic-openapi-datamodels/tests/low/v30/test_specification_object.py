@@ -177,3 +177,151 @@ class TestSpecificationObject:
         assert "_supports_extensions" in fields
         assert "_fixed_fields" in fields
         assert "x-custom" not in fields  # Excluded because class supports extensions
+
+
+class TestMetadata:
+    """Tests for metadata functionality."""
+
+    def test_meta_initialized_empty(self):
+        """Test that _meta is initialized as empty dict."""
+        obj = ConcreteSpecificationObject()
+        assert hasattr(obj, "_meta")
+        assert obj._meta == {}
+        assert isinstance(obj._meta, dict)
+
+    def test_meta_initialized_with_data(self):
+        """Test that _meta can be initialized with metadata via constructor."""
+        metadata = {"source": "/path/to/file.yaml", "line": 42, "validated": True}
+        obj = ConcreteSpecificationObject({"title": "Test API"}, meta=metadata)
+
+        assert obj._meta == metadata
+        assert obj.get_meta("source") == "/path/to/file.yaml"
+        assert obj.get_meta("line") == 42
+        assert obj.get_meta("validated") is True
+
+        # Metadata should not interfere with OpenAPI data
+        assert obj["title"] == "Test API"
+        assert len(obj) == 1  # Only counts OpenAPI data, not metadata
+
+    def test_meta_initialized_defensive_copy(self):
+        """Test that metadata passed to constructor is defensively copied."""
+        metadata = {"source": "file.yaml"}
+        obj = ConcreteSpecificationObject(meta=metadata)
+
+        # Modify the original dict
+        metadata["source"] = "modified.yaml"
+        metadata["new_key"] = "new_value"
+
+        # Object's metadata should not be affected
+        assert obj.get_meta("source") == "file.yaml"
+        assert obj.get_meta("new_key") is None
+
+    def test_meta_not_in_dict_interface(self):
+        """Test that _meta is filtered out of the dict interface."""
+        obj = ConcreteSpecificationObject({"title": "Test"})
+
+        # _meta is in Python's __dict__ but filtered from dict interface
+        assert "_meta" in obj.__dict__  # Internal Python storage
+        assert "_meta" not in obj  # Dict interface (uses __contains__)
+        assert "title" in obj.__dict__
+        assert "title" in obj  # Regular data is accessible
+
+    def test_meta_not_serialized(self):
+        """Test that _meta is not serialized by to_mapping()."""
+        obj = ConcreteSpecificationObject({"title": "Test API"})
+        obj._meta["source"] = "/path/to/file.yaml"
+        obj._meta["line"] = 42
+
+        result = obj.to_mapping()
+        assert result == {"title": "Test API"}
+        assert "_meta" not in result
+
+    def test_meta_not_iterated(self):
+        """Test that _meta is not included in iteration."""
+        obj = ConcreteSpecificationObject({"title": "Test"})
+        obj._meta["custom"] = "value"
+
+        keys = list(obj)
+        assert "title" in keys
+        assert "_meta" not in keys
+
+    def test_meta_not_counted_in_len(self):
+        """Test that _meta is not counted in len()."""
+        obj = ConcreteSpecificationObject({"title": "Test"})
+        assert len(obj) == 1
+
+        obj._meta["custom"] = "value"
+        assert len(obj) == 1  # Still 1, _meta doesn't count
+
+    def test_set_meta_method(self):
+        """Test set_meta() convenience method."""
+        obj = ConcreteSpecificationObject()
+        obj.set_meta("source_file", "/path/to/api.yaml")
+        obj.set_meta("line_number", 100)
+
+        assert obj._meta["source_file"] == "/path/to/api.yaml"
+        assert obj._meta["line_number"] == 100
+
+    def test_get_meta_method(self):
+        """Test get_meta() convenience method."""
+        obj = ConcreteSpecificationObject()
+        obj._meta["validated"] = True
+        obj._meta["timestamp"] = "2024-01-01"
+
+        assert obj.get_meta("validated") is True
+        assert obj.get_meta("timestamp") == "2024-01-01"
+        assert obj.get_meta("missing") is None
+        assert obj.get_meta("missing", "default") == "default"
+
+    def test_clear_meta_method(self):
+        """Test clear_meta() convenience method."""
+        obj = ConcreteSpecificationObject()
+        obj.set_meta("key1", "value1")
+        obj.set_meta("key2", "value2")
+        assert len(obj._meta) == 2
+
+        obj.clear_meta()
+        assert len(obj._meta) == 0
+        assert obj._meta == {}
+
+    def test_meta_direct_access(self):
+        """Test direct access to _meta dict."""
+        obj = ConcreteSpecificationObject()
+        obj._meta["custom_data"] = {"nested": "value"}
+
+        assert obj._meta["custom_data"] == {"nested": "value"}
+        assert "custom_data" in obj._meta
+
+    def test_meta_doesnt_interfere_with_data(self):
+        """Test that metadata doesn't interfere with OpenAPI data."""
+        obj = ConcreteSpecificationObject({"title": "API", "version": "1.0.0"})
+        obj.set_meta("source", "file.yaml")
+
+        # Data accessible normally
+        assert obj["title"] == "API"
+        assert obj.title == "API"
+
+        # Metadata separate
+        assert obj.get_meta("source") == "file.yaml"
+
+        # Serialization only includes data
+        result = obj.to_mapping()
+        assert result == {"title": "API", "version": "1.0.0"}
+
+    def test_meta_field_name_reserved(self):
+        """Test that '_meta' is reserved and cannot be used as OpenAPI field name."""
+        import pytest
+
+        # Trying to create object with '_meta' field should fail
+        with pytest.raises(KeyError, match="Cannot set '_meta'"):
+            ConcreteSpecificationObject({"_meta": "this is OpenAPI data"})
+
+        # Trying to set '_meta' via dict access should fail
+        obj = ConcreteSpecificationObject()
+        with pytest.raises(KeyError, match="Cannot set '_meta'"):
+            obj["_meta"] = "value"
+
+        # But internal _meta should work fine
+        obj.set_meta("source", "file.yaml")
+        assert obj.get_meta("source") == "file.yaml"
+        assert obj._meta == {"source": "file.yaml"}
