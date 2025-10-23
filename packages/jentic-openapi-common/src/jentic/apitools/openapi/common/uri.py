@@ -10,6 +10,9 @@ __all__ = [
     "is_uri_like",
     "is_http_https_url",
     "is_file_uri",
+    "is_scheme_relative_uri",
+    "is_absolute_uri",
+    "is_fragment_only_uri",
     "is_path",
     "resolve_to_absolute",
 ]
@@ -167,6 +170,107 @@ def resolve_to_absolute(value: str, base_uri: str | None = None) -> str:
     return _resolve_path_like(value, None)
 
 
+def is_http_https_url(url: str) -> bool:
+    p = urlparse(url)
+    return p.scheme in ("http", "https") and bool(p.netloc)
+
+
+def is_file_uri(uri: str) -> bool:
+    return urlparse(uri).scheme == "file"
+
+
+def is_scheme_relative_uri(uri: str) -> bool:
+    """
+    Check if `uri` is a scheme-relative URI (also called protocol-relative URI).
+
+    A scheme-relative URI starts with "//" followed by an authority component (netloc),
+    inheriting the scheme from the context (e.g., "//cdn.example.com/path").
+
+    This is defined in RFC 3986 section 4.2 as a network-path reference.
+    Per RFC 3986, a valid network-path reference must have an authority component.
+
+    Examples:
+        - "//cdn.example.com/x.yaml" -> True
+        - "//example.com/api" -> True
+        - "http://example.com" -> False (has scheme)
+        - "/path/to/file" -> False (single slash)
+        - "./relative" -> False (relative path)
+        - "//" -> False (no authority component)
+        - "///path" -> False (no authority component)
+
+    Args:
+        uri: The string to check
+
+    Returns:
+        True if the string is a valid scheme-relative URI with authority, False otherwise
+    """
+    if not uri.startswith("//"):
+        return False
+    p = urlparse(uri)
+    return bool(p.netloc)
+
+
+def is_absolute_uri(uri: str) -> bool:
+    """
+    Check if `s` is an absolute URI according to RFC 3986.
+
+    An absolute URI is defined as having a scheme (e.g., "http:", "https:", "ftp:", "file:").
+
+    Note: Scheme-relative URIs (starting with "//") are NOT considered absolute URIs.
+    According to RFC 3986 section 4.2, scheme-relative URIs are classified as
+    "relative references" (specifically, "network-path references").
+    Use `is_scheme_relative_uri()` to check for those separately.
+
+    Examples:
+        - "http://example.com" -> True
+        - "https://example.com/path" -> True
+        - "ftp://ftp.example.com" -> True
+        - "file:///path/to/file" -> True
+        - "//cdn.example.com/x.yaml" -> False (scheme-relative, use is_scheme_relative_uri)
+        - "/path/to/file" -> False (absolute path, not URI)
+        - "./relative" -> False
+        - "#fragment" -> False
+
+    Args:
+        uri: The string to check
+
+    Returns:
+        True if the string is an absolute URI (has a scheme), False otherwise
+    """
+    p = urlparse(uri)
+    return bool(p.scheme)
+
+
+def is_fragment_only_uri(uri: str) -> bool:
+    """
+    Check if `uri` is a fragment-only reference.
+
+    A fragment-only reference consists solely of a fragment identifier (starts with "#").
+    These are used in JSON References and OpenAPI to refer to parts within the same document.
+
+    Note: This checks if the ENTIRE string is a fragment reference, not whether
+    a URI contains a fragment. For example, "http://example.com#section" would
+    return False because it's a full URI with a fragment, not fragment-only.
+
+    Examples:
+        - "#/definitions/User" -> True
+        - "#fragment" -> True
+        - "#" -> True (empty fragment identifier)
+        - "##" -> True (fragment identifier is "#")
+        - "http://example.com#section" -> False (full URI with fragment)
+        - "/path/to/file" -> False
+        - "./relative" -> False
+        - "" -> False
+
+    Args:
+        uri: The string to check
+
+    Returns:
+        True if the string is a fragment-only reference, False otherwise
+    """
+    return uri.startswith("#")
+
+
 def _guard_single_line(s: str) -> None:
     if not isinstance(s, str) or ("\n" in s or "\r" in s):
         raise URIResolutionError("Input must be a single-line string.")
@@ -174,15 +278,6 @@ def _guard_single_line(s: str) -> None:
 
 def _looks_like_windows_path(s: str) -> bool:
     return bool(_WINDOWS_DRIVE_RE.match(s) or _WINDOWS_UNC_RE.match(s))
-
-
-def is_http_https_url(s: str) -> bool:
-    p = urlparse(s)
-    return p.scheme in ("http", "https") and bool(p.netloc)
-
-
-def is_file_uri(s: str) -> bool:
-    return urlparse(s).scheme == "file"
 
 
 def _normalize_url(s: str) -> str:

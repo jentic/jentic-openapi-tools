@@ -1,6 +1,12 @@
 from typing import Any, Iterator, List, MutableMapping, Tuple, cast
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 
+from jentic.apitools.openapi.common.uri import (
+    is_absolute_uri,
+    is_fragment_only_uri,
+    is_http_https_url,
+    is_scheme_relative_uri,
+)
 from jentic.apitools.openapi.traverse.json import JSONPath, traverse
 
 
@@ -24,7 +30,7 @@ def find_relative_urls(root: Any) -> List[Tuple[JSONPath, str, str]]:
     out: List[Tuple[JSONPath, str, str]] = []
     for path, _parent, key, value in iter_url_fields(root):
         assert isinstance(key, str)
-        if key == "$ref" and _is_fragment_only(value):
+        if key == "$ref" and is_fragment_only_uri(value):
             continue
         if _is_relative_like(value):
             new_path = cast(JSONPath, (*path, key))
@@ -40,9 +46,9 @@ def find_absolute_http_urls(root: Any) -> List[Tuple[JSONPath, str, str]]:
     out: List[Tuple[JSONPath, str, str]] = []
     for path, _parent, key, value in iter_url_fields(root):
         assert isinstance(key, str)
-        if key == "$ref" and _is_fragment_only(value):
+        if key == "$ref" and is_fragment_only_uri(value):
             continue
-        if not _is_relative_like(value) and _is_absolute_http_uri(value):
+        if not _is_relative_like(value) and is_http_https_url(value):
             new_path = cast(JSONPath, (*path, key))
             out.append((new_path, key, value))
     return out
@@ -83,13 +89,13 @@ def rewrite_urls_inplace(root: Any, opts: RewriteOptions) -> int:
     changed = 0
     for _path, parent, key, value in iter_url_fields(root):
         # value is str by iter_url_fields contract
-        if key == "$ref" and _is_fragment_only(value):
+        if key == "$ref" and is_fragment_only_uri(value):
             continue  # keep pure fragments
 
         new_value = value
         if _is_relative_like(value):
             new_value = _absolutize(value, opts.base_url)
-        elif opts.include_absolute_urls and opts.original_base_url and _is_absolute_uri(value):
+        elif opts.include_absolute_urls and opts.original_base_url and is_absolute_uri(value):
             new_value = _retarget_absolute(value, opts.original_base_url, opts.base_url)
 
         if new_value != value:
@@ -136,29 +142,6 @@ _URL_KEYS_EXPLICIT: frozenset[str] = frozenset(
 )
 
 
-def _is_fragment_only(s: str) -> bool:
-    return s.startswith("#")
-
-
-def _is_scheme_relative(s: str) -> bool:
-    # e.g. //cdn.example.com/x.yaml   (no scheme, but host present)
-    return s.startswith("//")
-
-
-def _is_absolute_uri(s: str) -> bool:
-    if _is_scheme_relative(s):
-        return True
-    p = urlparse(s)
-    return bool(p.scheme)
-
-
-def _is_absolute_http_uri(s: str) -> bool:
-    if _is_scheme_relative(s):
-        return False
-    p = urlparse(s)
-    return bool(p.scheme) and p.scheme in ("http", "https")
-
-
 def _looks_like_uri(s: str) -> bool:
     # Heuristic: treat strings with ':' before any slash as potentially absolute
     # but we also want to catch relative paths like './x', '../x', 'a/b', '/a'
@@ -190,7 +173,7 @@ def _is_relative_like(s: str) -> bool:
     """Relative (incl. root-relative '/x') and not fragment-only or scheme-relative."""
     if not _looks_like_uri(s):
         return False
-    if _is_fragment_only(s) or _is_scheme_relative(s) or _is_absolute_uri(s):
+    if is_fragment_only_uri(s) or is_scheme_relative_uri(s) or is_absolute_uri(s):
         return False
     # At this point treat anything else as relative: './x', '../x', 'x', 'x/y', '/x'
     return True
