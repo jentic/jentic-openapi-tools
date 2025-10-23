@@ -54,14 +54,14 @@ jobs:
             echo "- No previous tags found"
           fi
 
-#      - name: Lint code
-#        run: uv run poe lint
-#
-#      - name: Typecheck code
-#        run: uv run poe typecheck
-#
-#      - name: Run tests
-#        run: uv run poe test
+      - name: Lint code
+        run: uv run poe lint
+
+      - name: Typecheck code
+        run: uv run poe typecheck
+
+      - name: Run tests
+        run: uv run poe test
 
       - name: Semantic Release
         id: semantic_release
