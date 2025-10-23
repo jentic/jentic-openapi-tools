@@ -26,11 +26,12 @@ class HTTPTestServer:
         """Start the HTTP server in a background thread."""
         # Change to fixtures directory to serve files
         self.fixtures_dir.mkdir(parents=True, exist_ok=True)
-        fixtures_dir = self.fixtures_dir
+        # Capture directory path as string for closure in Handler class
+        directory = str(self.fixtures_dir)
 
         class Handler(SimpleHTTPRequestHandler):
             def __init__(self, *args, **kwargs):
-                super().__init__(*args, directory=str(fixtures_dir), **kwargs)
+                super().__init__(*args, directory=directory, **kwargs)
 
             def log_message(self, format, *args):  # noqa: A002
                 # Suppress log messages
