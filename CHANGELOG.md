@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.8 (2025-10-23)
+
+### Continuous Integration
+
+- **release**: Generate artifact attestations for release artifacts
+  ([#95](https://github.com/jentic/jentic-openapi-tools/pull/95),
+  [`20c95c1`](https://github.com/jentic/jentic-openapi-tools/commit/20c95c15a449238c995024758febe9d7ad990c23))
+
+
 ## v1.0.0-alpha.7 (2025-10-22)
 
 
