@@ -2,6 +2,33 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.11 (2025-10-23)
+
+### Continuous Integration
+
+- **release**: Re-enable release checks (tests/lint/types)
+  ([#97](https://github.com/jentic/jentic-openapi-tools/pull/97),
+  [`2229d75`](https://github.com/jentic/jentic-openapi-tools/commit/2229d75822fae94b73d1f8d80b0fd8fabe2d4853))
+
+### Documentation
+
+- **CHANGELOG**: Align changelog with GitHub releases
+  ([#98](https://github.com/jentic/jentic-openapi-tools/pull/98),
+  [`f84e80a`](https://github.com/jentic/jentic-openapi-tools/commit/f84e80ad14d765f23168d46ae8ccf651f83de38c))
+
+### Refactoring
+
+- **common**: Consolidate URI & URL predicates
+  ([#99](https://github.com/jentic/jentic-openapi-tools/pull/99),
+  [`9a94070`](https://github.com/jentic/jentic-openapi-tools/commit/9a94070709eac9af0ce0245a622d5f729afaee98))
+
+### Testing
+
+- **vaildator**: Extract http testing server into conftest
+  ([#100](https://github.com/jentic/jentic-openapi-tools/pull/100),
+  [`38b3975`](https://github.com/jentic/jentic-openapi-tools/commit/38b3975f8e091cc958c5499173ea5aa2cf7f81fe))
+
+
 ## v1.0.0-alpha.10 (2025-10-23)
 
 - initial release of `jentic-openapi-validator-spectral` pypi package
