@@ -1,11 +1,6 @@
 """Tests for validating unbundled OpenAPI documents with external references."""
 
 import tempfile
-import threading
-import time
-from http.client import HTTPConnection
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-from pathlib import Path
 from urllib.parse import urljoin, urlparse
 from urllib.request import url2pathname
 
@@ -13,78 +8,6 @@ import pytest
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser, load_uri
 from jentic.apitools.openapi.validator.core import OpenAPIValidator
-
-
-FIXTURES_DIR = Path(__file__).parent / "fixtures" / "openapi" / "references"
-
-
-class HTTPTestServer:
-    """Simple HTTP server for testing HTTP URL loading."""
-
-    def __init__(self, port: int = 0):
-        self.port = port
-        self.server = None
-        self.thread = None
-        self.base_url = None
-
-    def start(self):
-        """Start the HTTP server in a background thread."""
-        # Change to fixtures directory to serve files
-        fixtures_dir = FIXTURES_DIR
-        fixtures_dir.mkdir(parents=True, exist_ok=True)
-
-        class Handler(SimpleHTTPRequestHandler):
-            def __init__(self, *args, **kwargs):
-                super().__init__(*args, directory=str(fixtures_dir), **kwargs)
-
-            def log_message(self, format, *args):  # noqa: A002
-                # Suppress log messages
-                pass
-
-        self.server = HTTPServer(("localhost", self.port), Handler)
-        self.port = self.server.server_port
-        self.base_url = f"http://localhost:{self.port}"
-
-        def run_server():
-            assert self.server
-            self.server.serve_forever()
-
-        self.thread = threading.Thread(target=run_server, daemon=True)
-        self.thread.start()
-
-        # Poll server until it's ready (max 5 retries with 0.1s intervals)
-        retries = 5
-        while retries > 0:
-            try:
-                conn = HTTPConnection(f"localhost:{self.port}")
-                conn.request("HEAD", "/")
-                response = conn.getresponse()
-                if response is not None:
-                    conn.close()
-                    return  # Server is ready
-            except (ConnectionRefusedError, OSError):
-                time.sleep(0.1)
-                retries -= 1
-
-        # If we get here, server failed to start
-        raise RuntimeError(f"HTTP server failed to start on port {self.port}")
-
-    def stop(self):
-        """Stop the HTTP server."""
-        if self.server:
-            self.server.shutdown()
-            self.server.server_close()
-        if self.thread:
-            self.thread.join(timeout=1)
-
-
-@pytest.fixture(scope="module")
-def http_server():
-    """Fixture providing an HTTP server for testing."""
-    server = HTTPTestServer()
-    server.start()
-    yield server
-    server.stop()
 
 
 def _print_diagnostics(backend_name: str, result):
