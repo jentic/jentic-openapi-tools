@@ -1,6 +1,6 @@
 [project]
 name = "jentic-openapi-datamodels"
-version = "1.0.0-alpha.8"
+version = "1.0.0-alpha.9"
 description = "Jentic OpenAPI Data Models"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
