@@ -4,12 +4,10 @@ import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
-from urllib.parse import urlparse
-from urllib.request import url2pathname
 
 from jentic.apitools.openapi.common.path_security import validate_path
 from jentic.apitools.openapi.common.subproc import run_subprocess
-from jentic.apitools.openapi.common.uri import is_path
+from jentic.apitools.openapi.common.uri import file_uri_to_path, is_file_uri, is_path
 from jentic.apitools.openapi.transformer.bundler.backends.base import BaseBundlerBackend
 
 
@@ -79,10 +77,7 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
             raise TypeError(f"Unsupported document type: {type(document)!r}")
 
     def _bundle_uri(self, document: str, base_url: str | None = None) -> str:
-        parsed_doc_url = urlparse(document)
-        doc_path = (
-            url2pathname(parsed_doc_url.path) if parsed_doc_url.scheme == "file" else document
-        )
+        doc_path = file_uri_to_path(document) if is_file_uri(document) else document
 
         # Validate document path if it's a filesystem path (skip non-path URIs like HTTP(S))
         validated_doc_path = (

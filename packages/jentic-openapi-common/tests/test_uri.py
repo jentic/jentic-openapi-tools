@@ -82,6 +82,72 @@ def test_file_uri_unc_to_windows_path():
 
 
 # -----------------------
+# file_uri_to_path() tests
+# -----------------------
+
+
+def test_file_uri_to_path_basic_conversion(tmp_path: Path):
+    """Test basic file:// URI to path conversion."""
+    file_path = tmp_path / "document.yaml"
+    file_path.write_text("test", encoding="utf-8")
+    file_uri = file_path.as_uri()  # file:///... absolute
+
+    from jentic.apitools.openapi.common.uri import file_uri_to_path
+
+    result = file_uri_to_path(file_uri)
+    assert Path(result).is_absolute()
+    assert Path(result) == file_path.resolve()
+    assert Path(result).exists()
+
+
+def test_file_uri_to_path_localhost(tmp_path: Path):
+    """Test file://localhost URI conversion."""
+    file_path = tmp_path / "spec.yaml"
+    file_path.write_text("openapi: 3.1.0", encoding="utf-8")
+    # Manually construct file://localhost/... URI
+    file_uri = f"file://localhost{file_path.as_posix()}"
+
+    from jentic.apitools.openapi.common.uri import file_uri_to_path
+
+    result = file_uri_to_path(file_uri)
+    assert Path(result).is_absolute()
+    assert Path(result) == file_path.resolve()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="UNC path test requires Windows")
+def test_file_uri_to_path_unc_windows():
+    """Test file:// UNC URI conversion on Windows."""
+    from jentic.apitools.openapi.common.uri import file_uri_to_path
+
+    # file://server/share/path → \\server\share\path
+    result = file_uri_to_path("file://server/share/folder/file.txt")
+    # Should start with UNC prefix
+    assert result.startswith("\\\\server\\share\\folder\\file.txt")
+
+
+def test_file_uri_to_path_raises_on_non_file_uri():
+    """Test that non-file URIs raise URIResolutionError."""
+    from jentic.apitools.openapi.common.uri import file_uri_to_path
+
+    with pytest.raises(URIResolutionError, match="Not a file URI"):
+        file_uri_to_path("http://example.com/path")
+
+    with pytest.raises(URIResolutionError, match="Not a file URI"):
+        file_uri_to_path("https://example.com/doc.yaml")
+
+
+def test_file_uri_to_path_raises_on_plain_path():
+    """Test that plain filesystem paths raise URIResolutionError."""
+    from jentic.apitools.openapi.common.uri import file_uri_to_path
+
+    with pytest.raises(URIResolutionError, match="Not a file URI"):
+        file_uri_to_path("/home/user/file.txt")
+
+    with pytest.raises(URIResolutionError, match="Not a file URI"):
+        file_uri_to_path("./relative/path.yaml")
+
+
+# -----------------------
 # Path cases without base (must return absolute path)
 # -----------------------
 

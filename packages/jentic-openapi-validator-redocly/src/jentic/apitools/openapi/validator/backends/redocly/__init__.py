@@ -5,8 +5,6 @@ from collections.abc import Sequence
 from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Literal
-from urllib.parse import urlparse
-from urllib.request import url2pathname
 
 from jsonpointer import JsonPointer
 from lsprotocol.types import DiagnosticSeverity, Position, Range
@@ -17,7 +15,7 @@ from jentic.apitools.openapi.common.subproc import (
     SubprocessExecutionResult,
     run_subprocess,
 )
-from jentic.apitools.openapi.common.uri import is_path
+from jentic.apitools.openapi.common.uri import file_uri_to_path, is_file_uri, is_path
 from jentic.apitools.openapi.validator.backends.base import BaseValidatorBackend
 from jentic.apitools.openapi.validator.core import JenticDiagnostic, ValidationResult
 
@@ -111,10 +109,7 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
         result: SubprocessExecutionResult | None = None
 
         try:
-            parsed_doc_url = urlparse(document)
-            doc_path = (
-                url2pathname(parsed_doc_url.path) if parsed_doc_url.scheme == "file" else document
-            )
+            doc_path = file_uri_to_path(document) if is_file_uri(document) else document
 
             # Validate document path if it's a filesystem path (skip non-path URIs like HTTP(S))
             validated_doc_path = (

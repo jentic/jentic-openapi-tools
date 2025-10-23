@@ -1,8 +1,8 @@
 import os
 import re
-import urllib.request
 from pathlib import Path
 from urllib.parse import urljoin, urlparse, urlsplit, urlunsplit
+from urllib.request import url2pathname
 
 
 __all__ = [
@@ -15,6 +15,7 @@ __all__ = [
     "is_fragment_only_uri",
     "is_path",
     "resolve_to_absolute",
+    "file_uri_to_path",
 ]
 
 
@@ -53,7 +54,7 @@ class URIResolutionError(ValueError):
     pass
 
 
-def is_uri_like(s: str | None) -> bool:
+def is_uri_like(uri: str | None) -> bool:
     r"""
     Heuristic check: is `s` a URI-like reference or absolute/relative path?
     - Accepts http(s)://, file://
@@ -62,13 +63,13 @@ def is_uri_like(s: str | None) -> bool:
     - Must be a single line (no '\\n' or '\\r').
     Leading/trailing whitespace is ignored.
     """
-    if not s:
+    if not uri:
         return False
-    s = s.strip()
+    uri = uri.strip()
     # Enforce single line
-    if "\n" in s or "\r" in s:
+    if "\n" in uri or "\r" in uri:
         return False
-    return bool(_URI_LIKE_RE.match(s))
+    return bool(_URI_LIKE_RE.match(uri))
 
 
 def is_path(s: str | None) -> bool:
@@ -110,64 +111,6 @@ def is_path(s: str | None) -> bool:
 
     # It's a path!
     return True
-
-
-def resolve_to_absolute(value: str, base_uri: str | None = None) -> str:
-    """
-    Resolve `value` to either:
-      - an absolute URL (with scheme), OR
-      - an absolute filesystem path (no scheme)
-
-    • If `base_uri` is None AND `value` has no scheme (i.e., relative URI or path),
-    return an **absolute filesystem path** resolved against CWD.
-
-    Other rules:
-      • Absolute http(s) URLs ⇒ return absolute URL.
-      • file:// URIs ⇒ return absolute filesystem path.
-      • If `base_uri` is an http(s) URL, relative inputs resolve to absolute URLs.
-      • If `base_uri` is a path or file://, relative inputs resolve to absolute paths.
-      • Mixing a path-like `value` with an http(s) `base_uri` raises (ambiguous).
-      • Scheme-relative (“//host/path”) without a URL base ⇒ raises.
-    """
-    _guard_single_line(value)
-
-    if is_http_https_url(value):
-        return _normalize_url(value)
-
-    if is_file_uri(value):
-        return _file_uri_to_path(value)
-
-    if _looks_like_windows_path(value):
-        return _resolve_path_like(value, base_uri)
-
-    parsed = urlparse(value)
-    # Scheme-relative without URL base is ambiguous
-    if value.startswith("//"):
-        if base_uri and is_http_https_url(base_uri):
-            return _normalize_url(urljoin(base_uri, value))
-        raise URIResolutionError("Scheme-relative URLs require a URL base_uri.")
-
-    # Any other explicit scheme (mailto:, data:, ftp:, etc.) → accept as-is
-    if parsed.scheme:
-        if parsed.scheme in ("http", "https"):
-            if not parsed.netloc:
-                raise URIResolutionError(f"Malformed URL (missing host): {value!r}")
-            return _normalize_url(value)
-        if parsed.scheme == "file":
-            # handled above
-            raise AssertionError("unreachable")
-        return value  # leave non-file, non-http schemes untouched
-
-    # --- No scheme: relative URI or path ---
-    if base_uri:
-        if is_http_https_url(base_uri):
-            # Relative URI against URL base → absolute URL
-            return _normalize_url(urljoin(base_uri, value))
-        # base is file path or file:// → absolute path
-        return _resolve_path_like(value, base_uri)
-
-    # **Your rule**: no base + no scheme ⇒ absolute filesystem path
-    return _resolve_path_like(value, None)
 
 
 def is_http_https_url(url: str) -> bool:
@@ -271,6 +214,94 @@ def is_fragment_only_uri(uri: str) -> bool:
     return uri.startswith("#")
 
 
+def resolve_to_absolute(value: str, base_uri: str | None = None) -> str:
+    """
+    Resolve `value` to either:
+      - an absolute URL (with scheme), OR
+      - an absolute filesystem path (no scheme)
+
+    • If `base_uri` is None AND `value` has no scheme (i.e., relative URI or path),
+    return an **absolute filesystem path** resolved against CWD.
+
+    Other rules:
+      • Absolute http(s) URLs ⇒ return absolute URL.
+      • file:// URIs ⇒ return absolute filesystem path.
+      • If `base_uri` is an http(s) URL, relative inputs resolve to absolute URLs.
+      • If `base_uri` is a path or file://, relative inputs resolve to absolute paths.
+      • Mixing a path-like `value` with an http(s) `base_uri` raises (ambiguous).
+      • Scheme-relative (“//host/path”) without a URL base ⇒ raises.
+    """
+    _guard_single_line(value)
+
+    if is_http_https_url(value):
+        return _normalize_url(value)
+
+    if is_file_uri(value):
+        return file_uri_to_path(value)
+
+    if _looks_like_windows_path(value):
+        return _resolve_path_like(value, base_uri)
+
+    parsed = urlparse(value)
+    # Scheme-relative without URL base is ambiguous
+    if value.startswith("//"):
+        if base_uri and is_http_https_url(base_uri):
+            return _normalize_url(urljoin(base_uri, value))
+        raise URIResolutionError("Scheme-relative URLs require a URL base_uri.")
+
+    # Any other explicit scheme (mailto:, data:, ftp:, etc.) → accept as-is
+    if parsed.scheme:
+        if parsed.scheme in ("http", "https"):
+            if not parsed.netloc:
+                raise URIResolutionError(f"Malformed URL (missing host): {value!r}")
+            return _normalize_url(value)
+        if parsed.scheme == "file":
+            # handled above
+            raise AssertionError("unreachable")
+        return value  # leave non-file, non-http schemes untouched
+
+    # --- No scheme: relative URI or path ---
+    if base_uri:
+        if is_http_https_url(base_uri):
+            # Relative URI against URL base → absolute URL
+            return _normalize_url(urljoin(base_uri, value))
+        # base is file path or file:// → absolute path
+        return _resolve_path_like(value, base_uri)
+
+    # **Your rule**: no base + no scheme ⇒ absolute filesystem path
+    return _resolve_path_like(value, None)
+
+
+def file_uri_to_path(file_uri: str) -> str:
+    """
+    Convert a file:// URI to an absolute filesystem path.
+
+    Args:
+        file_uri: A file:// URI string (e.g., "file:///path/to/file" or "file://server/share/path")
+
+    Returns:
+        Absolute filesystem path as a string
+
+    Raises:
+        URIResolutionError: If the input is not a valid file:// URI
+
+    Examples:
+        >>> file_uri_to_path("file:///home/user/doc.yaml")
+        '/home/user/doc.yaml'
+        >>> file_uri_to_path("file://localhost/etc/config.yaml")
+        '/etc/config.yaml'
+    """
+    parsed_uri = urlparse(file_uri)
+    if parsed_uri.scheme != "file":
+        raise URIResolutionError(f"Not a file URI: {file_uri!r}")
+    if parsed_uri.netloc and parsed_uri.netloc not in ("", "localhost"):
+        # UNC: \\server\share\path
+        unc = f"//{parsed_uri.netloc}{parsed_uri.path}"
+        return str(Path(url2pathname(unc)).resolve())
+    path = url2pathname(parsed_uri.path)
+    return str(Path(path).resolve())
+
+
 def _guard_single_line(s: str) -> None:
     if not isinstance(s, str) or ("\n" in s or "\r" in s):
         raise URIResolutionError("Input must be a single-line string.")
@@ -292,24 +323,12 @@ def _normalize_url(s: str) -> str:
     return urlunsplit((parts.scheme, parts.netloc, normalized_path, parts.query, parts.fragment))
 
 
-def _file_uri_to_path(file_uri: str) -> str:
-    p = urlparse(file_uri)
-    if p.scheme != "file":
-        raise URIResolutionError(f"Not a file URI: {file_uri!r}")
-    if p.netloc and p.netloc not in ("", "localhost"):
-        # UNC: \\server\share\path
-        unc = f"//{p.netloc}{p.path}"
-        return str(Path(urllib.request.url2pathname(unc)).resolve())
-    path = urllib.request.url2pathname(p.path)
-    return str(Path(path).resolve())
-
-
 def _resolve_path_like(value: str, base_uri: str | None) -> str:
     value = os.path.expandvars(os.path.expanduser(value))
 
     if base_uri:
         if is_file_uri(base_uri):
-            base_path = Path(urllib.request.url2pathname(urlparse(base_uri).path))
+            base_path = Path(url2pathname(urlparse(base_uri).path))
         elif is_http_https_url(base_uri):
             # Don't silently combine a local path with a URL base
             raise URIResolutionError("Cannot resolve a local path against an HTTP(S) base_uri.")
