@@ -7,7 +7,11 @@ authors = [{ name = "Jentic", email = "hello@jentic.com" }]
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
-dependencies = ["jentic-openapi-parser~=1.0.0-alpha.10", "jentic-openapi-traverse~=1.0.0-alpha.10"]
+dependencies = [
+  "jentic-openapi-common~=1.0.0-alpha.10",
+  "jentic-openapi-parser~=1.0.0-alpha.10",
+  "jentic-openapi-traverse~=1.0.0-alpha.10",
+]
 
 [tool.uv]
 package = true
@@ -24,6 +28,7 @@ redocly = ["jentic-openapi-transformer-redocly~=1.0.0-alpha.10"]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
 
 [tool.uv.sources]
+jentic-openapi-common = { workspace = true }
 jentic-openapi-parser = { workspace = true }
 jentic-openapi-traverse = { workspace = true }
 jentic-openapi-transformer-redocly = { workspace = true }

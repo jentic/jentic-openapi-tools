@@ -4,7 +4,14 @@ from urllib.parse import urlparse
 
 import pytest
 
-from jentic.apitools.openapi.common.uri import URIResolutionError, is_path, resolve_to_absolute
+from jentic.apitools.openapi.common.uri import (
+    URIResolutionError,
+    is_absolute_uri,
+    is_fragment_only_uri,
+    is_path,
+    is_scheme_relative_uri,
+    resolve_to_absolute,
+)
 
 
 # -----------------------
@@ -227,6 +234,46 @@ def test_url_normalization_collapses_dot_segments_in_join():
 
 
 # -----------------------
+# is_fragment_only_uri() tests
+# -----------------------
+
+
+def test_is_fragment_only_uri_returns_true_for_fragment_references():
+    """Fragment-only references should return True."""
+    assert is_fragment_only_uri("#/definitions/User")
+    assert is_fragment_only_uri("#fragment")
+    assert is_fragment_only_uri("#")
+    assert is_fragment_only_uri("##")
+    assert is_fragment_only_uri("#/components/schemas/Pet")
+
+
+def test_is_fragment_only_uri_returns_false_for_full_uris_with_fragments():
+    """Full URIs that contain fragments should return False."""
+    assert not is_fragment_only_uri("http://example.com#section")
+    assert not is_fragment_only_uri("https://api.example.com/docs#introduction")
+    assert not is_fragment_only_uri("file:///path/to/file#section")
+
+
+def test_is_fragment_only_uri_returns_false_for_paths():
+    """Paths should return False."""
+    assert not is_fragment_only_uri("/path/to/file")
+    assert not is_fragment_only_uri("./relative/path")
+    assert not is_fragment_only_uri("../parent/path")
+
+
+def test_is_fragment_only_uri_returns_false_for_urls():
+    """URLs should return False."""
+    assert not is_fragment_only_uri("http://example.com")
+    assert not is_fragment_only_uri("https://example.com/path")
+
+
+def test_is_fragment_only_uri_returns_false_for_empty_string():
+    """Empty strings should return False."""
+    assert not is_fragment_only_uri("")
+    assert not is_fragment_only_uri("   ")
+
+
+# -----------------------
 # is_path() tests
 # -----------------------
 
@@ -288,3 +335,126 @@ def test_is_path_returns_false_for_empty_string():
 def test_is_path_returns_false_for_none():
     """None should NOT be recognized as a path."""
     assert not is_path(None)
+
+
+# -----------------------
+# is_scheme_relative_uri() tests
+# -----------------------
+
+
+def test_is_scheme_relative_uri_returns_true_for_valid_scheme_relative():
+    """Valid scheme-relative URIs should return True."""
+    assert is_scheme_relative_uri("//cdn.example.com/x.yaml")
+    assert is_scheme_relative_uri("//example.com/api")
+    assert is_scheme_relative_uri("//example.com/path/to/resource")
+    assert is_scheme_relative_uri("//localhost/file")
+
+
+def test_is_scheme_relative_uri_returns_false_for_absolute_urls():
+    """Absolute URLs with schemes should return False."""
+    assert not is_scheme_relative_uri("http://example.com")
+    assert not is_scheme_relative_uri("https://example.com/path")
+    assert not is_scheme_relative_uri("ftp://ftp.example.com")
+    assert not is_scheme_relative_uri("file:///path/to/file")
+
+
+def test_is_scheme_relative_uri_returns_false_for_absolute_paths():
+    """Absolute paths should return False."""
+    assert not is_scheme_relative_uri("/path/to/file")
+    assert not is_scheme_relative_uri("/etc/config")
+    assert not is_scheme_relative_uri("/")
+
+
+def test_is_scheme_relative_uri_returns_false_for_relative_paths():
+    """Relative paths should return False."""
+    assert not is_scheme_relative_uri("./config.yaml")
+    assert not is_scheme_relative_uri("../parent/file.txt")
+    assert not is_scheme_relative_uri("relative/path")
+
+
+def test_is_scheme_relative_uri_returns_false_for_fragments():
+    """Fragment-only references should return False."""
+    assert not is_scheme_relative_uri("#/definitions/User")
+    assert not is_scheme_relative_uri("#fragment")
+
+
+def test_is_scheme_relative_uri_returns_false_for_empty_string():
+    """Empty strings should return False."""
+    assert not is_scheme_relative_uri("")
+    assert not is_scheme_relative_uri("   ")
+
+
+def test_is_scheme_relative_uri_returns_false_for_malformed():
+    """Malformed scheme-relative URIs without netloc should return False."""
+    assert not is_scheme_relative_uri("//")  # No netloc
+    assert not is_scheme_relative_uri("///")  # No netloc, just slashes
+    assert not is_scheme_relative_uri("///path")  # Triple slash - no netloc, just path
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows path test")
+def test_is_scheme_relative_uri_returns_false_for_windows_paths():
+    """Windows paths should return False."""
+    assert not is_scheme_relative_uri(r"C:\Windows\System32")
+    assert not is_scheme_relative_uri(r"\\server\share\folder")
+
+
+# -----------------------
+# is_absolute_uri() tests
+# -----------------------
+
+
+def test_is_absolute_uri_returns_true_for_http_https_urls():
+    """HTTP and HTTPS URLs should return True."""
+    assert is_absolute_uri("http://example.com")
+    assert is_absolute_uri("https://example.com/path")
+    assert is_absolute_uri("http://api.example.com/v1/users")
+    assert is_absolute_uri("https://cdn.example.com/assets/style.css")
+
+
+def test_is_absolute_uri_returns_true_for_other_schemes():
+    """URIs with other schemes should return True."""
+    assert is_absolute_uri("ftp://ftp.example.com/pub/file.txt")
+    assert is_absolute_uri("file:///path/to/file")
+    assert is_absolute_uri("mailto:test@example.com")
+    assert is_absolute_uri("data:text/plain;base64,SGVsbG8=")
+
+
+def test_is_absolute_uri_returns_false_for_scheme_relative():
+    """Scheme-relative URIs should return False (they are relative references per RFC 3986)."""
+    assert not is_absolute_uri("//cdn.example.com/x.yaml")
+    assert not is_absolute_uri("//example.com/api")
+    assert not is_absolute_uri("//example.com/path/to/resource")
+
+
+def test_is_absolute_uri_returns_false_for_absolute_paths():
+    """Absolute filesystem paths should return False."""
+    assert not is_absolute_uri("/path/to/file")
+    assert not is_absolute_uri("/etc/config")
+    assert not is_absolute_uri("/")
+
+
+def test_is_absolute_uri_returns_false_for_relative_paths():
+    """Relative paths should return False."""
+    assert not is_absolute_uri("./config.yaml")
+    assert not is_absolute_uri("../parent/file.txt")
+    assert not is_absolute_uri("relative/path")
+    assert not is_absolute_uri("file.txt")
+
+
+def test_is_absolute_uri_returns_false_for_fragments():
+    """Fragment-only references should return False."""
+    assert not is_absolute_uri("#/definitions/User")
+    assert not is_absolute_uri("#fragment")
+
+
+def test_is_absolute_uri_returns_false_for_empty_string():
+    """Empty strings should return False."""
+    assert not is_absolute_uri("")
+    assert not is_absolute_uri("   ")
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows path test")
+def test_is_absolute_uri_returns_false_for_windows_paths():
+    """Windows paths should return False."""
+    assert not is_absolute_uri(r"C:\Windows\System32")
+    assert not is_absolute_uri(r"\\server\share\folder")
