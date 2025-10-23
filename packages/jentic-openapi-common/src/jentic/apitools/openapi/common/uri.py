@@ -212,7 +212,7 @@ def is_scheme_relative_uri(uri: str) -> bool:
 
 def is_absolute_uri(uri: str) -> bool:
     """
-    Check if `s` is an absolute URI according to RFC 3986.
+    Check if `uri` is an absolute URI according to RFC 3986.
 
     An absolute URI is defined as having a scheme (e.g., "http:", "https:", "ftp:", "file:").
 
