@@ -1,4 +1,4 @@
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 from ruamel import yaml
 
@@ -51,7 +51,7 @@ class SecurityScheme:
     openid_connect_url: FieldSource[str] | None = fixed_field(
         metadata={"yaml_name": "openIdConnectUrl"}
     )
-    extensions: dict[KeySource[str], ValueSource[YAMLValue]] | None = None
+    extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
 def build(

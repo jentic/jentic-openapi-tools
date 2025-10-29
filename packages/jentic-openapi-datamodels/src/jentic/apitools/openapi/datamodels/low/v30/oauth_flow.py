@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ruamel import yaml
 
@@ -40,7 +40,7 @@ class OAuthFlow:
     token_url: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "tokenUrl"})
     refresh_url: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "refreshUrl"})
     scopes: FieldSource[dict[KeySource[str], ValueSource[str]]] | None = fixed_field()
-    extensions: dict[KeySource[str], ValueSource[YAMLValue]] | None = None
+    extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
 def build(

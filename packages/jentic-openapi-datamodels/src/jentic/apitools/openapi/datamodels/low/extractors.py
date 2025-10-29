@@ -10,7 +10,7 @@ __all__ = ["extract_extension_fields", "extract_unknown_fields"]
 
 def extract_extension_fields(
     node: yaml.MappingNode, context: Context | None = None
-) -> dict[KeySource[str], ValueSource[YAMLValue]] | None:
+) -> dict[KeySource[str], ValueSource[YAMLValue]]:
     """
     Extract OpenAPI specification extension fields from a YAML mapping node.
 
@@ -22,7 +22,7 @@ def extract_extension_fields(
         context: Optional parsing context. If None, a default context will be created.
 
     Returns:
-        A dictionary mapping extension field names to their values, or None if no extension fields found
+        A dictionary mapping extension field names to their values, or empty dict if no extension fields found
 
     Example:
         Given YAML like:
@@ -37,7 +37,7 @@ def extract_extension_fields(
             }
     """
     if not isinstance(node, yaml.MappingNode):
-        return None
+        return {}
 
     if context is None:
         context = Context()
@@ -62,7 +62,7 @@ def extract_extension_fields(
 
 def extract_unknown_fields(
     node: yaml.MappingNode, dataclass_type: type, context: Context | None = None
-) -> dict[KeySource[str], ValueSource[YAMLValue]] | None:
+) -> dict[KeySource[str], ValueSource[YAMLValue]]:
     """
     Extract unknown fields from a YAML mapping node.
 
@@ -76,7 +76,7 @@ def extract_unknown_fields(
         context: Optional parsing context. If None, a default context will be created.
 
     Returns:
-        A dictionary mapping unknown field names to their values, or None if no unknown fields found
+        A dictionary mapping unknown field names to their values, or empty dict if no unknown fields found
 
     Example:
         Given YAML like:
@@ -93,7 +93,7 @@ def extract_unknown_fields(
             }
     """
     if not isinstance(node, yaml.MappingNode):
-        return None
+        return {}
 
     if context is None:
         context = Context()

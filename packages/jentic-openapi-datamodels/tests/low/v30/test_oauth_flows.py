@@ -260,7 +260,7 @@ def test_build_with_empty_object():
     assert result.password is None
     assert result.client_credentials is None
     assert result.authorization_code is None
-    assert result.extensions is None
+    assert result.extensions == {}
 
 
 def test_build_with_invalid_node_returns_none():
