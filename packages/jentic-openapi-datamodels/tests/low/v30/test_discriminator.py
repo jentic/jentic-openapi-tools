@@ -1,84 +1,247 @@
-"""Tests for Discriminator model."""
+"""Tests for Discriminator low-level datamodel."""
 
-from jentic.apitools.openapi.datamodels.low.v30.discriminator import Discriminator
+import textwrap
+
+from ruamel.yaml import YAML
+
+from jentic.apitools.openapi.datamodels.low.context import Context
+from jentic.apitools.openapi.datamodels.low.sources import FieldSource, ValueSource
+from jentic.apitools.openapi.datamodels.low.v30 import discriminator
 
 
-class TestDiscriminator:
-    """Tests for Discriminator model."""
+def test_build_with_all_fields():
+    """Test building Discriminator with all specification fields."""
+    yaml_content = textwrap.dedent(
+        """
+        propertyName: petType
+        mapping:
+          dog: '#/components/schemas/Dog'
+          cat: '#/components/schemas/Cat'
+          bird: '#/components/schemas/Bird'
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
-    def test_init_empty(self):
-        """Test creating empty discriminator."""
-        disc = Discriminator()
-        assert len(disc) == 0
+    result = discriminator.build(root)
+    assert isinstance(result, discriminator.Discriminator)
 
-    def test_init_with_property_name(self):
-        """Test creating discriminator with propertyName."""
-        disc = Discriminator({"propertyName": "petType"})
-        assert disc.property_name == "petType"
+    assert result.root_node == root
 
-    def test_init_with_mapping(self):
-        """Test creating discriminator with mapping."""
-        disc = Discriminator(
-            {
-                "propertyName": "petType",
-                "mapping": {"dog": "#/components/schemas/Dog", "cat": "#/components/schemas/Cat"},
-            }
-        )
-        assert disc.property_name == "petType"
-        assert disc.mapping == {
-            "dog": "#/components/schemas/Dog",
-            "cat": "#/components/schemas/Cat",
-        }
+    # Check propertyName
+    assert isinstance(result.property_name, FieldSource)
+    assert result.property_name.value == "petType"
+    assert result.property_name.key_node is not None
+    assert result.property_name.value_node is not None
 
-    def test_property_name_setter(self):
-        """Test setting propertyName."""
-        disc = Discriminator()
-        disc.property_name = "animalType"
-        assert disc.property_name == "animalType"
-        assert disc["propertyName"] == "animalType"
+    # Check mapping
+    assert isinstance(result.mapping, FieldSource)
+    assert isinstance(result.mapping.value, dict)
 
-    def test_property_name_setter_none(self):
-        """Test setting propertyName to None removes it."""
-        disc = Discriminator({"propertyName": "petType"})
-        disc.property_name = None
-        assert "propertyName" not in disc
+    # Extract values from KeySource/ValueSource wrappers
+    mapping_dict = {k.value: v.value for k, v in result.mapping.value.items()}
+    assert mapping_dict["dog"] == "#/components/schemas/Dog"
+    assert mapping_dict["cat"] == "#/components/schemas/Cat"
+    assert mapping_dict["bird"] == "#/components/schemas/Bird"
 
-    def test_mapping_setter(self):
-        """Test setting mapping."""
-        disc = Discriminator({"propertyName": "petType"})
-        disc.mapping = {"bird": "#/components/schemas/Bird"}
-        assert disc.mapping == {"bird": "#/components/schemas/Bird"}
 
-    def test_mapping_setter_none(self):
-        """Test setting mapping to None removes it."""
-        disc = Discriminator(
-            {"propertyName": "petType", "mapping": {"dog": "#/components/schemas/Dog"}}
-        )
-        disc.mapping = None
-        assert "mapping" not in disc
+def test_build_with_required_field_only():
+    """Test building Discriminator with only required propertyName field."""
+    yaml_content = textwrap.dedent(
+        """
+        propertyName: objectType
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
-    def test_mapping_default_empty_dict(self):
-        """Test mapping returns empty dict when not set."""
-        disc = Discriminator({"propertyName": "petType"})
-        assert disc.mapping == {}
+    result = discriminator.build(root)
+    assert isinstance(result, discriminator.Discriminator)
 
-    def test_supports_extensions(self):
-        """Test that Discriminator supports specification extensions."""
-        disc = Discriminator({"propertyName": "petType", "x-custom": "value"})
-        extensions = disc.get_extensions()
-        assert extensions == {"x-custom": "value"}
+    assert result.root_node == root
+    assert isinstance(result.property_name, FieldSource)
+    assert result.property_name.value == "objectType"
 
-    def test_to_mapping(self):
-        """Test converting to mapping."""
-        disc = Discriminator(
-            {"propertyName": "petType", "mapping": {"dog": "#/components/schemas/Dog"}}
-        )
-        result = disc.to_mapping()
-        assert result == {"propertyName": "petType", "mapping": {"dog": "#/components/schemas/Dog"}}
+    # Mapping should be None
+    assert result.mapping is None
 
-    def test_from_mapping(self):
-        """Test creating from mapping."""
-        data = {"propertyName": "vehicleType", "mapping": {"car": "#/components/schemas/Car"}}
-        disc = Discriminator.from_mapping(data)
-        assert disc.property_name == "vehicleType"
-        assert disc.mapping == {"car": "#/components/schemas/Car"}
+
+def test_build_preserves_invalid_types():
+    """Test that build preserves values even with 'wrong' types (low-level model principle)."""
+    yaml_content = textwrap.dedent(
+        """
+        propertyName: 123
+        mapping: not-a-dict
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = discriminator.build(root)
+    assert isinstance(result, discriminator.Discriminator)
+
+    assert result.property_name is not None
+    assert result.mapping is not None
+
+    # Should preserve the actual values, not convert them
+    assert result.property_name.value == 123
+    assert result.mapping.value == "not-a-dict"
+
+
+def test_build_with_empty_mapping():
+    """Test building Discriminator with empty mapping object."""
+    yaml_content = textwrap.dedent(
+        """
+        propertyName: type
+        mapping: {}
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = discriminator.build(root)
+    assert isinstance(result, discriminator.Discriminator)
+
+    assert result.property_name is not None
+    assert result.property_name.value == "type"
+    assert isinstance(result.mapping, FieldSource)
+    assert result.mapping.value == {}
+
+
+def test_build_with_invalid_node_returns_none():
+    """Test that build returns ValueSource for non-mapping nodes (preserves invalid data)."""
+    yaml_parser = YAML()
+
+    # Scalar node
+    scalar_root = yaml_parser.compose("just-a-string")
+    result = discriminator.build(scalar_root)
+    assert isinstance(result, ValueSource)
+    assert result.value == "just-a-string"
+    assert result.value_node == scalar_root
+
+    # Sequence node
+    sequence_root = yaml_parser.compose("['item1', 'item2']")
+    result = discriminator.build(sequence_root)
+    assert isinstance(result, ValueSource)
+    assert result.value == ["item1", "item2"]
+    assert result.value_node == sequence_root
+
+
+def test_build_with_custom_context():
+    """Test building Discriminator with a custom context."""
+    yaml_content = textwrap.dedent(
+        """
+        propertyName: discriminatorField
+        mapping:
+          option1: Schema1
+          option2: Schema2
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    custom_context = Context()
+    result = discriminator.build(root, context=custom_context)
+    assert isinstance(result, discriminator.Discriminator)
+
+    assert result.property_name is not None
+    assert result.property_name.value == "discriminatorField"
+
+    # Extract values from KeySource/ValueSource wrappers
+    assert result.mapping is not None
+    mapping_dict = {k.value: v.value for k, v in result.mapping.value.items()}
+    assert mapping_dict["option1"] == "Schema1"
+
+
+def test_source_tracking():
+    """Test that source location information is preserved."""
+    yaml_content = textwrap.dedent(
+        """
+        propertyName: petType
+        mapping:
+          dog: Dog
+          cat: Cat
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = discriminator.build(root)
+    assert isinstance(result, discriminator.Discriminator)
+
+    assert result.property_name is not None
+
+    # Check that key_node and value_node are tracked
+    assert result.property_name.key_node is not None
+    assert result.property_name.value_node is not None
+
+    # The key_node should contain "propertyName"
+    assert result.property_name.key_node.value == "propertyName"
+
+    # The value_node should contain "petType"
+    assert result.property_name.value_node.value == "petType"
+
+    # Check line numbers are available (for error reporting)
+    assert hasattr(result.property_name.key_node.start_mark, "line")
+    assert hasattr(result.property_name.value_node.start_mark, "line")
+
+
+def test_mapping_with_component_references():
+    """Test discriminator mapping with schema component references."""
+    yaml_content = textwrap.dedent(
+        """
+        propertyName: petType
+        mapping:
+          dog: '#/components/schemas/Dog'
+          cat: '#/components/schemas/Cat'
+          lizard: '#/components/schemas/Lizard'
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = discriminator.build(root)
+    assert isinstance(result, discriminator.Discriminator)
+
+    assert result.mapping is not None
+
+    # Verify mapping structure
+    mapping_value = result.mapping.value
+    assert isinstance(mapping_value, dict)
+    assert len(mapping_value) == 3
+
+    # Extract values from KeySource/ValueSource wrappers
+    mapping_dict = {k.value: v.value for k, v in mapping_value.items()}
+
+    # Check specific mappings
+    assert mapping_dict["dog"] == "#/components/schemas/Dog"
+    assert mapping_dict["cat"] == "#/components/schemas/Cat"
+    assert mapping_dict["lizard"] == "#/components/schemas/Lizard"
+
+
+def test_mapping_with_simple_names():
+    """Test discriminator mapping with simple schema names."""
+    yaml_content = textwrap.dedent(
+        """
+        propertyName: objectType
+        mapping:
+          user: User
+          admin: Administrator
+          guest: GuestUser
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = discriminator.build(root)
+    assert isinstance(result, discriminator.Discriminator)
+
+    assert result.mapping is not None
+
+    # Extract values from KeySource/ValueSource wrappers
+    mapping_value = result.mapping.value
+    mapping_dict = {k.value: v.value for k, v in mapping_value.items()}
+
+    assert mapping_dict["user"] == "User"
+    assert mapping_dict["admin"] == "Administrator"
+    assert mapping_dict["guest"] == "GuestUser"

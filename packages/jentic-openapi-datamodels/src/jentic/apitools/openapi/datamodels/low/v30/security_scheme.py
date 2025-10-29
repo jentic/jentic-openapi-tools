@@ -1,301 +1,108 @@
-"""
-OpenAPI 3.0.4 Security Scheme Object model.
+from dataclasses import dataclass, replace
 
-Defines a security scheme that can be used by the operations.
-"""
+from ruamel import yaml
 
-from collections.abc import Mapping
-from typing import Any
-
+from jentic.apitools.openapi.datamodels.low.context import Context
+from jentic.apitools.openapi.datamodels.low.fields import fixed_field
+from jentic.apitools.openapi.datamodels.low.model_builder import build_model
+from jentic.apitools.openapi.datamodels.low.sources import (
+    FieldSource,
+    KeySource,
+    ValueSource,
+    YAMLInvalidValue,
+    YAMLValue,
+)
 from jentic.apitools.openapi.datamodels.low.v30.oauth_flows import OAuthFlows
-from jentic.apitools.openapi.datamodels.low.v30.specification_object import SpecificationObject
+from jentic.apitools.openapi.datamodels.low.v30.oauth_flows import build as build_oauth_flows
 
 
-__all__ = ["SecurityScheme"]
+__all__ = ["SecurityScheme", "build"]
 
 
-class SecurityScheme(SpecificationObject):
+@dataclass(frozen=True, slots=True)
+class SecurityScheme:
     """
-    Represents a Security Scheme Object from OpenAPI 3.0.4.
+    Security Scheme Object representation for OpenAPI 3.0.
 
-    Defines a security scheme that can be used by the operations. Different
-    scheme types require different combinations of fields.
+    Defines a security scheme that can be used by operations.
+    The security scheme type determines which additional fields are required.
 
-    Supports specification extensions (x-* fields).
+    Attributes:
+        root_node: The top-level node representing the entire Security Scheme object in the original source file
+        type: REQUIRED. The type of the security scheme. Valid values: "apiKey", "http", "oauth2", "openIdConnect"
+        description: A short description for the security scheme. CommonMark syntax MAY be used for rich text representation
+        name: REQUIRED for apiKey. The name of the header, query or cookie parameter to be used
+        in_: REQUIRED for apiKey. The location of the API key. Valid values: "query", "header", "cookie"
+        scheme: REQUIRED for http. The name of the HTTP Authorization scheme (e.g., "basic", "bearer")
+        bearer_format: A hint to the client to identify how the bearer token is formatted (e.g., "JWT")
+        flows: REQUIRED for oauth2. An object containing configuration information for the flow types supported
+        openid_connect_url: REQUIRED for openIdConnect. OpenId Connect URL to discover OAuth2 configuration values
+        extensions: Specification extensions (x-* fields)
+    """
+
+    root_node: yaml.Node
+    type: FieldSource[str] | None = fixed_field()
+    description: FieldSource[str] | None = fixed_field()
+    name: FieldSource[str] | None = fixed_field()
+    in_: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "in"})
+    scheme: FieldSource[str] | None = fixed_field()
+    bearer_format: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "bearerFormat"})
+    flows: FieldSource[OAuthFlows] | None = fixed_field()
+    openid_connect_url: FieldSource[str] | None = fixed_field(
+        metadata={"yaml_name": "openIdConnectUrl"}
+    )
+    extensions: dict[KeySource[str], ValueSource[YAMLValue]] | None = None
+
+
+def build(
+    root: yaml.Node, context: Context | None = None
+) -> SecurityScheme | ValueSource[YAMLInvalidValue]:
+    """
+    Build a SecurityScheme object from a YAML node.
+
+    Preserves all source data as-is, regardless of type. This is a low-level/plumbing
+    model that provides complete source fidelity for inspection and validation.
+
+    Args:
+        root: The YAML node to parse (should be a MappingNode)
+        context: Optional parsing context. If None, a default context will be created.
+
+    Returns:
+        A SecurityScheme object if the node is valid, or a ValueSource containing
+        the invalid data if the root is not a MappingNode (preserving the invalid data
+        and its source location for validation).
 
     Example:
-        >>> # API Key scheme
-        >>> scheme = SecurityScheme({
-        ...     "type": "apiKey",
-        ...     "name": "api_key",
-        ...     "in": "header"
-        ... })
-        >>> scheme.type
-        'apiKey'
-        >>> scheme.in_
-        'header'
-
-        >>> # HTTP Bearer scheme
-        >>> scheme = SecurityScheme({
-        ...     "type": "http",
-        ...     "scheme": "bearer",
-        ...     "bearerFormat": "JWT"
-        ... })
-        >>> scheme.is_http()
-        True
-        >>> scheme.bearer_format
-        'JWT'
-
-        >>> # OAuth2 scheme with flows
-        >>> scheme = SecurityScheme({
-        ...     "type": "oauth2",
-        ...     "flows": {
-        ...         "implicit": {
-        ...             "authorizationUrl": "https://example.com/oauth/authorize",
-        ...             "scopes": {"read": "Read access"}
-        ...         }
-        ...     }
-        ... })
-        >>> scheme.is_oauth2()
-        True
-        >>> scheme.flows.implicit.authorization_url
-        'https://example.com/oauth/authorize'
-
-        >>> # OpenID Connect scheme
-        >>> scheme = SecurityScheme({
-        ...     "type": "openIdConnect",
-        ...     "openIdConnectUrl": "https://example.com/.well-known/openid-configuration"
-        ... })
-        >>> scheme.is_openid_connect()
-        True
+        from ruamel.yaml import YAML
+        yaml = YAML()
+        root = yaml.compose("type: apiKey\\nname: api_key\\nin: header")
+        security_scheme = build(root)
+        assert security_scheme.type.value == 'apiKey'
     """
+    # Initialize context once at the beginning
+    if context is None:
+        context = Context()
 
-    _supports_extensions: bool = True
-    _fixed_fields: frozenset[str] = frozenset(
-        {"type", "description", "name", "in", "scheme", "bearerFormat", "flows", "openIdConnectUrl"}
+    if not isinstance(root, yaml.MappingNode):
+        # Preserve invalid root data instead of returning None
+        value = context.yaml_constructor.construct_object(root, deep=True)
+        return ValueSource(value=value, value_node=root)
+
+    # Use build_model to handle most fields
+    result = build_model(root, SecurityScheme, context=context)
+    assert isinstance(result, SecurityScheme), (
+        "build_model should return SecurityScheme for valid MappingNode"
     )
 
-    def __init__(self, data: Mapping[str, Any] | None = None):
-        """
-        Initialize a SecurityScheme object.
+    # Manually handle special fields that build_model can't process (nested objects)
+    for key_node, value_node in root.value:
+        key = context.yaml_constructor.construct_yaml_str(key_node)
 
-        Automatically marshals nested flows data (Mapping) into OAuthFlows instance.
+        if key == "flows":
+            # Handle nested OAuthFlows object - child builder handles invalid nodes
+            # FieldSource will auto-unwrap ValueSource if child returns it for invalid data
+            oauth_flows = build_oauth_flows(value_node, context=context)
+            flows_value = FieldSource(value=oauth_flows, key_node=key_node, value_node=value_node)
+            result = replace(result, flows=flows_value)
 
-        Args:
-            data: Optional mapping to initialize the object with
-        """
-        super().__init__()
-        if data:
-            for key, value in data.items():
-                # Marshal flows field specifically if it's a raw Mapping (not already OAuthFlows)
-                if (
-                    key == "flows"
-                    and isinstance(value, Mapping)
-                    and not isinstance(value, OAuthFlows)
-                ):
-                    self[key] = OAuthFlows(value)
-                else:
-                    # Store as-is (already OAuthFlows, extension, or other)
-                    self[key] = self._copy_value(value)
-
-    @property
-    def type(self) -> str | None:
-        """
-        The type of the security scheme.
-
-        Valid values: "apiKey", "http", "oauth2", "openIdConnect", "mutualTLS"
-
-        REQUIRED field.
-
-        Returns:
-            Security scheme type or None if not present
-        """
-        return self.get("type")
-
-    @type.setter
-    def type(self, value: str | None) -> None:
-        """Set the security scheme type."""
-        if value is None:
-            self.pop("type", None)
-        else:
-            self["type"] = value
-
-    @property
-    def description(self) -> str | None:
-        """
-        A description for security scheme.
-
-        Returns:
-            Description or None if not present
-        """
-        return self.get("description")
-
-    @description.setter
-    def description(self, value: str | None) -> None:
-        """Set the description."""
-        if value is None:
-            self.pop("description", None)
-        else:
-            self["description"] = value
-
-    @property
-    def name(self) -> str | None:
-        """
-        The name of the header, query or cookie parameter.
-
-        REQUIRED for apiKey type.
-
-        Returns:
-            Parameter name or None if not present
-        """
-        return self.get("name")
-
-    @name.setter
-    def name(self, value: str | None) -> None:
-        """Set the parameter name."""
-        if value is None:
-            self.pop("name", None)
-        else:
-            self["name"] = value
-
-    @property
-    def in_(self) -> str | None:
-        """
-        The location of the API key.
-
-        Valid values: "query", "header", "cookie"
-
-        REQUIRED for apiKey type.
-
-        Note: Uses 'in_' to avoid Python keyword collision.
-
-        Returns:
-            Location or None if not present
-        """
-        return self.get("in")
-
-    @in_.setter
-    def in_(self, value: str | None) -> None:
-        """Set the API key location."""
-        if value is None:
-            self.pop("in", None)
-        else:
-            self["in"] = value
-
-    @property
-    def scheme(self) -> str | None:
-        """
-        The name of the HTTP Authorization scheme.
-
-        Examples: "bearer", "basic", "digest"
-
-        REQUIRED for http type.
-
-        Returns:
-            Scheme name or None if not present
-        """
-        return self.get("scheme")
-
-    @scheme.setter
-    def scheme(self, value: str | None) -> None:
-        """Set the HTTP scheme."""
-        if value is None:
-            self.pop("scheme", None)
-        else:
-            self["scheme"] = value
-
-    @property
-    def bearer_format(self) -> str | None:
-        """
-        A hint to the client to identify how the bearer token is formatted.
-
-        Examples: "JWT", "opaque"
-
-        Returns:
-            Bearer format or None if not present
-        """
-        return self.get("bearerFormat")
-
-    @bearer_format.setter
-    def bearer_format(self, value: str | None) -> None:
-        """Set the bearer format."""
-        if value is None:
-            self.pop("bearerFormat", None)
-        else:
-            self["bearerFormat"] = value
-
-    @property
-    def flows(self) -> OAuthFlows | None:
-        """
-        Configuration information for the OAuth flows.
-
-        REQUIRED for oauth2 type.
-
-        Returns:
-            OAuthFlows instance or None if not present
-        """
-        return self.get("flows")
-
-    @flows.setter
-    def flows(self, value: OAuthFlows | None) -> None:
-        """Set the OAuth flows configuration."""
-        if value is None:
-            self.pop("flows", None)
-        else:
-            self["flows"] = value
-
-    @property
-    def open_id_connect_url(self) -> str | None:
-        """
-        OpenID Connect URL to discover OAuth2 configuration values.
-
-        REQUIRED for openIdConnect type.
-
-        Returns:
-            OpenID Connect URL or None if not present
-        """
-        return self.get("openIdConnectUrl")
-
-    @open_id_connect_url.setter
-    def open_id_connect_url(self, value: str | None) -> None:
-        """Set the OpenID Connect URL."""
-        if value is None:
-            self.pop("openIdConnectUrl", None)
-        else:
-            self["openIdConnectUrl"] = value
-
-    def is_api_key(self) -> bool:
-        """
-        Check if this is an API Key security scheme.
-
-        Returns:
-            True if type is "apiKey"
-        """
-        return self.type == "apiKey"
-
-    def is_http(self) -> bool:
-        """
-        Check if this is an HTTP security scheme.
-
-        Returns:
-            True if type is "http"
-        """
-        return self.type == "http"
-
-    def is_oauth2(self) -> bool:
-        """
-        Check if this is an OAuth2 security scheme.
-
-        Returns:
-            True if type is "oauth2"
-        """
-        return self.type == "oauth2"
-
-    def is_openid_connect(self) -> bool:
-        """
-        Check if this is an OpenID Connect security scheme.
-
-        Returns:
-            True if type is "openIdConnect"
-        """
-        return self.type == "openIdConnect"
+    return result

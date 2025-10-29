@@ -1,91 +1,66 @@
-"""
-OpenAPI 3.0.4 Discriminator Object model.
+from dataclasses import dataclass
 
-When request bodies or response payloads may be one of a number of different schemas,
-a discriminator object gives a hint about the expected schema.
-"""
+from ruamel import yaml
 
-from collections.abc import Mapping
+from jentic.apitools.openapi.datamodels.low.context import Context
+from jentic.apitools.openapi.datamodels.low.fields import fixed_field
+from jentic.apitools.openapi.datamodels.low.model_builder import build_model
+from jentic.apitools.openapi.datamodels.low.sources import (
+    FieldSource,
+    KeySource,
+    ValueSource,
+    YAMLInvalidValue,
+)
 
-from jentic.apitools.openapi.datamodels.low.v30.specification_object import SpecificationObject
+
+__all__ = ["Discriminator", "build"]
 
 
-__all__ = ["Discriminator"]
-
-
-class Discriminator(SpecificationObject):
+@dataclass(frozen=True, slots=True)
+class Discriminator:
     """
-    Represents a Discriminator Object from OpenAPI 3.0.4.
+    Discriminator Object representation for OpenAPI 3.0.
 
-    Used to support polymorphism by indicating which property in a payload
-    is used to differentiate between schemas.
+    When request bodies or response payloads may be one of a number of different schemas,
+    a discriminator object can be used to aid in serialization, deserialization, and validation.
 
-    Supports specification extensions (x-* fields).
+    Note: In OpenAPI 3.0.x, the Discriminator Object does not support Specification Extensions.
+    This changes in OpenAPI 3.1.x where extensions are permitted.
+
+    Attributes:
+        root_node: The top-level node representing the entire Discriminator object in the original source file
+        property_name: REQUIRED. The name of the property in the payload that will hold the discriminator value
+        mapping: An optional mapping of discriminator values to schema names or references
+    """
+
+    root_node: yaml.Node
+    property_name: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "propertyName"})
+    mapping: FieldSource[dict[KeySource[str], ValueSource[str]]] | None = fixed_field()
+
+
+def build(
+    root: yaml.Node, context: Context | None = None
+) -> Discriminator | ValueSource[YAMLInvalidValue]:
+    """
+    Build a Discriminator object from a YAML node.
+
+    Preserves all source data as-is, regardless of type. This is a low-level/plumbing
+    model that provides complete source fidelity for inspection and validation.
+
+    Args:
+        root: The YAML node to parse (should be a MappingNode)
+        context: Optional parsing context. If None, a default context will be created.
+
+    Returns:
+        A Discriminator object if the node is valid, or a ValueSource containing
+        the invalid data if the root is not a MappingNode (preserving the invalid data
+        and its source location for validation).
 
     Example:
-        >>> # Basic discriminator
-        >>> disc = Discriminator({
-        ...     "propertyName": "petType"
-        ... })
-        >>> disc.property_name
-        'petType'
-
-        >>> # With mapping
-        >>> disc = Discriminator({
-        ...     "propertyName": "petType",
-        ...     "mapping": {
-        ...         "dog": "#/components/schemas/Dog",
-        ...         "cat": "#/components/schemas/Cat",
-        ...         "lizard": "https://example.com/schemas/Lizard.json"
-        ...     }
-        ... })
-        >>> disc.property_name
-        'petType'
-        >>> disc.mapping["dog"]
-        '#/components/schemas/Dog'
+        from ruamel.yaml import YAML
+        yaml = YAML()
+        root = yaml.compose("propertyName: petType\\nmapping:\\n  dog: Dog\\n  cat: Cat")
+        discriminator = build(root)
+        assert discriminator.property_name.value == 'petType'
     """
-
-    _supports_extensions: bool = True
-    _fixed_fields: frozenset[str] = frozenset({"propertyName", "mapping"})
-
-    @property
-    def property_name(self) -> str | None:
-        """
-        The name of the property in the payload to discriminate schemas.
-
-        REQUIRED field.
-
-        Returns:
-            Property name or None if not present
-        """
-        return self.get("propertyName")
-
-    @property_name.setter
-    def property_name(self, value: str | None) -> None:
-        """Set the property name."""
-        if value is None:
-            self.pop("propertyName", None)
-        else:
-            self["propertyName"] = value
-
-    @property
-    def mapping(self) -> dict[str, str]:
-        """
-        Mapping between payload values and schema names/references.
-
-        Maps discriminator property values to schema names or references.
-        When absent, the value is expected to match a schema name.
-
-        Returns:
-            Dictionary mapping values to schema references (empty dict if not present)
-        """
-        return self.get("mapping", {})
-
-    @mapping.setter
-    def mapping(self, value: Mapping[str, str] | None) -> None:
-        """Set the mapping."""
-        if value is None:
-            self.pop("mapping", None)
-        else:
-            # Convert to plain dict once at storage time
-            self["mapping"] = dict(value) if isinstance(value, Mapping) else value
+    return build_model(root, Discriminator, context=context)

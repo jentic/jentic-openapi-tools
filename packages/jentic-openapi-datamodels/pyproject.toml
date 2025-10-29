@@ -7,7 +7,9 @@ authors = [{ name = "Jentic", email = "hello@jentic.com" }]
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "ruamel-yaml~=0.18.15"
+]
 
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"

@@ -1,96 +1,283 @@
-"""Tests for SecurityRequirement model."""
+"""Tests for SecurityRequirement low-level datamodel."""
 
-from jentic.apitools.openapi.datamodels.low.v30.security_requirement import SecurityRequirement
+import textwrap
+
+from ruamel.yaml import YAML
+
+from jentic.apitools.openapi.datamodels.low.context import Context
+from jentic.apitools.openapi.datamodels.low.sources import ValueSource
+from jentic.apitools.openapi.datamodels.low.v30 import security_requirement
 
 
-class TestSecurityRequirement:
-    """Tests for SecurityRequirement model."""
+def test_build_with_single_scheme_empty_scopes():
+    """Test building SecurityRequirement with a single scheme and empty scopes."""
+    yaml_content = textwrap.dedent(
+        """
+        api_key: []
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
-    def test_init_empty(self):
-        """Test creating empty security requirement."""
-        req = SecurityRequirement()
-        assert len(req) == 0
-        assert req.get_schemes() == []
+    result = security_requirement.build(root)
+    assert isinstance(result, security_requirement.SecurityRequirement)
 
-    def test_init_with_single_scheme(self):
-        """Test creating with single security scheme."""
-        req = SecurityRequirement({"api_key": []})
-        assert req["api_key"] == []
-        assert req.get_schemes() == ["api_key"]
+    assert result.root_node == root
+    assert isinstance(result.requirements, ValueSource)
+    assert isinstance(result.requirements.value, dict)
+    assert len(result.requirements.value) == 1
 
-    def test_init_with_oauth2_scopes(self):
-        """Test creating OAuth2 requirement with scopes."""
-        req = SecurityRequirement({"oauth2": ["read:users", "write:users"]})
-        assert req["oauth2"] == ["read:users", "write:users"]
-        assert req.get_schemes() == ["oauth2"]
+    # Extract the api_key entry
+    api_key_entries = [(k.value, v.value) for k, v in result.requirements.value.items()]
+    assert len(api_key_entries) == 1
+    key, scopes = api_key_entries[0]
+    assert key == "api_key"
+    assert isinstance(scopes, list)
+    assert len(scopes) == 0
 
-    def test_init_with_multiple_schemes(self):
-        """Test creating with multiple security schemes."""
-        req = SecurityRequirement({"api_key": [], "bearer": []})
-        assert len(req) == 2
-        assert "api_key" in req
-        assert "bearer" in req
-        schemes = req.get_schemes()
-        assert "api_key" in schemes
-        assert "bearer" in schemes
 
-    def test_dict_access(self):
-        """Test dictionary-style access."""
-        req = SecurityRequirement()
-        req["basic"] = []
-        assert req["basic"] == []
-        assert "basic" in req
+def test_build_with_oauth2_scopes():
+    """Test building SecurityRequirement with OAuth2 scopes."""
+    yaml_content = textwrap.dedent(
+        """
+        petstore_auth:
+          - write:pets
+          - read:pets
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
-    def test_getitem_returns_list(self):
-        """Test that __getitem__ returns list type."""
-        req = SecurityRequirement({"api_key": []})
-        scopes = req["api_key"]
-        assert isinstance(scopes, list)
-        assert scopes == []
+    result = security_requirement.build(root)
+    assert isinstance(result, security_requirement.SecurityRequirement)
 
-    def test_get_schemes(self):
-        """Test get_schemes method."""
-        req = SecurityRequirement({"scheme1": [], "scheme2": ["scope1", "scope2"], "scheme3": []})
-        schemes = req.get_schemes()
-        assert len(schemes) == 3
-        assert "scheme1" in schemes
-        assert "scheme2" in schemes
-        assert "scheme3" in schemes
+    assert isinstance(result.requirements, ValueSource)
 
-    def test_does_not_support_extensions(self):
-        """Test that SecurityRequirement does not support extensions."""
-        # x-* are treated as security scheme names, not extensions
-        req = SecurityRequirement({"api_key": [], "x-custom-auth": []})
-        extensions = req.get_extensions()
-        assert extensions == {}
-        # x-custom-auth should be a valid scheme name
-        assert "x-custom-auth" in req
-        assert req.get_schemes() == ["api_key", "x-custom-auth"]
+    # Extract scopes
+    requirements_dict = result.requirements.value
+    petstore_auth_key = None
+    for k in requirements_dict.keys():
+        if k.value == "petstore_auth":
+            petstore_auth_key = k
+            break
 
-    def test_to_mapping(self):
-        """Test converting to mapping."""
-        req = SecurityRequirement({"oauth2": ["read", "write"], "api_key": []})
-        result = req.to_mapping()
-        assert result == {"oauth2": ["read", "write"], "api_key": []}
+    assert petstore_auth_key is not None
+    scopes_value_source = requirements_dict[petstore_auth_key]
+    assert isinstance(scopes_value_source, ValueSource)
 
-    def test_from_mapping(self):
-        """Test creating from mapping."""
-        data = {"bearer": [], "oauth2": ["admin"]}
-        req = SecurityRequirement.from_mapping(data)
-        assert req["bearer"] == []
-        assert req["oauth2"] == ["admin"]
+    # Extract individual scope strings
+    scopes = [scope.value for scope in scopes_value_source.value]
+    assert scopes == ["write:pets", "read:pets"]
 
-    def test_repr(self):
-        """Test string representation."""
-        req = SecurityRequirement({"api_key": []})
-        repr_str = repr(req)
-        assert "SecurityRequirement" in repr_str
-        assert "1 field" in repr_str
 
-    def test_empty_requirement_means_optional(self):
-        """Test that empty security requirement object means optional security."""
-        # An empty security requirement in a list means the operation can be accessed
-        # without any authentication
-        req = SecurityRequirement({})
-        assert len(req) == 0
-        assert req.get_schemes() == []
+def test_build_with_multiple_schemes():
+    """Test building SecurityRequirement with multiple security schemes."""
+    yaml_content = textwrap.dedent(
+        """
+        oauth2:
+          - read:data
+          - write:data
+        api_key: []
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = security_requirement.build(root)
+    assert isinstance(result, security_requirement.SecurityRequirement)
+
+    assert result.requirements is not None
+    assert len(result.requirements.value) == 2
+
+    # Convert to dict for easier testing
+    requirements = {}
+    for k, v in result.requirements.value.items():
+        requirements[k.value] = [scope.value for scope in v.value]
+
+    assert "oauth2" in requirements
+    assert "api_key" in requirements
+    assert requirements["oauth2"] == ["read:data", "write:data"]
+    assert requirements["api_key"] == []
+
+
+def test_build_with_empty_object():
+    """Test building SecurityRequirement with empty object (optional security)."""
+    yaml_content = textwrap.dedent(
+        """
+        {}
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = security_requirement.build(root)
+    assert isinstance(result, security_requirement.SecurityRequirement)
+
+    assert result.requirements is None
+
+
+def test_build_preserves_invalid_types():
+    """Test that build preserves values even with 'wrong' types (low-level model principle)."""
+    yaml_content = textwrap.dedent(
+        """
+        api_key: not-an-array
+        oauth2: 123
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = security_requirement.build(root)
+    assert isinstance(result, security_requirement.SecurityRequirement)
+
+    assert result.requirements is not None
+
+    # Convert to dict for testing
+    requirements = {}
+    for k, v in result.requirements.value.items():
+        requirements[k.value] = v.value
+
+    # Should preserve the actual invalid values
+    assert requirements["api_key"] == "not-an-array"
+    assert requirements["oauth2"] == 123
+
+
+def test_build_with_invalid_node_returns_none():
+    """Test that build returns None for non-mapping nodes."""
+    yaml_parser = YAML()
+
+    # Scalar node
+    scalar_root = yaml_parser.compose("just-a-string")
+    assert security_requirement.build(scalar_root) is None
+
+    # Sequence node
+    sequence_root = yaml_parser.compose("['item1', 'item2']")
+    assert security_requirement.build(sequence_root) is None
+
+
+def test_build_with_custom_context():
+    """Test building SecurityRequirement with a custom context."""
+    yaml_content = textwrap.dedent(
+        """
+        custom_auth:
+          - scope1
+          - scope2
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    custom_context = Context()
+    result = security_requirement.build(root, context=custom_context)
+    assert isinstance(result, security_requirement.SecurityRequirement)
+
+    assert result.requirements is not None
+
+    # Extract scopes
+    requirements = {}
+    for k, v in result.requirements.value.items():
+        requirements[k.value] = [scope.value for scope in v.value]
+
+    assert requirements["custom_auth"] == ["scope1", "scope2"]
+
+
+def test_source_tracking():
+    """Test that source location information is preserved."""
+    yaml_content = textwrap.dedent(
+        """
+        petstore_auth:
+          - write:pets
+          - read:pets
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = security_requirement.build(root)
+    assert isinstance(result, security_requirement.SecurityRequirement)
+
+    # Check that the entire requirements dict is wrapped
+    assert isinstance(result.requirements, ValueSource)
+    assert result.requirements.value_node is not None
+
+    # Check that keys are wrapped
+    for key in result.requirements.value.keys():
+        assert key.key_node is not None
+        assert key.value == "petstore_auth"
+
+    # Check that scope arrays are wrapped
+    for value in result.requirements.value.values():
+        assert isinstance(value, ValueSource)
+        assert value.value_node is not None
+
+        # Check that individual scopes are wrapped
+        for scope in value.value:
+            assert isinstance(scope, ValueSource)
+            assert scope.value_node is not None
+
+
+def test_complex_oauth_scopes():
+    """Test SecurityRequirement with complex OAuth scope patterns."""
+    yaml_content = textwrap.dedent(
+        """
+        google_oauth:
+          - https://www.googleapis.com/auth/userinfo.email
+          - https://www.googleapis.com/auth/userinfo.profile
+          - openid
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = security_requirement.build(root)
+    assert isinstance(result, security_requirement.SecurityRequirement)
+
+    assert result.requirements is not None
+
+    # Extract scopes
+    requirements = {}
+    for k, v in result.requirements.value.items():
+        requirements[k.value] = [scope.value for scope in v.value]
+
+    assert len(requirements["google_oauth"]) == 3
+    assert "https://www.googleapis.com/auth/userinfo.email" in requirements["google_oauth"]
+    assert "openid" in requirements["google_oauth"]
+
+
+def test_multiple_requirements_different_types():
+    """Test SecurityRequirement with mixed auth types."""
+    yaml_content = textwrap.dedent(
+        """
+        bearer_token: []
+        oauth2:
+          - read
+          - write
+        api_key: []
+        basic_auth: []
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = security_requirement.build(root)
+    assert isinstance(result, security_requirement.SecurityRequirement)
+
+    assert result.requirements is not None
+    assert len(result.requirements.value) == 4
+
+    # Extract all requirements
+    requirements = {}
+    for k, v in result.requirements.value.items():
+        requirements[k.value] = [scope.value for scope in v.value]
+
+    # Check all schemes present
+    assert "bearer_token" in requirements
+    assert "oauth2" in requirements
+    assert "api_key" in requirements
+    assert "basic_auth" in requirements
+
+    # Check scopes
+    assert requirements["bearer_token"] == []
+    assert requirements["oauth2"] == ["read", "write"]
+    assert requirements["api_key"] == []
+    assert requirements["basic_auth"] == []
