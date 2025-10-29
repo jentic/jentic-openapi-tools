@@ -1,160 +1,259 @@
-"""Tests for XML model."""
+"""Tests for XML low-level datamodel."""
 
-from jentic.apitools.openapi.datamodels.low.v30.xml import XML
+import textwrap
+
+from ruamel.yaml import YAML
+
+from jentic.apitools.openapi.datamodels.low.context import Context
+from jentic.apitools.openapi.datamodels.low.sources import FieldSource, KeySource, ValueSource
+from jentic.apitools.openapi.datamodels.low.v30 import xml
 
 
-class TestXML:
-    """Tests for XML model."""
+def test_build_with_all_fields():
+    """Test building XML with all specification fields."""
+    yaml_content = textwrap.dedent(
+        """
+        name: id
+        namespace: https://example.com/schema
+        prefix: ex
+        attribute: true
+        wrapped: false
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
-    def test_init_empty(self):
-        """Test creating empty XML object."""
-        xml = XML()
-        assert len(xml) == 0
+    result = xml.build(root)
+    assert isinstance(result, xml.XML)
 
-    def test_init_with_name(self):
-        """Test creating XML with name."""
-        xml = XML({"name": "animal"})
-        assert xml.name == "animal"
+    assert result.root_node == root
 
-    def test_init_with_namespace(self):
-        """Test creating XML with namespace."""
-        xml = XML({"name": "Pet", "namespace": "http://example.com/schema/pet"})
-        assert xml.name == "Pet"
-        assert xml.namespace == "http://example.com/schema/pet"
+    # Check all fields are FieldSource instances
+    assert isinstance(result.name, FieldSource)
+    assert result.name.value == "id"
+    assert result.name.key_node is not None
+    assert result.name.value_node is not None
 
-    def test_init_with_prefix(self):
-        """Test creating XML with prefix."""
-        xml = XML({"name": "Pet", "namespace": "http://example.com/schema", "prefix": "sample"})
-        assert xml.name == "Pet"
-        assert xml.namespace == "http://example.com/schema"
-        assert xml.prefix == "sample"
+    assert isinstance(result.namespace, FieldSource)
+    assert result.namespace.value == "https://example.com/schema"
 
-    def test_init_with_attribute(self):
-        """Test creating XML with attribute flag."""
-        xml = XML({"name": "id", "attribute": True})
-        assert xml.name == "id"
-        assert xml.attribute is True
+    assert isinstance(result.prefix, FieldSource)
+    assert result.prefix.value == "ex"
 
-    def test_init_with_wrapped(self):
-        """Test creating XML with wrapped flag."""
-        xml = XML({"name": "pets", "wrapped": True})
-        assert xml.name == "pets"
-        assert xml.wrapped is True
+    assert isinstance(result.attribute, FieldSource)
+    assert result.attribute.value is True
 
-    def test_init_full_example(self):
-        """Test creating XML with all properties."""
-        xml = XML(
-            {
-                "name": "animals",
-                "namespace": "http://example.com/schema/sample",
-                "prefix": "sample",
-                "attribute": False,
-                "wrapped": True,
-            }
-        )
-        assert xml.name == "animals"
-        assert xml.namespace == "http://example.com/schema/sample"
-        assert xml.prefix == "sample"
-        assert xml.attribute is False
-        assert xml.wrapped is True
+    assert isinstance(result.wrapped, FieldSource)
+    assert result.wrapped.value is False
 
-    def test_name_setter(self):
-        """Test setting name."""
-        xml = XML()
-        xml.name = "Pet"
-        assert xml.name == "Pet"
-        assert xml["name"] == "Pet"
 
-    def test_name_setter_none(self):
-        """Test setting name to None removes it."""
-        xml = XML({"name": "Pet"})
-        xml.name = None
-        assert "name" not in xml
+def test_build_with_minimal_fields():
+    """Test building XML with only required fields."""
+    yaml_content = textwrap.dedent(
+        """
+        name: id
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
-    def test_namespace_setter(self):
-        """Test setting namespace."""
-        xml = XML()
-        xml.namespace = "http://example.com"
-        assert xml.namespace == "http://example.com"
+    result = xml.build(root)
+    assert isinstance(result, xml.XML)
 
-    def test_prefix_setter(self):
-        """Test setting prefix."""
-        xml = XML()
-        xml.prefix = "ex"
-        assert xml.prefix == "ex"
+    assert result.root_node == root
+    assert isinstance(result.name, FieldSource)
+    assert result.name.value == "id"
 
-    def test_attribute_setter(self):
-        """Test setting attribute flag."""
-        xml = XML()
-        xml.attribute = True
-        assert xml.attribute is True
+    # Other fields should be None
+    assert result.namespace is None
+    assert result.prefix is None
+    assert result.attribute is None
+    assert result.wrapped is None
+    # Extensions returns empty dict when no extensions present
+    assert result.extensions == {}
 
-    def test_wrapped_setter(self):
-        """Test setting wrapped flag."""
-        xml = XML()
-        xml.wrapped = True
-        assert xml.wrapped is True
 
-    def test_property_setters_none(self):
-        """Test setting properties to None removes them."""
-        xml = XML(
-            {
-                "name": "Pet",
-                "namespace": "http://example.com",
-                "prefix": "ex",
-                "attribute": True,
-                "wrapped": True,
-            }
-        )
+def test_build_with_extensions():
+    """Test building XML with specification extensions (x-* fields)."""
+    yaml_content = textwrap.dedent(
+        """
+        name: id
+        x-custom: custom-value
+        x-internal: true
+        x-array:
+          - item1
+          - item2
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
-        xml.name = None
-        assert "name" not in xml
+    result = xml.build(root)
+    assert isinstance(result, xml.XML)
 
-        xml.namespace = None
-        assert "namespace" not in xml
+    assert result.extensions is not None
+    assert len(result.extensions) == 3
 
-        xml.prefix = None
-        assert "prefix" not in xml
+    # Extensions should be dict[KeySource, ValueSource]
+    keys = list(result.extensions.keys())
+    assert all(isinstance(k, KeySource) for k in keys)
+    assert all(isinstance(v, ValueSource) for v in result.extensions.values())
 
-        xml.attribute = None
-        assert "attribute" not in xml
+    # Check extension values
+    ext_dict = {k.value: v.value for k, v in result.extensions.items()}
+    assert ext_dict["x-custom"] == "custom-value"
+    assert ext_dict["x-internal"] is True
+    assert ext_dict["x-array"] == ["item1", "item2"]
 
-        xml.wrapped = None
-        assert "wrapped" not in xml
 
-    def test_supports_extensions(self):
-        """Test that XML supports specification extensions."""
-        xml = XML({"name": "Pet", "x-custom": "value"})
-        extensions = xml.get_extensions()
-        assert extensions == {"x-custom": "value"}
+def test_build_preserves_invalid_types():
+    """Test that build preserves values even with 'wrong' types (low-level model principle)."""
+    yaml_content = textwrap.dedent(
+        """
+        name: 123
+        namespace: true
+        attribute: not-a-boolean
+        wrapped: 42
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
-    def test_to_mapping(self):
-        """Test converting to mapping."""
-        xml = XML({"name": "animals", "namespace": "http://example.com/schema", "wrapped": True})
-        result = xml.to_mapping()
-        assert result == {
-            "name": "animals",
-            "namespace": "http://example.com/schema",
-            "wrapped": True,
-        }
+    result = xml.build(root)
+    assert isinstance(result, xml.XML)
 
-    def test_from_mapping(self):
-        """Test creating from mapping."""
-        data = {"name": "Pet", "attribute": True}
-        xml = XML.from_mapping(data)
-        assert xml.name == "Pet"
-        assert xml.attribute is True
+    assert result.name is not None
+    assert result.namespace is not None
+    assert result.attribute is not None
+    assert result.wrapped is not None
 
-    def test_array_wrapping_example(self):
-        """Test XML configuration for wrapped arrays."""
-        # Example: wrapping an array of animals in an <animals> element
-        xml = XML({"name": "animals", "wrapped": True})
-        assert xml.name == "animals"
-        assert xml.wrapped is True
+    # Should preserve the actual values, not convert them
+    assert result.name.value == 123
+    assert result.namespace.value is True
+    assert result.attribute.value == "not-a-boolean"
+    assert result.wrapped.value == 42
 
-    def test_attribute_serialization_example(self):
-        """Test XML configuration for attribute serialization."""
-        # Example: serializing a property as XML attribute instead of element
-        xml = XML({"name": "id", "attribute": True})
-        assert xml.name == "id"
-        assert xml.attribute is True
+
+def test_build_with_empty_object():
+    """Test building XML from empty YAML object."""
+    yaml_content = "{}"
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = xml.build(root)
+    assert isinstance(result, xml.XML)
+
+    assert result.root_node == root
+    assert result.name is None
+    assert result.namespace is None
+    assert result.prefix is None
+    assert result.attribute is None
+    assert result.wrapped is None
+    # Extensions returns empty dict when no extensions present
+    assert result.extensions == {}
+
+
+def test_build_with_invalid_node_returns_none():
+    """Test that build returns ValueSource for non-mapping nodes (preserves invalid data)."""
+    yaml_parser = YAML()
+
+    # Scalar node
+    scalar_root = yaml_parser.compose("just-a-string")
+    result = xml.build(scalar_root)
+    assert isinstance(result, ValueSource)
+    assert result.value == "just-a-string"
+    assert result.value_node == scalar_root
+
+    # Sequence node
+    sequence_root = yaml_parser.compose("['item1', 'item2']")
+    result = xml.build(sequence_root)
+    assert isinstance(result, ValueSource)
+    assert result.value == ["item1", "item2"]
+    assert result.value_node == sequence_root
+
+
+def test_build_with_custom_context():
+    """Test building XML with a custom context."""
+    yaml_content = textwrap.dedent(
+        """
+        name: id
+        namespace: https://example.com/schema
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    custom_context = Context()
+    result = xml.build(root, context=custom_context)
+    assert isinstance(result, xml.XML)
+
+    assert result.name is not None
+    assert result.namespace is not None
+    assert result.name.value == "id"
+    assert result.namespace.value == "https://example.com/schema"
+
+
+def test_source_tracking():
+    """Test that source location information is preserved."""
+    yaml_content = textwrap.dedent(
+        """
+        name: id
+        namespace: https://example.com/schema
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = xml.build(root)
+    assert isinstance(result, xml.XML)
+
+    assert result.name is not None
+
+    # Check that key_node and value_node are tracked
+    assert result.name.key_node is not None
+    assert result.name.value_node is not None
+
+    # The key_node should contain "name"
+    assert result.name.key_node.value == "name"
+
+    # The value_node should contain "id"
+    assert result.name.value_node.value == "id"
+
+    # Check line numbers are available (for error reporting)
+    assert hasattr(result.name.key_node.start_mark, "line")
+    assert hasattr(result.name.value_node.start_mark, "line")
+
+
+def test_mixed_extensions_and_fixed_fields():
+    """Test that extensions and fixed fields are properly separated."""
+    yaml_content = textwrap.dedent(
+        """
+        name: id
+        x-custom: value
+        namespace: https://example.com/schema
+        x-another: 123
+        prefix: ex
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = xml.build(root)
+    assert isinstance(result, xml.XML)
+
+    assert result.name is not None
+    assert result.namespace is not None
+    assert result.prefix is not None
+
+    # Fixed fields should be present
+    assert result.name.value == "id"
+    assert result.namespace.value == "https://example.com/schema"
+    assert result.prefix.value == "ex"
+
+    # Extensions should be in extensions dict
+    assert result.extensions is not None
+    assert len(result.extensions) == 2
+
+    ext_dict = {k.value: v.value for k, v in result.extensions.items()}
+    assert ext_dict["x-custom"] == "value"
+    assert ext_dict["x-another"] == 123

@@ -1,134 +1,60 @@
-"""
-OpenAPI 3.0.4 XML Object model.
+from dataclasses import dataclass
 
-Metadata object for XML representation of properties.
-"""
+from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.v30.specification_object import SpecificationObject
+from jentic.apitools.openapi.datamodels.low.context import Context
+from jentic.apitools.openapi.datamodels.low.fields import fixed_field
+from jentic.apitools.openapi.datamodels.low.model_builder import build_model
+from jentic.apitools.openapi.datamodels.low.sources import (
+    FieldSource,
+    KeySource,
+    ValueSource,
+    YAMLInvalidValue,
+    YAMLValue,
+)
 
 
-__all__ = ["XML"]
+__all__ = ["XML", "build"]
 
 
-class XML(SpecificationObject):
+@dataclass(frozen=True, slots=True)
+class XML:
     """
-    Represents an XML Object from OpenAPI 3.0.4.
+    XML Object representation for OpenAPI 3.0.
 
-    A metadata object that allows for more fine-tuned XML model definitions.
-
-    Supports specification extensions (x-* fields).
-
-    Example:
-        >>> # Basic XML element name override
-        >>> xml = XML({"name": "animal"})
-        >>> xml.name
-        'animal'
-
-        >>> # XML namespace
-        >>> xml = XML({
-        ...     "name": "Person",
-        ...     "namespace": "http://example.com/schema/person",
-        ...     "prefix": "sample"
-        ... })
-        >>> xml.namespace
-        'http://example.com/schema/person'
+    Attributes:
+        root_node: The top-level node representing the entire XML object in the original source file
+        name: Name of the XML element
+        namespace: XML namespace
+        prefix: XML namespace prefix
+        attribute: Whether property is an attribute (deprecated in OpenAPI 3.2+)
+        wrapped: Whether array is wrapped
+        extensions: Specification extensions
     """
 
-    _supports_extensions: bool = True
-    _fixed_fields: frozenset[str] = frozenset(
-        {"name", "namespace", "prefix", "attribute", "wrapped"}
-    )
+    root_node: yaml.Node
+    name: FieldSource[str] | None = fixed_field()
+    namespace: FieldSource[str] | None = fixed_field()
+    prefix: FieldSource[str] | None = fixed_field()
+    attribute: FieldSource[bool] | None = fixed_field()
+    wrapped: FieldSource[bool] | None = fixed_field()
+    extensions: dict[KeySource[str], ValueSource[YAMLValue]] | None = None
 
-    @property
-    def name(self) -> str | None:
-        """
-        Replaces the name of the element/attribute.
 
-        Returns:
-            Element/attribute name or None if not present
-        """
-        return self.get("name")
+def build(root: yaml.Node, context: Context | None = None) -> XML | ValueSource[YAMLInvalidValue]:
+    """
+    Build an XML object from a YAML node.
 
-    @name.setter
-    def name(self, value: str | None) -> None:
-        """Set the element/attribute name."""
-        if value is None:
-            self.pop("name", None)
-        else:
-            self["name"] = value
+    Preserves all source data as-is, regardless of type. This is a low-level/plumbing
+    model that provides complete source fidelity for inspection and validation.
 
-    @property
-    def namespace(self) -> str | None:
-        """
-        The URI of the namespace definition.
+    Args:
+        root: The YAML node to parse (should be a MappingNode)
+        context: Optional parsing context. If None, a default context will be created.
 
-        Returns:
-            Namespace URI or None if not present
-        """
-        return self.get("namespace")
-
-    @namespace.setter
-    def namespace(self, value: str | None) -> None:
-        """Set the namespace URI."""
-        if value is None:
-            self.pop("namespace", None)
-        else:
-            self["namespace"] = value
-
-    @property
-    def prefix(self) -> str | None:
-        """
-        The prefix to be used for the name.
-
-        Returns:
-            Prefix or None if not present
-        """
-        return self.get("prefix")
-
-    @prefix.setter
-    def prefix(self, value: str | None) -> None:
-        """Set the prefix."""
-        if value is None:
-            self.pop("prefix", None)
-        else:
-            self["prefix"] = value
-
-    @property
-    def attribute(self) -> bool | None:
-        """
-        Declares whether the property is an XML attribute.
-
-        Returns:
-            True if the property is an XML attribute,
-            False if present and set to false,
-            or None if not present.
-        """
-        return self.get("attribute")
-
-    @attribute.setter
-    def attribute(self, value: bool | None) -> None:
-        """Set the attribute flag."""
-        if value is None:
-            self.pop("attribute", None)
-        else:
-            self["attribute"] = value
-
-    @property
-    def wrapped(self) -> bool | None:
-        """
-        For arrays, wraps the array in a containing element.
-
-        Only affects arrays. Returns None when not set.
-
-        Returns:
-            True if wrapped, None if not set or not wrapped
-        """
-        return self.get("wrapped")
-
-    @wrapped.setter
-    def wrapped(self, value: bool | None) -> None:
-        """Set the wrapped flag."""
-        if value is None:
-            self.pop("wrapped", None)
-        else:
-            self["wrapped"] = value
+    Returns:
+        An XML object if the node is valid, or a ValueSource containing
+        the invalid data if the root is not a MappingNode (preserving the invalid data
+        and its source location for validation).
+    """
+    return build_model(root, XML, context=context)

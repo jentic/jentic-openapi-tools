@@ -1,140 +1,71 @@
-"""
-OpenAPI 3.0.4 OAuth Flow Object model.
+from dataclasses import dataclass
 
-Configuration details for a supported OAuth Flow as defined in RFC 6749.
-Different OAuth flows use different combinations of the fields.
-"""
+from ruamel import yaml
 
-from collections.abc import Mapping
+from jentic.apitools.openapi.datamodels.low.context import Context
+from jentic.apitools.openapi.datamodels.low.fields import fixed_field
+from jentic.apitools.openapi.datamodels.low.model_builder import build_model
+from jentic.apitools.openapi.datamodels.low.sources import (
+    FieldSource,
+    KeySource,
+    ValueSource,
+    YAMLInvalidValue,
+    YAMLValue,
+)
 
-from jentic.apitools.openapi.datamodels.low.v30.specification_object import SpecificationObject
+
+__all__ = ["OAuthFlow", "build"]
 
 
-__all__ = ["OAuthFlow"]
-
-
-class OAuthFlow(SpecificationObject):
+@dataclass(frozen=True, slots=True)
+class OAuthFlow:
     """
-    Represents an OAuth Flow Object from OpenAPI 3.0.4.
+    OAuth Flow Object representation for OpenAPI 3.0.
 
-    Configuration details for a supported OAuth Flow. Different flow types
-    (authorization code, implicit, password, client credentials) use different
-    combinations of these fields.
+    Configuration details for a supported OAuth Flow.
 
-    Supports specification extensions (x-* fields).
+    Attributes:
+        root_node: The top-level node representing the entire OAuth Flow object in the original source file
+        authorization_url: The authorization URL to be used for this flow. REQUIRED for implicit and authorization_code flows.
+        token_url: The token URL to be used for this flow. REQUIRED for password, client_credentials, and authorization_code flows.
+        refresh_url: The URL to be used for obtaining refresh tokens. This MUST be in the form of a URL.
+        scopes: The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it.
+        extensions: Specification extensions (x-* fields)
+    """
+
+    root_node: yaml.Node
+    authorization_url: FieldSource[str] | None = fixed_field(
+        metadata={"yaml_name": "authorizationUrl"}
+    )
+    token_url: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "tokenUrl"})
+    refresh_url: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "refreshUrl"})
+    scopes: FieldSource[dict[KeySource[str], ValueSource[str]]] | None = fixed_field()
+    extensions: dict[KeySource[str], ValueSource[YAMLValue]] | None = None
+
+
+def build(
+    root: yaml.Node, context: Context | None = None
+) -> OAuthFlow | ValueSource[YAMLInvalidValue]:
+    """
+    Build an OAuthFlow object from a YAML node.
+
+    Preserves all source data as-is, regardless of type. This is a low-level/plumbing
+    model that provides complete source fidelity for inspection and validation.
+
+    Args:
+        root: The YAML node to parse (should be a MappingNode)
+        context: Optional parsing context. If None, a default context will be created.
+
+    Returns:
+        An OAuthFlow object if the node is valid, or a ValueSource containing
+        the invalid data if the root is not a MappingNode (preserving the invalid data
+        and its source location for validation).
 
     Example:
-        >>> # Authorization Code flow
-        >>> flow = OAuthFlow({
-        ...     "authorizationUrl": "https://example.com/oauth/authorize",
-        ...     "tokenUrl": "https://example.com/oauth/token",
-        ...     "scopes": {
-        ...         "read:pets": "Read access to pets",
-        ...         "write:pets": "Write access to pets"
-        ...     }
-        ... })
-        >>> flow.authorization_url
-        'https://example.com/oauth/authorize'
-        >>> flow.scopes
-        {'read:pets': 'Read access to pets', 'write:pets': 'Write access to pets'}
-
-        >>> # Implicit flow
-        >>> flow = OAuthFlow({
-        ...     "authorizationUrl": "https://example.com/oauth/authorize",
-        ...     "scopes": {"read": "Read access"}
-        ... })
-        >>> print(flow.token_url)
-        None
-
-        >>> # With extensions
-        >>> flow = OAuthFlow({
-        ...     "tokenUrl": "https://example.com/oauth/token",
-        ...     "scopes": {},
-        ...     "x-token-ttl": 3600
-        ... })
-        >>> flow.get_extensions()
-        {'x-token-ttl': 3600}
+        from ruamel.yaml import YAML
+        yaml = YAML()
+        root = yaml.compose("tokenUrl: https://example.com/oauth/token\\nscopes:\\n  read: Read access")
+        oauth_flow = build(root)
+        assert oauth_flow.tokenUrl.value == 'https://example.com/oauth/token'
     """
-
-    _supports_extensions: bool = True
-
-    @property
-    def authorization_url(self) -> str | None:
-        """
-        OAuth authorization endpoint URL.
-
-        REQUIRED for: authorizationCode, implicit flows.
-
-        Returns:
-            Authorization URL or None if not present
-        """
-        return self.get("authorizationUrl")
-
-    @authorization_url.setter
-    def authorization_url(self, value: str | None) -> None:
-        """Set the authorization URL."""
-        if value is None:
-            self.pop("authorizationUrl", None)
-        else:
-            self["authorizationUrl"] = value
-
-    @property
-    def token_url(self) -> str | None:
-        """
-        OAuth token endpoint URL.
-
-        REQUIRED for: authorizationCode, password, clientCredentials flows.
-
-        Returns:
-            Token URL or None if not present
-        """
-        return self.get("tokenUrl")
-
-    @token_url.setter
-    def token_url(self, value: str | None) -> None:
-        """Set the token URL."""
-        if value is None:
-            self.pop("tokenUrl", None)
-        else:
-            self["tokenUrl"] = value
-
-    @property
-    def refresh_url(self) -> str | None:
-        """
-        OAuth refresh token endpoint URL (optional for all flows).
-
-        Returns:
-            Refresh URL or None if not present
-        """
-        return self.get("refreshUrl")
-
-    @refresh_url.setter
-    def refresh_url(self, value: str | None) -> None:
-        """Set the refresh URL."""
-        if value is None:
-            self.pop("refreshUrl", None)
-        else:
-            self["refreshUrl"] = value
-
-    @property
-    def scopes(self) -> dict[str, str]:
-        """
-        Available scopes for the OAuth2 security scheme.
-
-        Maps scope names to their descriptions. REQUIRED for all flows.
-
-        Returns:
-            Dictionary mapping scope names to descriptions (empty dict if not present)
-        """
-        scopes = self.get("scopes")
-        if scopes is None:
-            return {}
-        return dict(scopes) if isinstance(scopes, Mapping) else {}
-
-    @scopes.setter
-    def scopes(self, value: dict[str, str] | Mapping[str, str] | None) -> None:
-        """Set the scopes mapping."""
-        if value is None:
-            self.pop("scopes", None)
-        else:
-            self["scopes"] = dict(value) if isinstance(value, Mapping) else value
+    return build_model(root, OAuthFlow, context=context)

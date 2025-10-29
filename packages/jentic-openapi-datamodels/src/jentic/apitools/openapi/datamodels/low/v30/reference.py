@@ -1,64 +1,63 @@
-"""
-OpenAPI 3.0.4 Reference Object model.
+from dataclasses import dataclass
 
-A simple object to allow referencing other components in the OpenAPI document.
-"""
+from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.v30.specification_object import SpecificationObject
+from jentic.apitools.openapi.datamodels.low.context import Context
+from jentic.apitools.openapi.datamodels.low.fields import fixed_field
+from jentic.apitools.openapi.datamodels.low.model_builder import build_model
+from jentic.apitools.openapi.datamodels.low.sources import (
+    FieldSource,
+    ValueSource,
+    YAMLInvalidValue,
+)
 
 
-__all__ = ["Reference"]
+__all__ = ["Reference", "build"]
 
 
-class Reference(SpecificationObject):
+@dataclass(frozen=True, slots=True)
+class Reference:
     """
-    Represents a Reference Object from OpenAPI 3.0.4.
+    Reference Object representation for OpenAPI 3.0.
 
     A simple object to allow referencing other components in the OpenAPI document,
     internally and externally.
 
-    IMPORTANT: Reference Objects in OpenAPI 3.0.x do NOT support specification extensions.
+    Note: In OpenAPI 3.0, Reference Objects only have the $ref field.
+    Summary, description, and extensions were added in OpenAPI 3.1.
 
-    Example:
-        >>> # Internal reference
-        >>> ref = Reference({"$ref": "#/components/schemas/Pet"})
-        >>> ref.ref
-        '#/components/schemas/Pet'
-        >>> ref["$ref"]
-        '#/components/schemas/Pet'
-
-        >>> # External reference
-        >>> ref = Reference({"$ref": "https://example.com/schemas/Pet.json"})
-        >>> ref.ref
-        'https://example.com/schemas/Pet.json'
+    Attributes:
+        root_node: The top-level node representing the entire Reference object in the original source file
+        ref: REQUIRED. The reference string. Must be in the format of a URI.
     """
 
-    _supports_extensions: bool = False
-    _fixed_fields: frozenset[str] = frozenset({"$ref"})
+    root_node: yaml.Node
+    ref: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$ref"})
 
-    @property
-    def ref(self) -> str | None:
-        """
-        The reference string identifying the location of the referenced object.
 
-        Maps to the "$ref" field in OpenAPI.
+def build(
+    root: yaml.Node, context: Context | None = None
+) -> Reference | ValueSource[YAMLInvalidValue]:
+    """
+    Build a Reference object from a YAML node.
 
-        Can be:
-        - Internal: "#/components/schemas/Pet"
-        - External URL: "https://example.com/schemas/Pet.json"
-        - Relative file: "./schemas/Pet.yaml#/Pet"
+    Preserves all source data as-is, regardless of type. This is a low-level/plumbing
+    model that provides complete source fidelity for inspection and validation.
 
-        REQUIRED field.
+    Args:
+        root: The YAML node to parse (should be a MappingNode)
+        context: Optional parsing context. If None, a default context will be created.
 
-        Returns:
-            Reference string or None if not present
-        """
-        return self.get("$ref")
+    Returns:
+        A Reference object if the node is valid, or a ValueSource containing
+        the invalid data if the root is not a MappingNode (preserving the invalid data
+        and its source location for validation).
 
-    @ref.setter
-    def ref(self, value: str | None) -> None:
-        """Set the reference string."""
-        if value is None:
-            self.pop("$ref", None)
-        else:
-            self["$ref"] = value
+    Example:
+        from ruamel.yaml import YAML
+        yaml = YAML()
+        root = yaml.compose("$ref: '#/components/schemas/Pet'")
+        reference = build(root)
+        assert reference.ref.value == '#/components/schemas/Pet'
+    """
+    return build_model(root, Reference, context=context)
