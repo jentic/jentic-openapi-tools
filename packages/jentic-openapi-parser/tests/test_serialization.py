@@ -115,11 +115,18 @@ class TestJsonDumps:
         assert result == '{\n  "a": 1,\n  "b": 2\n}'
 
     def test_sorted_keys(self):
-        """Test that keys are sorted."""
+        """Test that keys are sorted when sort_keys=True."""
         data = {"z": 1, "a": 2, "m": 3}
-        result = json_dumps(data)
+        result = json_dumps(data, sort_keys=True)
         # Keys should be alphabetically sorted
         assert result == '{"a":2,"m":3,"z":1}'
+
+    def test_unsorted_keys_by_default(self):
+        """Test that keys are NOT sorted by default."""
+        data = {"z": 1, "a": 2, "m": 3}
+        result = json_dumps(data)
+        # Keys should not be alphabetically sorted
+        assert result == '{"z":1,"a":2,"m":3}'
 
     def test_ensure_ascii_false(self):
         """Test that non-ASCII characters are preserved."""

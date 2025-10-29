@@ -53,7 +53,11 @@ class CustomEncoder(json.JSONEncoder):
 
 
 def json_dumps(
-    data: Any, indent: int | None = None, *, cls: type[json.JSONEncoder] = CustomEncoder
+    data: Any,
+    indent: int | None = None,
+    *,
+    sort_keys: bool = False,
+    cls: type[json.JSONEncoder] = CustomEncoder,
 ) -> str:
     """Serialize data to a JSON string with extended type support.
 
@@ -64,6 +68,7 @@ def json_dumps(
     Args:
         data: The data to serialize (dict, list, or any JSON-compatible type)
         indent: Number of spaces for indentation. None for compact output.
+        sort_keys: Whether to sort keys in the output. Defaults to False.
         cls: Custom JSON encoder class. Defaults to CustomEncoder.
 
     Returns:
@@ -82,7 +87,7 @@ def json_dumps(
         indent=indent,
         ensure_ascii=False,
         allow_nan=False,
-        sort_keys=True,
+        sort_keys=sort_keys,
         separators=(",", ":") if indent is None else (",", ": "),
         cls=cls,
     )

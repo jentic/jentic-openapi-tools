@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.12 (2025-10-29)
+
+### Features
+
+- **parser**: Add sort_keys option to json_dumps
+  ([#104](https://github.com/jentic/jentic-openapi-tools/pull/104),
+  [`f4ee13d`](https://github.com/jentic/jentic-openapi-tools/commit/f4ee13d255b5a57bdc132d508b2f1e9316efea53))
+
+
 ## v1.0.0-alpha.11 (2025-10-23)
 
 ### Continuous Integration
