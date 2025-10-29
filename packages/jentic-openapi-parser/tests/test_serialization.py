@@ -122,7 +122,7 @@ class TestJsonDumps:
         assert result == '{"a":2,"m":3,"z":1}'
 
     def test_unsorted_keys_by_default(self):
-        """Test that keys are sorted."""
+        """Test that keys are NOT sorted by default."""
         data = {"z": 1, "a": 2, "m": 3}
         result = json_dumps(data)
         # Keys should not be alphabetically sorted
