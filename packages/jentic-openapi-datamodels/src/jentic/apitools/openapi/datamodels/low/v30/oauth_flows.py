@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from ruamel import yaml
@@ -46,7 +46,7 @@ class OAuthFlows:
     authorization_code: FieldSource[OAuthFlow] | None = fixed_field(
         metadata={"yaml_name": "authorizationCode"}
     )
-    extensions: dict[KeySource[str], ValueSource[YAMLValue]] | None = None
+    extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
 def build(
@@ -112,5 +112,5 @@ def build(
         password=field_values.get("password"),
         client_credentials=field_values.get("client_credentials"),
         authorization_code=field_values.get("authorization_code"),
-        extensions=extract_extension_fields(root, context) or None,
+        extensions=extract_extension_fields(root, context),
     )

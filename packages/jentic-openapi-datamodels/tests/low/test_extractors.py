@@ -63,16 +63,16 @@ def test_extract_extension_fields_with_none():
 
 
 def test_extract_extension_fields_invalid_node():
-    """Test that extract_extension_fields returns None for non-mapping nodes."""
+    """Test that extract_extension_fields returns empty dict for non-mapping nodes."""
     yaml_parser = YAML()
 
     # Scalar node
     scalar_root = yaml_parser.compose("just-a-string")
-    assert extract_extension_fields(scalar_root) is None
+    assert extract_extension_fields(scalar_root) == {}
 
     # Sequence node
     sequence_root = yaml_parser.compose("['item1', 'item2']")
-    assert extract_extension_fields(sequence_root) is None
+    assert extract_extension_fields(sequence_root) == {}
 
 
 def test_extract_unknown_fields():
@@ -130,16 +130,16 @@ def test_extract_unknown_fields_with_none():
 
 
 def test_extract_unknown_fields_invalid_node():
-    """Test that extract_unknown_fields returns None for non-mapping nodes."""
+    """Test that extract_unknown_fields returns empty dict for non-mapping nodes."""
     yaml_parser = YAML()
 
     # Scalar node
     scalar_root = yaml_parser.compose("just-a-string")
-    assert extract_unknown_fields(scalar_root, XML) is None
+    assert extract_unknown_fields(scalar_root, XML) == {}
 
     # Sequence node
     sequence_root = yaml_parser.compose("['item1', 'item2']")
-    assert extract_unknown_fields(sequence_root, XML) is None
+    assert extract_unknown_fields(sequence_root, XML) == {}
 
 
 def test_extract_unknown_fields_source_tracking():

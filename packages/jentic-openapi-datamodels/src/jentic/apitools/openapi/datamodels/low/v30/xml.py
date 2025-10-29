@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ruamel import yaml
 
@@ -38,7 +38,7 @@ class XML:
     prefix: FieldSource[str] | None = fixed_field()
     attribute: FieldSource[bool] | None = fixed_field()
     wrapped: FieldSource[bool] | None = fixed_field()
-    extensions: dict[KeySource[str], ValueSource[YAMLValue]] | None = None
+    extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
 def build(root: yaml.Node, context: Context | None = None) -> XML | ValueSource[YAMLInvalidValue]:
