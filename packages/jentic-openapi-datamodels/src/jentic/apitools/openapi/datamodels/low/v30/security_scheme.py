@@ -89,10 +89,7 @@ def build(
         return ValueSource(value=value, value_node=root)
 
     # Use build_model to handle most fields
-    result = build_model(root, SecurityScheme, context=context)
-    assert isinstance(result, SecurityScheme), (
-        "build_model should return SecurityScheme for valid MappingNode"
-    )
+    security_scheme = build_model(root, SecurityScheme, context=context)
 
     # Manually handle special fields that build_model can't process (nested objects)
     for key_node, value_node in root.value:
@@ -103,6 +100,7 @@ def build(
             # FieldSource will auto-unwrap ValueSource if child returns it for invalid data
             oauth_flows = build_oauth_flows(value_node, context=context)
             flows_value = FieldSource(value=oauth_flows, key_node=key_node, value_node=value_node)
-            result = replace(result, flows=flows_value)
+            security_scheme = replace(security_scheme, flows=flows_value)
+            break
 
-    return result
+    return security_scheme
