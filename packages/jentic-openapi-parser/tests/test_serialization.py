@@ -115,7 +115,7 @@ class TestJsonDumps:
         assert result == '{\n  "a": 1,\n  "b": 2\n}'
 
     def test_sorted_keys(self):
-        """Test that keys are not sorted."""
+        """Test that keys are sorted when sort_keys=True."""
         data = {"z": 1, "a": 2, "m": 3}
         result = json_dumps(data, sort_keys=True)
         # Keys should be alphabetically sorted
