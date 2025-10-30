@@ -90,11 +90,12 @@ def build(root: yaml.Node, context: Context | None = None) -> Tag | ValueSource[
         if key == "externalDocs":
             # Handle nested ExternalDocumentation object - child builder handles invalid nodes
             # FieldSource will auto-unwrap ValueSource if child returns it for invalid data
-            external_docs = build_external_documentation(value_node, context=context)
-            external_docs_value = FieldSource(
-                value=external_docs, key_node=key_node, value_node=value_node
+            external_docs = FieldSource(
+                value=build_external_documentation(value_node, context=context),
+                key_node=key_node,
+                value_node=value_node,
             )
-            tag = replace(tag, external_docs=external_docs_value)
+            tag = replace(tag, external_docs=external_docs)
             break
 
     return tag
