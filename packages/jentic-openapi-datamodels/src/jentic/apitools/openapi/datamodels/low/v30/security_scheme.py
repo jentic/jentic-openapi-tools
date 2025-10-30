@@ -98,9 +98,12 @@ def build(
         if key == "flows":
             # Handle nested OAuthFlows object - child builder handles invalid nodes
             # FieldSource will auto-unwrap ValueSource if child returns it for invalid data
-            oauth_flows = build_oauth_flows(value_node, context=context)
-            flows_value = FieldSource(value=oauth_flows, key_node=key_node, value_node=value_node)
-            security_scheme = replace(security_scheme, flows=flows_value)
+            flows = FieldSource(
+                value=build_oauth_flows(value_node, context=context),
+                key_node=key_node,
+                value_node=value_node,
+            )
+            security_scheme = replace(security_scheme, flows=flows)
             break
 
     return security_scheme
