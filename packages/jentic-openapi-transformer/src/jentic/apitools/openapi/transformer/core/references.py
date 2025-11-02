@@ -18,7 +18,46 @@ __all__ = [
     "RewriteOptions",
     "rewrite_urls_inplace",
     "iter_url_fields",
+    "count_references",
 ]
+
+
+def count_references(root: Any) -> Tuple[int, int, int, int]:
+    """
+    Counts the number of references in a given data structure based on their type.
+
+    This function iterates through the provided structure to analyze and classify
+    different kinds of references. The classification includes relative references,
+    absolute HTTP/HTTPS references, local references, and the total number of
+    references.
+
+    Args:
+        root: Any
+            The root data structure containing references to be analyzed.
+
+    Returns:
+        Tuple[int, int, int, int]: A tuple containing the following counts:
+            - Total references count
+            - Local references count
+            - Relative references count
+            - Absolute HTTP/HTTPS references count
+    """
+    relative_refs_count = 0
+    absolute_http_refs_count = 0
+    total_refs_count = 0
+    local_refs_count = 0
+
+    for path, _parent, key, value in iter_url_fields(root):
+        assert isinstance(key, str)
+        total_refs_count += 1
+        if key == "$ref" and is_fragment_only_uri(value):
+            local_refs_count += 1
+            continue
+        if _is_relative_like(value):
+            relative_refs_count += 1
+        elif not _is_relative_like(value) and is_http_https_url(value):
+            absolute_http_refs_count += 1
+    return total_refs_count, local_refs_count, relative_refs_count, absolute_http_refs_count
 
 
 def find_relative_urls(root: Any) -> List[Tuple[JSONPath, str, str]]:
