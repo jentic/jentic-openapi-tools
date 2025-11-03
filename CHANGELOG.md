@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.14 (2025-11-03)
+
+### Features
+
+- **validator**: Add `JsonValue` type for enhanced data handling
+  ([`d585e8e`](https://github.com/jentic/jentic-openapi-tools/commit/d585e8eb9b6a677652f0203559d859432f2b68fd))
+
+
 ## v1.0.0-alpha.13 (2025-11-03)
 
 ### Features
