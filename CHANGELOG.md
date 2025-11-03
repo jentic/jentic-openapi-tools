@@ -2,6 +2,35 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.13 (2025-11-03)
+
+### Features
+
+- **datamodels**: Add low model for External Documentation spec object
+  ([#107](https://github.com/jentic/jentic-openapi-tools/pull/107),
+  [`fc4c12a`](https://github.com/jentic/jentic-openapi-tools/commit/fc4c12aca989eeed445c8613409e12544103c11e))
+
+- **datamodels**: Add low model for Schema spec object
+  ([#110](https://github.com/jentic/jentic-openapi-tools/pull/110),
+  [`09fcdf4`](https://github.com/jentic/jentic-openapi-tools/commit/09fcdf41e47b7bb1cde84bb8ae1694c9abead834))
+
+- **datamodels**: Add low model for Tag spec object
+  ([#109](https://github.com/jentic/jentic-openapi-tools/pull/109),
+  [`89ebe5d`](https://github.com/jentic/jentic-openapi-tools/commit/89ebe5d2f2ca9b2718afec1dce443df9b88b1be6))
+
+- **datamodels**: Provide initial impl of true low level datamodel
+  ([`8475a90`](https://github.com/jentic/jentic-openapi-tools/commit/8475a90a791ea57a63e3fb4e55884abd2037cd05))
+
+- **transformer**: Add `count_references` utility to analyze reference types
+  ([`369ba46`](https://github.com/jentic/jentic-openapi-tools/commit/369ba46ea46642a413f9573b355095b24e7c7df1))
+
+### Refactoring
+
+- **datamodels**: Handle specification extensions consistently
+  ([#108](https://github.com/jentic/jentic-openapi-tools/pull/108),
+  [`3e18cf4`](https://github.com/jentic/jentic-openapi-tools/commit/3e18cf482da2d7795131fb249acf7ed9ef2c8263))
+
+
 ## v1.0.0-alpha.12 (2025-10-29)
 
 ### Features
