@@ -3,7 +3,11 @@ from dataclasses import dataclass, field
 from lsprotocol.types import Diagnostic
 
 
-__all__ = ["JenticDiagnostic", "ValidationResult"]
+__all__ = ["JenticDiagnostic", "ValidationResult", "DataFieldValue"]
+
+DataFieldValue = (
+    None | str | int | float | bool | dict[str, "DataFieldValue"] | list["DataFieldValue"]
+)
 
 
 class JenticDiagnostic(Diagnostic):
@@ -37,7 +41,7 @@ class JenticDiagnostic(Diagnostic):
             self.data = {}
         self.data["target"] = target
 
-    def set_data_field(self, key: str, value: str | None):
+    def set_data_field(self, key: str, value: DataFieldValue):
         if value is None:
             return
         if not hasattr(self, "data") or self.data is None:
