@@ -39,5 +39,4 @@ requires = ["uv_build~=0.8.15"]
 build-backend = "uv_build"
 
 [project.entry-points."jentic.apitools.openapi.transformer.bundler.backends"]
-base = "jentic.apitools.openapi.transformer.bundler.backends.base:BaseBundlerBackend"
 default = "jentic.apitools.openapi.transformer.bundler.backends.default:DefaultBundlerBackend"
