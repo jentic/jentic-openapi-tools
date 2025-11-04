@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.15 (2025-11-04)
+
+### Bug Fixes
+
+- Exclude base backends from project entrypoints
+  ([#115](https://github.com/jentic/jentic-openapi-tools/pull/115),
+  [`ed72ca1`](https://github.com/jentic/jentic-openapi-tools/commit/ed72ca175b85c283c0f684fbb23bb5bb3b64d7f1))
+
+
 ## v1.0.0-alpha.14 (2025-11-03)
 
 ### Features
