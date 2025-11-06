@@ -1,11 +1,12 @@
 from dataclasses import dataclass, field
+from typing import TypeAlias
 
 from lsprotocol.types import Diagnostic
 
 
 __all__ = ["JenticDiagnostic", "ValidationResult", "DataFieldValue"]
 
-DataFieldValue = (
+DataFieldValue: TypeAlias = (
     None | str | int | float | bool | dict[str, "DataFieldValue"] | list["DataFieldValue"]
 )
 
