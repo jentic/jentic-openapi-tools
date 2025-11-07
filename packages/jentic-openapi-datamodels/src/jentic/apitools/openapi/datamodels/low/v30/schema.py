@@ -113,8 +113,8 @@ class Schema:
     uniqueItems: FieldSource[bool] | None = fixed_field()
     maxProperties: FieldSource[int] | None = fixed_field()
     minProperties: FieldSource[int] | None = fixed_field()
-    required: FieldSource[list[str]] | None = fixed_field()
-    enum: FieldSource[list[YAMLValue]] | None = fixed_field()
+    required: FieldSource[list[ValueSource[str]]] | None = fixed_field()
+    enum: FieldSource[list[ValueSource[YAMLValue]]] | None = fixed_field()
 
     # JSON Schema Type and Structure (nested schemas)
     type: FieldSource[str] | None = fixed_field()
@@ -215,13 +215,31 @@ def build(
             FieldSource[int],
             FieldSource[int | float],
             FieldSource[YAMLValue],
-            FieldSource[list[str]],
-            FieldSource[list[YAMLValue]],
         }:
             value = context.yaml_constructor.construct_object(value_node, deep=True)
             field_values[field_name] = FieldSource(
                 value=value, key_node=key_node, value_node=value_node
             )
+
+        # Handle list with ValueSource wrapping for each item (e.g., required, enum fields)
+        elif field_type_args & {
+            FieldSource[list[ValueSource[str]]],
+            FieldSource[list[ValueSource[YAMLValue]]],
+        }:
+            if isinstance(value_node, yaml.SequenceNode):
+                value_list: list[ValueSource[Any]] = []
+                for item_node in value_node.value:
+                    item_value = context.yaml_constructor.construct_object(item_node, deep=True)
+                    value_list.append(ValueSource(value=item_value, value_node=item_node))
+                field_values[field_name] = FieldSource(
+                    value=value_list, key_node=key_node, value_node=value_node
+                )
+            else:
+                # Not a sequence - preserve as-is for validation
+                value = context.yaml_constructor.construct_object(value_node, deep=True)
+                field_values[field_name] = FieldSource(
+                    value=value, key_node=key_node, value_node=value_node
+                )
 
         # Recursive schema list fields (allOf, oneOf, anyOf)
         elif key in ("allOf", "oneOf", "anyOf"):
