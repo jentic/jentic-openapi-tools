@@ -56,5 +56,12 @@ def build(
         A Contact object if the node is valid, or a ValueSource containing
         the invalid data if the root is not a MappingNode (preserving the invalid data
         and its source location for validation).
+
+    Example:
+        from ruamel.yaml import YAML
+        yaml = YAML()
+        root = yaml.compose("name: API Support\\nemail: support@example.com")
+        contact = build(root)
+        assert contact.name.value == 'API Support'
     """
     return build_model(root, Contact, context=context)
