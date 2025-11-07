@@ -195,7 +195,7 @@ def test_build_with_object_schema():
 
     # Check required array
     assert result.required is not None
-    assert result.required.value == ["name", "age"]
+    assert [item.value for item in result.required.value] == ["name", "age"]
 
     # Check properties (should be dict[KeySource, ValueSource])
     assert result.properties is not None
@@ -227,7 +227,7 @@ def test_build_with_enum():
     assert isinstance(result, schema.Schema)
 
     assert result.enum is not None
-    assert result.enum.value == ["pending", "approved", "rejected"]
+    assert [item.value for item in result.enum.value] == ["pending", "approved", "rejected"]
 
 
 def test_build_with_allof():
@@ -805,7 +805,7 @@ def test_build_with_complex_nested_schema():
     assert result.type is not None
     assert result.type.value == "object"
     assert result.required is not None
-    assert result.required.value == ["items"]
+    assert [item.value for item in result.required.value] == ["items"]
     assert result.properties is not None
 
 
