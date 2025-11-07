@@ -475,4 +475,4 @@ def test_default_not_in_enum():
     assert result.default is not None
     assert result.default.value == "prod"
     assert result.enum is not None
-    assert "prod" not in result.enum.value
+    assert "prod" not in [item.value for item in result.enum.value]
