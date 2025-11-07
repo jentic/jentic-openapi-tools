@@ -62,7 +62,7 @@ def build_model(
     }
 
     # Extract field values in a single pass (non-recursive, single layer only)
-    field_values: dict[str, Any] = {}
+    field_values: dict[str, FieldSource[Any]] = {}
     for key_node, value_node in root.value:
         key = context.yaml_constructor.construct_yaml_str(key_node)
 
@@ -94,6 +94,22 @@ def build_model(
                     )
                 else:
                     # Not a mapping - preserve as-is for validation
+                    value = context.yaml_constructor.construct_object(value_node, deep=True)
+                    field_values[field_name] = FieldSource(
+                        value=value, key_node=key_node, value_node=value_node
+                    )
+            elif field_type_args & {FieldSource[list[ValueSource[str]]]}:
+                # Handle list with ValueSource wrapping for each item
+                if isinstance(value_node, yaml.SequenceNode):
+                    value_list: list[ValueSource[str]] = []
+                    for item_node in value_node.value:
+                        item_value = context.yaml_constructor.construct_object(item_node, deep=True)
+                        value_list.append(ValueSource(value=item_value, value_node=item_node))
+                    field_values[field_name] = FieldSource(
+                        value=value_list, key_node=key_node, value_node=value_node
+                    )
+                else:
+                    # Not a sequence - preserve as-is for validation
                     value = context.yaml_constructor.construct_object(value_node, deep=True)
                     field_values[field_name] = FieldSource(
                         value=value, key_node=key_node, value_node=value_node
