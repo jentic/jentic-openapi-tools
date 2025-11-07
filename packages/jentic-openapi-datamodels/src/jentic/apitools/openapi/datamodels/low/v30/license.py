@@ -54,5 +54,12 @@ def build(
         A License object if the node is valid, or a ValueSource containing
         the invalid data if the root is not a MappingNode (preserving the invalid data
         and its source location for validation).
+
+    Example:
+        from ruamel.yaml import YAML
+        yaml = YAML()
+        root = yaml.compose("name: MIT\\nurl: https://opensource.org/licenses/MIT")
+        license = build(root)
+        assert license.name.value == 'MIT'
     """
     return build_model(root, License, context=context)
