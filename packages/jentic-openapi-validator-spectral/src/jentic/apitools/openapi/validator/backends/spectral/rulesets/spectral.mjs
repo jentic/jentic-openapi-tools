@@ -2,14 +2,22 @@ import { oas3 } from '@stoplight/spectral-formats';
 import { oasExample } from '@stoplight/spectral-rulesets/dist/oas/functions/index.js';
 import oasRuleset from '@stoplight/spectral-rulesets/dist/oas/index.js';
 
-// custom wrapper around oasExample that skips XML media types
+// Custom wrapper around oasExample that skips XML-related examples
 const oasExampleNonXml = (targetVal, opts, context) => {
-  // Check if the path contains an XML media type
   const path = context.path || [];
   const pathString = path.join('.');
 
-  // Skip if the path contains any XML media type (application/xml, text/xml, *+xml)
-  if (pathString.match(/\/xml|[+]xml/i)) {
+  // Case 1: Media Type Objects - filter by media type in path
+  // Path format: paths./station-timetables.get.responses[200].content.application/xml.examples
+  // Matches patterns like: .content.application/xml. or .content.image/svg+xml.
+  if (pathString.match(/\.content\.[^.]*(\/xml|\+xml)\b/i)) {
+    return [];
+  }
+
+  // Case 2 & 3: Header/Parameter Objects - check if their schema has xml property
+  // Path format: paths./stations.get.parameters[0].schema or paths./.headers.X-Custom.schema
+  // The targetVal is the object with schema and example/examples
+  if (targetVal && targetVal.schema && targetVal.schema.xml) {
     return [];
   }
 
@@ -37,9 +45,9 @@ export default {
       then: {
         function: oasExampleNonXml,
         functionOptions: {
-          schemaField: "schema",
+          schemaField: 'schema',
           oasVersion: 3,
-          type: "media"
+          type: 'media'
         }
       }
     },
@@ -52,17 +60,17 @@ export default {
       severity: 'error',
       formats: [oas3],
       given: [
-        "$.components.schemas..[?(@property !== 'properties' && @ && (@.example !== void 0 || @.default !== void 0) && (@.enum || @.type || @.format || @.$ref || @.properties || @.items) && !@.xml)]",
-        "$..content..[?(@property !== 'properties' && @ && (@.example !== void 0 || @.default !== void 0) && (@.enum || @.type || @.format || @.$ref || @.properties || @.items) && !@.xml)]",
-        "$..headers..[?(@property !== 'properties' && @ && (@.example !== void 0 || @.default !== void 0) && (@.enum || @.type || @.format || @.$ref || @.properties || @.items) && !@.xml)]",
-        "$..parameters..[?(@property !== 'properties' && @ && (@.example !== void 0 || @.default !== void 0) && (@.enum || @.type || @.format || @.$ref || @.properties || @.items) && !@.xml)]"
+        '$.components.schemas..[?(@property !== \'properties\' && @ && (@.example !== void 0 || @.default !== void 0) && (@.enum || @.type || @.format || @.$ref || @.properties || @.items) && !@.xml)]',
+        '$..content..[?(@property !== \'properties\' && @ && (@.example !== void 0 || @.default !== void 0) && (@.enum || @.type || @.format || @.$ref || @.properties || @.items) && !@.xml)]',
+        '$..headers..[?(@property !== \'properties\' && @ && (@.example !== void 0 || @.default !== void 0) && (@.enum || @.type || @.format || @.$ref || @.properties || @.items) && !@.xml)]',
+        '$..parameters..[?(@property !== \'properties\' && @ && (@.example !== void 0 || @.default !== void 0) && (@.enum || @.type || @.format || @.$ref || @.properties || @.items) && !@.xml)]'
       ],
       then: {
         function: oasExample,
         functionOptions: {
-          schemaField: "$",
+          schemaField: '$',
           oasVersion: 3,
-          type: "schema"
+          type: 'schema'
         }
       }
     }
