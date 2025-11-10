@@ -23,7 +23,7 @@ __all__ = ["SpectralValidatorBackend"]
 
 
 rulesets_files_dir = files("jentic.apitools.openapi.validator.backends.spectral.rulesets")
-ruleset_file = rulesets_files_dir.joinpath("spectral.yaml")
+ruleset_file = rulesets_files_dir.joinpath("spectral.mjs")
 
 
 class SpectralValidatorBackend(BaseValidatorBackend):
@@ -124,11 +124,12 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             )
 
             # Validate ruleset path if it's a filesystem path (skip non-path URIs)
+            # Spectral supports YAML, JSON, and JavaScript module formats
             validated_ruleset_path = (
                 validate_path(
                     self.ruleset_path,
                     allowed_base=self.allowed_base_dir,
-                    allowed_extensions=(".yaml", ".yml"),
+                    allowed_extensions=(".yaml", ".yml", ".js", ".mjs", ".cjs"),
                 )
                 if self.ruleset_path is not None and is_path(self.ruleset_path)
                 else self.ruleset_path
