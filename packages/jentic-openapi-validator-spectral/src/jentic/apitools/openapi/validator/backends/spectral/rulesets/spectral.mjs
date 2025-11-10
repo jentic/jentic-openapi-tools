@@ -1,3 +1,6 @@
+/**
+ * JavaScript Ruleset Format: https://docs.stoplight.io/docs/spectral/aa15cdee143a1-java-script-ruleset-format
+ */
 import { oas3 } from '@stoplight/spectral-formats';
 import { oasExample } from '@stoplight/spectral-rulesets/dist/oas/functions/index.js';
 import oasRuleset from '@stoplight/spectral-rulesets/dist/oas/index.js';
