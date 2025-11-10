@@ -36,4 +36,4 @@ build-backend = "uv_build"
 spectral = "jentic.apitools.openapi.validator.backends.spectral:SpectralValidatorBackend"
 
 [tool.setuptools.package-data]
-"jentic.apitools.openapi.validator.backends.spectral" = ["rulesets/*.yaml", "rulesets/*.yml"]
+"jentic.apitools.openapi.validator.backends.spectral" = ["rulesets/*.yaml", "rulesets/*.yml", "rulesets/*.mjs"]

@@ -23,7 +23,7 @@ __all__ = ["SpectralValidatorBackend"]
 
 
 rulesets_files_dir = files("jentic.apitools.openapi.validator.backends.spectral.rulesets")
-ruleset_file = rulesets_files_dir.joinpath("spectral.yaml")
+ruleset_file = rulesets_files_dir.joinpath("spectral.mjs")
 
 
 class SpectralValidatorBackend(BaseValidatorBackend):
