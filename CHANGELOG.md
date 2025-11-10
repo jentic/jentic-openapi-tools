@@ -2,6 +2,41 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.16 (2025-11-10)
+
+### Bug Fixes
+
+- **validator**: Fix DataFieldValue type hint
+  ([#116](https://github.com/jentic/jentic-openapi-tools/pull/116),
+  [`138baa3`](https://github.com/jentic/jentic-openapi-tools/commit/138baa394e16dd6f49dd35f638cb566ae390e0b0))
+
+- **validator-spectral**: Avoid validating XML examples
+  ([#123](https://github.com/jentic/jentic-openapi-tools/pull/123),
+  [`a66b638`](https://github.com/jentic/jentic-openapi-tools/commit/a66b638b1e0bf5cb38e57a604bd0374d3a98b32e))
+
+### Features
+
+- **datamodels**: Add low model for Contact spec object
+  ([#117](https://github.com/jentic/jentic-openapi-tools/pull/117),
+  [`937e613`](https://github.com/jentic/jentic-openapi-tools/commit/937e613c1d9ba0c9a196c541c94dc80b83cdcf8e))
+
+- **datamodels**: Add low model for Info spec object
+  ([#119](https://github.com/jentic/jentic-openapi-tools/pull/119),
+  [`a3bcde6`](https://github.com/jentic/jentic-openapi-tools/commit/a3bcde6eac2873e2564f569fc05b36de96cb8f09))
+
+- **datamodels**: Add low model for License spec object
+  ([#118](https://github.com/jentic/jentic-openapi-tools/pull/118),
+  [`aaa8f77`](https://github.com/jentic/jentic-openapi-tools/commit/aaa8f779fb02c72d810316beeaf92be13ac1b2f2))
+
+- **datamodels**: Add low model for Server Variable spec object
+  ([#121](https://github.com/jentic/jentic-openapi-tools/pull/121),
+  [`49b707f`](https://github.com/jentic/jentic-openapi-tools/commit/49b707f03ee37261d7ad1f81371c438ecd8d3bec))
+
+- **datamodels**: Add ValueSource wrapping to Schema required and enum fields
+  ([#122](https://github.com/jentic/jentic-openapi-tools/pull/122),
+  [`a53ee68`](https://github.com/jentic/jentic-openapi-tools/commit/a53ee68f48647218a5ec0e47bce91d3e0224675c))
+
+
 ## v1.0.0-alpha.15 (2025-11-04)
 
 ### Bug Fixes
