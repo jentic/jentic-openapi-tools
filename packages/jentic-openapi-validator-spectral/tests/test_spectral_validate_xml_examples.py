@@ -4,8 +4,20 @@ import json
 from pathlib import Path
 
 import pytest
+from lsprotocol.types import DiagnosticSeverity
 
 from jentic.apitools.openapi.validator.backends.spectral import SpectralValidatorBackend
+
+
+# Helper functions for test assertions
+def get_error_diagnostics(result):
+    """Extract error-level diagnostics from validation result."""
+    return [d for d in result.diagnostics if d.severity == DiagnosticSeverity.Error]
+
+
+def has_errors_in_path(diagnostics, path_substring):
+    """Check if any diagnostic has the path substring."""
+    return any(d.data and path_substring in str(d.data.get("path", "")) for d in diagnostics)
 
 
 @pytest.fixture
@@ -250,102 +262,83 @@ class TestXMLExampleFiltering:
         self, spectral_validator_with_xml_filtering, openapi_with_xml_and_json_examples
     ):
         """Test that XML media type examples are skipped but JSON examples are validated."""
-        spec_uri = openapi_with_xml_and_json_examples.as_uri()
-        result = spectral_validator_with_xml_filtering.validate(spec_uri)
+        result = spectral_validator_with_xml_filtering.validate(
+            openapi_with_xml_and_json_examples.as_uri()
+        )
 
         # Should have errors because JSON example is invalid
-        assert result.valid is False
+        assert not result.valid
 
-        # Check that the error is for the JSON example, not XML
-        errors = [d for d in result.diagnostics if d.severity == 1]  # 1 = Error in LSP
-        assert len(errors) > 0
+        errors = get_error_diagnostics(result)
+        assert errors, "Expected validation errors for invalid JSON example"
 
-        # The error should be in the application/json path
-        json_errors = [
-            e for e in errors if e.data and "application/json" in str(e.data.get("path", ""))
-        ]
-        assert len(json_errors) > 0
-
-        # Should NOT have errors for application/xml
-        xml_errors = [
-            e for e in errors if e.data and "application/xml" in str(e.data.get("path", ""))
-        ]
-        assert len(xml_errors) == 0
+        # The error should be in the application/json path, not application/xml
+        assert has_errors_in_path(errors, "application/json"), (
+            "Expected error in application/json path"
+        )
+        assert not has_errors_in_path(errors, "application/xml"), (
+            "Should not have errors for application/xml (XML validation skipped)"
+        )
 
     def test_skips_parameter_with_xml_schema(
         self, spectral_validator_with_xml_filtering, openapi_with_xml_parameter
     ):
         """Test that parameters with xml property in schema are skipped."""
-        spec_uri = openapi_with_xml_parameter.as_uri()
-        result = spectral_validator_with_xml_filtering.validate(spec_uri)
+        result = spectral_validator_with_xml_filtering.validate(openapi_with_xml_parameter.as_uri())
 
-        # Should not have errors for the parameter example (it's XML-related)
-        errors = [d for d in result.diagnostics if d.severity == 1]  # 1 = Error
-        parameter_errors = [
-            e
-            for e in errors
-            if e.data
-            and "parameters" in str(e.data.get("path", ""))
-            and "example" in str(e.data.get("path", ""))
-        ]
-        assert len(parameter_errors) == 0
+        errors = get_error_diagnostics(result)
+        assert not has_errors_in_path(errors, "parameters"), (
+            "Should not validate parameters with xml schema property"
+        )
 
     def test_validates_parameter_without_xml_schema(
         self, spectral_validator_with_xml_filtering, openapi_with_json_parameter
     ):
         """Test that parameters without xml property are validated."""
-        spec_uri = openapi_with_json_parameter.as_uri()
-        result = spectral_validator_with_xml_filtering.validate(spec_uri)
+        result = spectral_validator_with_xml_filtering.validate(
+            openapi_with_json_parameter.as_uri()
+        )
 
-        # Should have errors because the parameter example is invalid
-        assert result.valid is False
+        assert not result.valid, "Expected validation to fail for invalid parameter example"
 
-        errors = [d for d in result.diagnostics if d.severity == 1]  # 1 = Error
-        parameter_errors = [
-            e for e in errors if e.data and "parameters" in str(e.data.get("path", ""))
-        ]
-        assert len(parameter_errors) > 0
+        errors = get_error_diagnostics(result)
+        assert has_errors_in_path(errors, "parameters"), (
+            "Should validate parameters without xml schema property"
+        )
 
     def test_skips_header_with_xml_schema(
         self, spectral_validator_with_xml_filtering, openapi_with_xml_header
     ):
         """Test that headers with xml property in schema are skipped."""
-        spec_uri = openapi_with_xml_header.as_uri()
-        result = spectral_validator_with_xml_filtering.validate(spec_uri)
+        result = spectral_validator_with_xml_filtering.validate(openapi_with_xml_header.as_uri())
 
-        # Should not have errors for the header example (it's XML-related)
-        errors = [d for d in result.diagnostics if d.severity == 1]  # 1 = Error
-        header_errors = [
-            e
-            for e in errors
-            if e.data
-            and "headers" in str(e.data.get("path", ""))
-            and "example" in str(e.data.get("path", ""))
-        ]
-        assert len(header_errors) == 0
+        errors = get_error_diagnostics(result)
+        assert not has_errors_in_path(errors, "headers"), (
+            "Should not validate headers with xml schema property"
+        )
 
     def test_validates_header_without_xml_schema(
         self, spectral_validator_with_xml_filtering, openapi_with_json_header
     ):
         """Test that headers without xml property are validated."""
-        spec_uri = openapi_with_json_header.as_uri()
-        result = spectral_validator_with_xml_filtering.validate(spec_uri)
+        result = spectral_validator_with_xml_filtering.validate(openapi_with_json_header.as_uri())
 
-        # Should have errors because the header example is invalid
-        assert result.valid is False
+        assert not result.valid, "Expected validation to fail for invalid header example"
 
-        errors = [d for d in result.diagnostics if d.severity == 1]  # 1 = Error
-        header_errors = [e for e in errors if e.data and "headers" in str(e.data.get("path", ""))]
-        assert len(header_errors) > 0
+        errors = get_error_diagnostics(result)
+        assert has_errors_in_path(errors, "headers"), (
+            "Should validate headers without xml schema property"
+        )
 
     def test_skips_plus_xml_media_types(
         self, spectral_validator_with_xml_filtering, openapi_with_plus_xml_media_type
     ):
         """Test that +xml media types (like application/atom+xml) are skipped."""
-        spec_uri = openapi_with_plus_xml_media_type.as_uri()
-        result = spectral_validator_with_xml_filtering.validate(spec_uri)
+        result = spectral_validator_with_xml_filtering.validate(
+            openapi_with_plus_xml_media_type.as_uri()
+        )
 
-        # Should not have errors for the +xml media type
-        errors = [d for d in result.diagnostics if d.severity == 1]  # 1 = Error
-        xml_errors = [e for e in errors if e.data and "+xml" in str(e.data.get("path", ""))]
-        assert len(xml_errors) == 0
+        errors = get_error_diagnostics(result)
+        assert not has_errors_in_path(errors, "+xml"), (
+            "Should not validate +xml media types (e.g., application/atom+xml)"
+        )
