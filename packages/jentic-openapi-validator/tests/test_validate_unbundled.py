@@ -131,7 +131,7 @@ class TestValidateUnbundledRedocly:
         result = validator.validate(spec_url, base_url=spec_url)
         _print_diagnostics("redocly", result)
         assert not result.valid
-        assert len(result.diagnostics) == 4
+        assert len(result.diagnostics) == 5
 
     def test_validate_unbundled_http_relative_non_existing_redocly(self, http_server):
         """Test redocly backend with HTTP URL and non-existing relative references."""

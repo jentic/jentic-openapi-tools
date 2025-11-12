@@ -4,6 +4,6 @@
   "description": "OpenAPI validator using Redocly for jentic-openapi-tools",
   "private": true,
   "dependencies": {
-    "@redocly/cli": "^2.4.0"
+    "@redocly/cli": "^2.11.1"
   }
 }
