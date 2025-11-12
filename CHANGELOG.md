@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.17 (2025-11-12)
+
+### Chores
+
+- **validator-spectral**: Delete testing OpenAPI Document
+  ([`d131766`](https://github.com/jentic/jentic-openapi-tools/commit/d13176643a188729167b9bc91556ca85f6956fd9))
+
+### Documentation
+
+- **validator-spectral**: Add note about JavaScript Ruleset format
+  ([`df358e2`](https://github.com/jentic/jentic-openapi-tools/commit/df358e2b554d466bbe8d317ea607a67963f0f959))
+
+### Features
+
+- Update @redocly/cli to v2.11.1 ([#124](https://github.com/jentic/jentic-openapi-tools/pull/124),
+  [`36e6724`](https://github.com/jentic/jentic-openapi-tools/commit/36e6724737cf88ece5780f898b23672d54923aa7))
+
+
 ## v1.0.0-alpha.16 (2025-11-10)
 
 ### Bug Fixes

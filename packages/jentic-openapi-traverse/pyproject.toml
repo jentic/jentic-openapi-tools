@@ -1,6 +1,6 @@
 [project]
 name = "jentic-openapi-traverse"
-version = "1.0.0-alpha.16"
+version = "1.0.0-alpha.17"
 description = "Jentic OpenAPI Traversal Utilities"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
