@@ -63,7 +63,7 @@ class TestRedoclyValidatorUnit:
     def test_initialization_with_defaults(self):
         """Test RedoclyValidator initialization with default values."""
         validator = RedoclyValidatorBackend()
-        assert validator.redocly_path == "npx --yes @redocly/cli@2.4.0"
+        assert validator.redocly_path == "npx --yes @redocly/cli@^2.11.1"
         assert validator.ruleset_path is None
         assert validator.timeout == 600.0
 
@@ -81,7 +81,7 @@ class TestRedoclyValidatorUnit:
         """Test RedoclyValidator with custom timeout."""
         validator = RedoclyValidatorBackend(timeout=60.0)
         assert validator.timeout == 60.0
-        assert validator.redocly_path == "npx --yes @redocly/cli@2.4.0"  # default
+        assert validator.redocly_path == "npx --yes @redocly/cli@^2.11.1"  # default
         assert validator.ruleset_path is None  # default
 
     def test_initialization_with_all_custom_parameters(self, custom_ruleset_path):
