@@ -108,7 +108,7 @@ def validator() -> OpenAPIValidator:
 @pytest.fixture
 def valid_openapi_string() -> str:
     """A valid OpenAPI document as JSON string."""
-    return '{"openapi":"3.1.0","info":{"title":"Test API","version":"1.0.0"},"paths":{}}'
+    return '{"openapi":"3.1.0","info":{"title":"Test API","version":"1.0.0"},"paths":{},"servers":[{"url":"https://api.example.com"}]}'
 
 
 @pytest.fixture
@@ -120,7 +120,12 @@ def invalid_openapi_string() -> str:
 @pytest.fixture
 def valid_openapi_dict() -> dict:
     """A valid OpenAPI document as dictionary."""
-    return {"openapi": "3.1.0", "info": {"title": "Test API", "version": "1.0.0"}, "paths": {}}
+    return {
+        "openapi": "3.1.0",
+        "info": {"title": "Test API", "version": "1.0.0"},
+        "paths": {},
+        "servers": [{"url": "https://api.example.com"}],
+    }
 
 
 @pytest.fixture
