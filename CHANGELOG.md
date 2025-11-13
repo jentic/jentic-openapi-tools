@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.18 (2025-11-13)
+
+### Bug Fixes
+
+- **validator**: Report missing servers from default validator as error
+  ([#125](https://github.com/jentic/jentic-openapi-tools/pull/125),
+  [`89f0950`](https://github.com/jentic/jentic-openapi-tools/commit/89f09500dc11164f1e7cbdc0009f9b4a42285f51))
+
+
 ## v1.0.0-alpha.17 (2025-11-12)
 
 ### Chores
