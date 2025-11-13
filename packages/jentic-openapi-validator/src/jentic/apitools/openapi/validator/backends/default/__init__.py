@@ -17,7 +17,7 @@ from ...core.diagnostics import JenticDiagnostic, ValidationResult
 from ..base import BaseValidatorBackend
 from .rules import RuleRegistry
 from .rules.security import SecuritySchemeReferenceRule, UnusedSecuritySchemeRule
-from .rules.server import ServerUrlRule
+from .rules.server import ServersArrayRule, ServerUrlRule
 from .rules.structural import InfoObjectRule, PathsRule
 
 
@@ -194,7 +194,8 @@ class DefaultOpenAPIValidatorBackend(BaseValidatorBackend):
         registry.register(InfoObjectRule())
         registry.register(PathsRule())
 
-        # Register server rules (only validate format if servers exist)
+        # Register server rules
+        registry.register(ServersArrayRule())
         registry.register(ServerUrlRule())
 
         # Register security rules

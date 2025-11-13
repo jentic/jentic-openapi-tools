@@ -16,10 +16,6 @@ def test_validator_ok():
     """Test validation of valid OpenAPI documents."""
     val = OpenAPIValidator()
 
-    # Valid document without servers (servers is optional)
-    res = val.validate('{"openapi":"3.1.0","info":{"title":"ok","version":"1"}, "paths": {}}')
-    assert res.valid is True
-
     # Valid document with servers
     res = val.validate(
         '{"openapi":"3.1.0","info":{"title":"ok","version":"1"}, "paths": {}, "servers": [{"url": "https://api.example.com"}]}'
@@ -38,6 +34,11 @@ def test_validator_failure():
     # Invalid version field type (number instead of string)
     res = val.validate('{"openapi":"3.1.0","info":{"title":"ok","version":1}}')
     assert res.valid is False
+
+    # Missing required servers array
+    res = val.validate('{"openapi":"3.1.0","info":{"title":"ok","version":"1"}, "paths": {}}')
+    assert res.valid is False
+    assert any(d.code == "MISSING_SERVER_URL" for d in res.diagnostics)
 
 
 def test_missing_info_section():
@@ -88,6 +89,7 @@ def test_security_scheme_validation():
         "openapi": "3.1.0",
         "info": {"title": "Test", "version": "1.0"},
         "paths": {},
+        "servers": [{"url": "https://api.example.com"}],
         "components": {
             "securitySchemes": {
                 "bearerAuth": {"type": "http", "scheme": "bearer"}
