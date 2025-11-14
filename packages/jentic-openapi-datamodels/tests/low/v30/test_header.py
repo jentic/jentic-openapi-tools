@@ -260,10 +260,16 @@ def test_build_with_content():
     assert len(content_keys) == 1
     assert content_keys[0].value == "application/json"
 
-    # Content values are stored as raw YAML (ValueSource[YAMLValue])
+    # Content values are now MediaType objects
+    from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
+    from jentic.apitools.openapi.datamodels.low.v30.schema import Schema
+
     media_type_value = result.content.value[content_keys[0]]
-    assert isinstance(media_type_value, ValueSource)
-    assert isinstance(media_type_value.value, CommentedMap)
+    assert isinstance(media_type_value, MediaType)
+    assert media_type_value.schema is not None
+    assert isinstance(media_type_value.schema.value, Schema)
+    assert media_type_value.schema.value.type is not None
+    assert media_type_value.schema.value.type.value == "object"
 
 
 def test_build_with_all_fields():
@@ -656,3 +662,227 @@ def test_examples_source_tracking():
             assert example_value.root_node is not None
         elif isinstance(example_value, ValueSource):
             assert example_value.value_node is not None
+
+
+def test_build_with_content_multiple_media_types():
+    """Test building Header with content field containing multiple media types."""
+    yaml_content = textwrap.dedent(
+        """
+        description: Multi-format header
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+          application/xml:
+            schema:
+              type: string
+          text/plain:
+            schema:
+              type: string
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = header.build(root)
+    assert isinstance(result, header.Header)
+
+    from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
+
+    assert result.content is not None
+    assert isinstance(result.content.value, dict)
+    assert len(result.content.value) == 3
+
+    # Check content keys
+    content_keys = {k.value for k in result.content.value.keys()}
+    assert content_keys == {"application/json", "application/xml", "text/plain"}
+
+    # Check all are MediaType objects
+    for media_type_value in result.content.value.values():
+        assert isinstance(media_type_value, MediaType)
+        assert media_type_value.schema is not None
+
+
+def test_build_with_content_with_examples():
+    """Test building Header with content containing examples."""
+    yaml_content = textwrap.dedent(
+        """
+        description: Header with content examples
+        content:
+          application/json:
+            schema:
+              type: object
+            examples:
+              version1:
+                value:
+                  version: "1.0"
+              version2:
+                value:
+                  version: "2.0"
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = header.build(root)
+    assert isinstance(result, header.Header)
+
+    from jentic.apitools.openapi.datamodels.low.v30.example import Example
+    from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
+
+    assert result.content is not None
+    json_key = next(k for k in result.content.value.keys() if k.value == "application/json")
+    json_media_type = result.content.value[json_key]
+    assert isinstance(json_media_type, MediaType)
+    assert json_media_type.examples is not None
+    assert len(json_media_type.examples.value) == 2
+
+    # Check examples
+    example_keys = {k.value for k in json_media_type.examples.value.keys()}
+    assert example_keys == {"version1", "version2"}
+
+    for example_value in json_media_type.examples.value.values():
+        assert isinstance(example_value, Example)
+
+
+def test_build_with_content_with_encoding():
+    """Test building Header with content containing encoding."""
+    yaml_content = textwrap.dedent(
+        """
+        description: Header with content encoding
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              file:
+                contentType: application/octet-stream
+                headers:
+                  Content-Disposition:
+                    schema:
+                      type: string
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = header.build(root)
+    assert isinstance(result, header.Header)
+
+    from jentic.apitools.openapi.datamodels.low.v30.encoding import Encoding
+    from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
+
+    assert result.content is not None
+    multipart_key = next(k for k in result.content.value.keys() if k.value == "multipart/form-data")
+    multipart_media_type = result.content.value[multipart_key]
+    assert isinstance(multipart_media_type, MediaType)
+    assert multipart_media_type.encoding is not None
+    assert len(multipart_media_type.encoding.value) == 1
+
+    # Check encoding
+    file_key = next(k for k in multipart_media_type.encoding.value.keys() if k.value == "file")
+    file_encoding = multipart_media_type.encoding.value[file_key]
+    assert isinstance(file_encoding, Encoding)
+    assert file_encoding.contentType is not None
+    assert file_encoding.contentType.value == "application/octet-stream"
+
+
+def test_content_source_tracking():
+    """Test that content maintains proper source tracking."""
+    yaml_content = textwrap.dedent(
+        """
+        description: Header with content
+        content:
+          application/json:
+            schema:
+              type: string
+          text/plain:
+            schema:
+              type: string
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = header.build(root)
+    assert isinstance(result, header.Header)
+
+    from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
+
+    assert result.content is not None
+
+    # Check that each content key has source tracking
+    for content_key, content_value in result.content.value.items():
+        assert isinstance(content_key, KeySource)
+        assert content_key.key_node is not None
+
+        # Check that the MediaType has proper root_node
+        assert isinstance(content_value, MediaType)
+        assert content_value.root_node is not None
+
+
+def test_build_with_content_invalid_data():
+    """Test that invalid content data is preserved."""
+    yaml_content = textwrap.dedent(
+        """
+        description: Test header
+        content:
+          application/json: invalid-string-not-object
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = header.build(root)
+    assert isinstance(result, header.Header)
+
+    assert result.content is not None
+    assert len(result.content.value) == 1
+
+    content_keys = list(result.content.value.keys())
+    assert content_keys[0].value == "application/json"
+    # The invalid data should be preserved - child builder returns ValueSource
+    content_value = result.content.value[content_keys[0]]
+    assert isinstance(content_value, ValueSource)
+    assert content_value.value == "invalid-string-not-object"
+
+
+def test_build_with_content_and_schema_mutual_exclusivity():
+    """Test that Header can have both schema and content (even though they're mutually exclusive per spec)."""
+    yaml_content = textwrap.dedent(
+        """
+        description: Header with both schema and content
+        schema:
+          type: string
+        content:
+          application/json:
+            schema:
+              type: object
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = header.build(root)
+    assert isinstance(result, header.Header)
+
+    from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
+    from jentic.apitools.openapi.datamodels.low.v30.schema import Schema
+
+    # Both fields should be preserved even if they violate the spec
+    # (validation layer will catch this)
+    assert result.schema is not None
+    assert isinstance(result.schema.value, Schema)
+    assert result.content is not None
+    assert len(result.content.value) == 1
+
+    json_key = next(k for k in result.content.value.keys())
+    json_media_type = result.content.value[json_key]
+    assert isinstance(json_media_type, MediaType)

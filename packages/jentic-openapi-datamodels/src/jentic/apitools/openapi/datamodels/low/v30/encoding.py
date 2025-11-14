@@ -49,9 +49,7 @@ class Encoding:
 
     root_node: yaml.Node
     contentType: FieldSource[str] | None = fixed_field()
-    headers: (
-        FieldSource[dict[KeySource[str], Header | Reference | ValueSource[YAMLInvalidValue]]] | None
-    ) = fixed_field()
+    headers: FieldSource[dict[KeySource[str], Header | Reference]] | None = fixed_field()
     style: FieldSource[str] | None = fixed_field()
     explode: FieldSource[bool] | None = fixed_field()
     allowReserved: FieldSource[bool] | None = fixed_field()
