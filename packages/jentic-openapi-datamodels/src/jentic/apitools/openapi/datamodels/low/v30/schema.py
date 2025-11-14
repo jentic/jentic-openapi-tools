@@ -27,7 +27,7 @@ from jentic.apitools.openapi.datamodels.low.v30.xml import XML
 from jentic.apitools.openapi.datamodels.low.v30.xml import build as build_xml
 
 
-__all__ = ["Schema", "NestedSchema", "build"]
+__all__ = ["Schema", "NestedSchema", "build", "build_schema_or_reference"]
 
 
 # Type alias for nested schema references
@@ -244,7 +244,7 @@ def build(
             if isinstance(value_node, yaml.SequenceNode):
                 schemas = []
                 for item_node in value_node.value:
-                    schema_or_ref = _build_schema_or_reference(item_node, context)
+                    schema_or_ref = build_schema_or_reference(item_node, context)
                     schemas.append(schema_or_ref)
                 field_values[field_name] = FieldSource(
                     value=schemas, key_node=key_node, value_node=value_node
@@ -257,7 +257,7 @@ def build(
                 )
         # Recursive schema single fields (not, items)
         elif key in ("not", "items"):
-            schema_or_ref = _build_schema_or_reference(value_node, context)
+            schema_or_ref = build_schema_or_reference(value_node, context)
             field_values[field_name] = FieldSource(
                 value=schema_or_ref, key_node=key_node, value_node=value_node
             )
@@ -274,7 +274,7 @@ def build(
                 )
             else:
                 # It's a schema or reference
-                schema_or_ref = _build_schema_or_reference(value_node, context)
+                schema_or_ref = build_schema_or_reference(value_node, context)
                 field_values[field_name] = FieldSource(
                     value=schema_or_ref, key_node=key_node, value_node=value_node
                 )
@@ -285,7 +285,7 @@ def build(
                 for prop_key_node, prop_value_node in value_node.value:
                     prop_key = context.yaml_constructor.construct_yaml_str(prop_key_node)
                     # Recursively build each property schema
-                    prop_schema_or_ref: NestedSchema = _build_schema_or_reference(
+                    prop_schema_or_ref: NestedSchema = build_schema_or_reference(
                         prop_value_node, context
                     )
                     properties_dict[KeySource(value=prop_key, key_node=prop_key_node)] = (
@@ -328,7 +328,7 @@ def build(
     )
 
 
-def _build_schema_or_reference(node: yaml.Node, context: Context) -> NestedSchema:
+def build_schema_or_reference(node: yaml.Node, context: Context) -> NestedSchema:
     """
     Build either a Schema or Reference from a YAML node.
 
