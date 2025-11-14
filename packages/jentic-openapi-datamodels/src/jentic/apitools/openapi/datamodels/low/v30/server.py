@@ -117,5 +117,6 @@ def build(
                 value = context.yaml_constructor.construct_object(value_node, deep=True)
                 variables = FieldSource(value=value, key_node=key_node, value_node=value_node)
                 server = replace(server, variables=variables)
+            break
 
     return server

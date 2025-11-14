@@ -81,17 +81,17 @@ def build(root: yaml.Node, context: Context | None = None) -> Link | ValueSource
         return link
 
     # Manually handle nested server object and parameters dict
+    replacements = {}
     for key_node, value_node in root.value:
         key = context.yaml_constructor.construct_yaml_str(key_node)
 
         if key == "server":
             # Handle nested Server object - child builder handles invalid nodes
-            server = FieldSource(
+            replacements["server"] = FieldSource(
                 value=build_server(value_node, context=context),
                 key_node=key_node,
                 value_node=value_node,
             )
-            link = replace(link, server=server)
         elif key == "parameters":
             # Handle parameters map with KeySource/ValueSource wrapping
             if isinstance(value_node, yaml.MappingNode):
@@ -104,14 +104,18 @@ def build(root: yaml.Node, context: Context | None = None) -> Link | ValueSource
                     params_dict[KeySource(value=param_key, key_node=param_key_node)] = ValueSource(
                         value=param_value, value_node=param_value_node
                     )
-                parameters = FieldSource(
+                replacements["parameters"] = FieldSource(
                     value=params_dict, key_node=key_node, value_node=value_node
                 )
-                link = replace(link, parameters=parameters)
             else:
                 # Not a mapping - preserve as-is for validation
                 value = context.yaml_constructor.construct_object(value_node, deep=True)
-                parameters = FieldSource(value=value, key_node=key_node, value_node=value_node)
-                link = replace(link, parameters=parameters)
+                replacements["parameters"] = FieldSource(
+                    value=value, key_node=key_node, value_node=value_node
+                )
+
+    # Apply all replacements at once
+    if replacements:
+        link = replace(link, **replacements)
 
     return link

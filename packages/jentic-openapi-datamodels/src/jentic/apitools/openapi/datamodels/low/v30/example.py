@@ -12,9 +12,11 @@ from jentic.apitools.openapi.datamodels.low.sources import (
     YAMLInvalidValue,
     YAMLValue,
 )
+from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
+from jentic.apitools.openapi.datamodels.low.v30.reference import build as build_reference
 
 
-__all__ = ["Example", "build"]
+__all__ = ["Example", "build", "build_example_or_reference"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,3 +68,30 @@ def build(
         assert example.summary.value == 'A user example'
     """
     return build_model(root, Example, context=context)
+
+
+def build_example_or_reference(
+    node: yaml.Node, context: Context
+) -> Example | Reference | ValueSource[YAMLInvalidValue]:
+    """
+    Build either an Example or Reference from a YAML node.
+
+    This helper handles the polymorphic nature of OpenAPI where many fields
+    can contain either an Example object or a Reference object ($ref).
+
+    Args:
+        node: The YAML node to parse
+        context: Parsing context
+
+    Returns:
+        An Example, Reference, or ValueSource if the node is invalid
+    """
+    # Check if it's a reference (has $ref key)
+    if isinstance(node, yaml.MappingNode):
+        for key_node, _ in node.value:
+            key = context.yaml_constructor.construct_yaml_str(key_node)
+            if key == "$ref":
+                return build_reference(node, context)
+
+    # Otherwise, try to build as Example
+    return build(node, context)
