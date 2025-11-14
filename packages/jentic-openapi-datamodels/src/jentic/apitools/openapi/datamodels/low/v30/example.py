@@ -71,7 +71,7 @@ def build(
 
 
 def build_example_or_reference(
-    node: yaml.Node, context: Context | None = None
+    node: yaml.Node, context: Context
 ) -> Example | Reference | ValueSource[YAMLInvalidValue]:
     """
     Build either an Example or Reference from a YAML node.
@@ -81,13 +81,11 @@ def build_example_or_reference(
 
     Args:
         node: The YAML node to parse
-        context: Optional parsing context. If None, a default context will be created.
+        context: Parsing context
 
     Returns:
         An Example, Reference, or ValueSource if the node is invalid
     """
-    context = context or Context()
-
     # Check if it's a reference (has $ref key)
     if isinstance(node, yaml.MappingNode):
         for key_node, _ in node.value:
