@@ -12,11 +12,13 @@ from jentic.apitools.openapi.datamodels.low.sources import (
     YAMLInvalidValue,
     YAMLValue,
 )
+from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
+from jentic.apitools.openapi.datamodels.low.v30.reference import build as build_reference
 from jentic.apitools.openapi.datamodels.low.v30.server import Server
 from jentic.apitools.openapi.datamodels.low.v30.server import build as build_server
 
 
-__all__ = ["Link", "build"]
+__all__ = ["Link", "build", "build_link_or_reference"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -119,3 +121,30 @@ def build(root: yaml.Node, context: Context | None = None) -> Link | ValueSource
         link = replace(link, **replacements)
 
     return link
+
+
+def build_link_or_reference(
+    node: yaml.Node, context: Context
+) -> Link | Reference | ValueSource[YAMLInvalidValue]:
+    """
+    Build either a Link or Reference from a YAML node.
+
+    This helper handles the polymorphic nature of OpenAPI where many fields
+    can contain either a Link object or a Reference object ($ref).
+
+    Args:
+        node: The YAML node to parse
+        context: Parsing context
+
+    Returns:
+        A Link, Reference, or ValueSource if the node is invalid
+    """
+    # Check if it's a reference (has $ref key)
+    if isinstance(node, yaml.MappingNode):
+        for key_node, _ in node.value:
+            key = context.yaml_constructor.construct_yaml_str(key_node)
+            if key == "$ref":
+                return build_reference(node, context)
+
+    # Otherwise, try to build as Link
+    return build(node, context)
