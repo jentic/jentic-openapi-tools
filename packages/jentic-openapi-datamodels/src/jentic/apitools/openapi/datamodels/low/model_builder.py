@@ -11,6 +11,7 @@ from jentic.apitools.openapi.datamodels.low.sources import (
     KeySource,
     ValueSource,
     YAMLInvalidValue,
+    YAMLValue,
 )
 
 
@@ -72,7 +73,12 @@ def build_model(
             field = _fixed_fields[field_name]
             field_type_args = set(get_args(field.type))
 
-            if field_type_args & {FieldSource[str], FieldSource[bool], FieldSource[int]}:
+            if field_type_args & {
+                FieldSource[str],
+                FieldSource[bool],
+                FieldSource[int],
+                FieldSource[YAMLValue],
+            }:
                 value = context.yaml_constructor.construct_object(value_node, deep=True)
                 field_values[field_name] = FieldSource(
                     value=value, key_node=key_node, value_node=value_node
