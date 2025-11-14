@@ -1,0 +1,149 @@
+from dataclasses import dataclass, field, replace
+
+from ruamel import yaml
+
+from jentic.apitools.openapi.datamodels.low.context import Context
+from jentic.apitools.openapi.datamodels.low.fields import fixed_field
+from jentic.apitools.openapi.datamodels.low.model_builder import build_model
+from jentic.apitools.openapi.datamodels.low.sources import (
+    FieldSource,
+    KeySource,
+    ValueSource,
+    YAMLInvalidValue,
+    YAMLValue,
+)
+from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
+from jentic.apitools.openapi.datamodels.low.v30.media_type import (
+    build as build_media_type,
+)
+from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
+from jentic.apitools.openapi.datamodels.low.v30.reference import (
+    build as build_reference,
+)
+
+
+__all__ = ["RequestBody", "build", "build_request_body_or_reference"]
+
+
+@dataclass(frozen=True, slots=True)
+class RequestBody:
+    """
+    Request Body Object representation for OpenAPI 3.0.
+
+    Describes a single request body.
+
+    Attributes:
+        root_node: The top-level node representing the entire Request Body object in the original source file
+        description: A brief description of the request body. CommonMark syntax MAY be used for rich text representation.
+        content: The content of the request body. The key is a media type or media type range and the value describes it.
+                For requests that match multiple keys, only the most specific key is applicable.
+        required: Determines if the request body is required in the request. Defaults to false.
+        extensions: Specification extensions (x-* fields)
+    """
+
+    root_node: yaml.Node
+    description: FieldSource[str] | None = fixed_field()
+    content: FieldSource[dict[KeySource[str], MediaType]] | None = fixed_field()
+    required: FieldSource[bool] | None = fixed_field()
+    extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
+
+
+def build(
+    root: yaml.Node, context: Context | None = None
+) -> RequestBody | ValueSource[YAMLInvalidValue]:
+    """
+    Build a RequestBody object from a YAML node.
+
+    Preserves all source data as-is, regardless of type. This is a low-level/plumbing
+    model that provides complete source fidelity for inspection and validation.
+
+    Args:
+        root: The YAML node to parse (should be a MappingNode)
+        context: Optional parsing context. If None, a default context will be created.
+
+    Returns:
+        A RequestBody object if the node is valid, or a ValueSource containing
+        the invalid data if the root is not a MappingNode (preserving the invalid data
+        and its source location for validation).
+
+    Example:
+        from ruamel.yaml import YAML
+        yaml = YAML()
+        root = yaml.compose('''
+        description: user to add to the system
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+        ''')
+        request_body = build(root)
+        assert request_body.description.value == 'user to add to the system'
+    """
+    context = context or Context()
+
+    # Use build_model to handle simple fields
+    request_body = build_model(root, RequestBody, context=context)
+
+    # If build_model returned ValueSource (invalid node), return it immediately
+    if not isinstance(request_body, RequestBody):
+        return request_body
+
+    # Manually handle nested content field
+    for key_node, value_node in root.value:
+        key = context.yaml_constructor.construct_yaml_str(key_node)
+
+        if key == "content":
+            # Handle content field - map of media types
+            if isinstance(value_node, yaml.MappingNode):
+                content_dict: dict[KeySource[str], MediaType | ValueSource[YAMLInvalidValue]] = {}
+                for content_key_node, content_value_node in value_node.value:
+                    content_key = context.yaml_constructor.construct_yaml_str(content_key_node)
+                    # Build MediaType - child builder handles invalid nodes
+                    media_type_obj = build_media_type(content_value_node, context)
+                    content_dict[KeySource(value=content_key, key_node=content_key_node)] = (
+                        media_type_obj
+                    )
+                request_body = replace(
+                    request_body,
+                    content=FieldSource(
+                        value=content_dict, key_node=key_node, value_node=value_node
+                    ),
+                )
+            else:
+                # Not a mapping - preserve as-is for validation
+                value = context.yaml_constructor.construct_object(value_node, deep=True)
+                request_body = replace(
+                    request_body,
+                    content=FieldSource(value=value, key_node=key_node, value_node=value_node),
+                )
+            break
+
+    return request_body
+
+
+def build_request_body_or_reference(
+    node: yaml.Node, context: Context
+) -> RequestBody | Reference | ValueSource[YAMLInvalidValue]:
+    """
+    Build either a RequestBody or Reference from a YAML node.
+
+    This helper handles the polymorphic nature of OpenAPI where many fields
+    can contain either a RequestBody object or a Reference object ($ref).
+
+    Args:
+        node: The YAML node to parse
+        context: Parsing context
+
+    Returns:
+        A RequestBody, Reference, or ValueSource if the node is invalid
+    """
+    # Check if it's a reference (has $ref key)
+    if isinstance(node, yaml.MappingNode):
+        for key_node, _ in node.value:
+            key = context.yaml_constructor.construct_yaml_str(key_node)
+            if key == "$ref":
+                return build_reference(node, context)
+
+    # Otherwise, try to build as RequestBody
+    return build(node, context)
