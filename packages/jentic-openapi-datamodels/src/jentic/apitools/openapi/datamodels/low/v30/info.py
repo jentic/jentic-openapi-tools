@@ -85,17 +85,14 @@ def build(root: yaml.Node, context: Context | None = None) -> Info | ValueSource
         assert info.version.value == '1.0.1'
         assert info.contact.value.name.value == 'API Support'
     """
-    # Initialize context once at the beginning
-    if context is None:
-        context = Context()
-
-    if not isinstance(root, yaml.MappingNode):
-        # Preserve invalid root data instead of returning None
-        value = context.yaml_constructor.construct_object(root, deep=True)
-        return ValueSource(value=value, value_node=root)
+    context = context or Context()
 
     # Use build_model to handle most fields
     info = build_model(root, Info, context=context)
+
+    # If build_model returned ValueSource (invalid node), return it immediately
+    if not isinstance(info, Info):
+        return info
 
     # Manually handle nested objects (contact, license)
     for key_node, value_node in root.value:

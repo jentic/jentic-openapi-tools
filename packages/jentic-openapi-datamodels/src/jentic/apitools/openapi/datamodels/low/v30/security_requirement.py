@@ -5,7 +5,11 @@ from ruamel.yaml import MappingNode, SequenceNode
 
 from jentic.apitools.openapi.datamodels.low.context import Context
 from jentic.apitools.openapi.datamodels.low.fields import patterned_field
-from jentic.apitools.openapi.datamodels.low.sources import KeySource, ValueSource
+from jentic.apitools.openapi.datamodels.low.sources import (
+    KeySource,
+    ValueSource,
+    YAMLInvalidValue,
+)
 
 
 __all__ = ["SecurityRequirement", "build"]
@@ -38,7 +42,9 @@ class SecurityRequirement:
     )
 
 
-def build(root: yaml.Node, context: Context | None = None) -> SecurityRequirement | None:
+def build(
+    root: yaml.Node, context: Context | None = None
+) -> SecurityRequirement | ValueSource[YAMLInvalidValue]:
     """
     Build a SecurityRequirement object from a YAML node.
 
@@ -50,7 +56,9 @@ def build(root: yaml.Node, context: Context | None = None) -> SecurityRequiremen
         context: Optional parsing context. If None, a default context will be created.
 
     Returns:
-        A SecurityRequirement object if the node is valid, None otherwise
+        A SecurityRequirement object if the node is valid, or a ValueSource containing
+        the invalid data if the root is not a MappingNode (preserving the invalid data
+        and its source location for validation).
 
     Example:
         from ruamel.yaml import YAML
@@ -59,11 +67,12 @@ def build(root: yaml.Node, context: Context | None = None) -> SecurityRequiremen
         security_req = build(root)
         assert security_req.requirements is not None
     """
-    if not isinstance(root, MappingNode):
-        return None
+    context = context or Context()
 
-    if context is None:
-        context = Context()
+    if not isinstance(root, MappingNode):
+        # Preserve invalid root data instead of returning None
+        value = context.yaml_constructor.construct_object(root, deep=True)
+        return ValueSource(value=value, value_node=root)
 
     requirements_dict: dict[KeySource[str], ValueSource[list[ValueSource[str]]]] = {}
 

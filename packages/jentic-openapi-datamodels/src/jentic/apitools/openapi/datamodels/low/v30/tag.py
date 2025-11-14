@@ -71,17 +71,14 @@ def build(root: yaml.Node, context: Context | None = None) -> Tag | ValueSource[
         tag = build(root)
         assert tag.name.value == 'pet'
     """
-    # Initialize context once at the beginning
-    if context is None:
-        context = Context()
-
-    if not isinstance(root, yaml.MappingNode):
-        # Preserve invalid root data instead of returning None
-        value = context.yaml_constructor.construct_object(root, deep=True)
-        return ValueSource(value=value, value_node=root)
+    context = context or Context()
 
     # Use build_model to handle most fields
     tag = build_model(root, Tag, context=context)
+
+    # If build_model returned ValueSource (invalid node), return it immediately
+    if not isinstance(tag, Tag):
+        return tag
 
     # Manually handle special fields that build_model can't process (nested objects)
     for key_node, value_node in root.value:

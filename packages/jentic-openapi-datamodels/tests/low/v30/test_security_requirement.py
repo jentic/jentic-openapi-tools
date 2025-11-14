@@ -142,17 +142,23 @@ def test_build_preserves_invalid_types():
     assert requirements["oauth2"] == 123
 
 
-def test_build_with_invalid_node_returns_none():
-    """Test that build returns None for non-mapping nodes."""
+def test_build_with_invalid_node_returns_value_source():
+    """Test that build returns ValueSource for non-mapping nodes."""
     yaml_parser = YAML()
 
     # Scalar node
     scalar_root = yaml_parser.compose("just-a-string")
-    assert security_requirement.build(scalar_root) is None
+    result = security_requirement.build(scalar_root)
+    assert isinstance(result, ValueSource)
+    assert result.value == "just-a-string"
+    assert result.value_node == scalar_root
 
     # Sequence node
     sequence_root = yaml_parser.compose("['item1', 'item2']")
-    assert security_requirement.build(sequence_root) is None
+    result = security_requirement.build(sequence_root)
+    assert isinstance(result, ValueSource)
+    assert result.value == ["item1", "item2"]
+    assert result.value_node == sequence_root
 
 
 def test_build_with_custom_context():

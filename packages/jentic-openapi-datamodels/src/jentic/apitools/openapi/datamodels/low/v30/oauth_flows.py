@@ -74,9 +74,7 @@ def build(
         flows = build(root)
         assert flows.implicit.value.authorization_url.value == 'https://example.com/auth'
     """
-    # Initialize context once at the beginning
-    if context is None:
-        context = Context()
+    context = context or Context()
 
     if not isinstance(root, yaml.MappingNode):
         # Preserve invalid root data instead of returning None
