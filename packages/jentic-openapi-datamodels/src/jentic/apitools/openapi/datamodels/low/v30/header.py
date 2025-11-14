@@ -16,14 +16,19 @@ from jentic.apitools.openapi.datamodels.low.v30.example import (
     Example,
     build_example_or_reference,
 )
-from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
+from jentic.apitools.openapi.datamodels.low.v30.reference import (
+    Reference,
+)
+from jentic.apitools.openapi.datamodels.low.v30.reference import (
+    build as build_reference,
+)
 from jentic.apitools.openapi.datamodels.low.v30.schema import (
     Schema,
     build_schema_or_reference,
 )
 
 
-__all__ = ["Header", "build"]
+__all__ = ["Header", "build", "build_header_or_reference"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -167,3 +172,30 @@ def build(
         header = replace(header, **replacements)
 
     return header
+
+
+def build_header_or_reference(
+    node: yaml.Node, context: Context
+) -> Header | Reference | ValueSource[YAMLInvalidValue]:
+    """
+    Build either a Header or Reference from a YAML node.
+
+    This helper handles the polymorphic nature of OpenAPI where many fields
+    can contain either a Header object or a Reference object ($ref).
+
+    Args:
+        node: The YAML node to parse
+        context: Parsing context
+
+    Returns:
+        A Header, Reference, or ValueSource if the node is invalid
+    """
+    # Check if it's a reference (has $ref key)
+    if isinstance(node, yaml.MappingNode):
+        for key_node, _ in node.value:
+            key = context.yaml_constructor.construct_yaml_str(key_node)
+            if key == "$ref":
+                return build_reference(node, context)
+
+    # Otherwise, try to build as Header
+    return build(node, context)
