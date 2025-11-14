@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field, replace
+from typing import TYPE_CHECKING
 
 from ruamel import yaml
 
@@ -26,6 +27,10 @@ from jentic.apitools.openapi.datamodels.low.v30.schema import (
     Schema,
     build_schema_or_reference,
 )
+
+
+if TYPE_CHECKING:
+    from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
 
 
 __all__ = ["Header", "build", "build_header_or_reference"]
@@ -67,11 +72,8 @@ class Header:
     explode: FieldSource[bool] | None = fixed_field()
     schema: FieldSource[Schema | Reference] | None = fixed_field()
     example: FieldSource[YAMLValue] | None = fixed_field()
-    examples: (
-        FieldSource[dict[KeySource[str], Example | Reference | ValueSource[YAMLInvalidValue]]]
-        | None
-    ) = fixed_field()
-    content: FieldSource[dict[KeySource[str], ValueSource[YAMLValue]]] | None = fixed_field()
+    examples: FieldSource[dict[KeySource[str], Example | Reference]] | None = fixed_field()
+    content: FieldSource[dict[KeySource[str], "MediaType"]] | None = fixed_field()
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
@@ -146,16 +148,23 @@ def build(
                     value=value, key_node=key_node, value_node=value_node
                 )
         elif key == "content":
-            # Handle content field - map of media types (not yet fully modeled)
+            # Handle content field - map of media types
             if isinstance(value_node, yaml.MappingNode):
-                content_dict: dict[KeySource[str], ValueSource[YAMLValue]] = {}
+                # Lazy import to avoid circular dependency; header → media_type → encoding → header
+                from jentic.apitools.openapi.datamodels.low.v30.media_type import (
+                    MediaType,
+                )
+                from jentic.apitools.openapi.datamodels.low.v30.media_type import (
+                    build as build_media_type,
+                )
+
+                content_dict: dict[KeySource[str], MediaType | ValueSource[YAMLInvalidValue]] = {}
                 for content_key_node, content_value_node in value_node.value:
                     content_key = context.yaml_constructor.construct_yaml_str(content_key_node)
-                    content_value = context.yaml_constructor.construct_object(
-                        content_value_node, deep=True
-                    )
+                    # Build MediaType - child builder handles invalid nodes
+                    media_type_obj = build_media_type(content_value_node, context)
                     content_dict[KeySource(value=content_key, key_node=content_key_node)] = (
-                        ValueSource(value=content_value, value_node=content_value_node)
+                        media_type_obj
                     )
                 replacements["content"] = FieldSource(
                     value=content_dict, key_node=key_node, value_node=value_node

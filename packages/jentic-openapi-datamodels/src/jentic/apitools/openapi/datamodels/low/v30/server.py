@@ -39,9 +39,7 @@ class Server:
     root_node: yaml.Node
     url: FieldSource[str] | None = fixed_field()
     description: FieldSource[str] | None = fixed_field()
-    variables: (
-        FieldSource[dict[KeySource[str], ServerVariable | ValueSource[YAMLInvalidValue]]] | None
-    ) = fixed_field()
+    variables: FieldSource[dict[KeySource[str], ServerVariable]] | None = fixed_field()
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
