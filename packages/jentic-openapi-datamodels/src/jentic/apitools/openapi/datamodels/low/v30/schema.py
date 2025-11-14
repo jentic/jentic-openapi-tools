@@ -123,7 +123,7 @@ class Schema:
     anyOf: FieldSource[list[NestedSchema]] | None = fixed_field()
     not_: FieldSource[NestedSchema] | None = fixed_field(metadata={"yaml_name": "not"})
     items: FieldSource[NestedSchema] | None = fixed_field()
-    properties: FieldSource[dict[KeySource[str], ValueSource[NestedSchema]]] | None = fixed_field()
+    properties: FieldSource[dict[KeySource[str], NestedSchema]] | None = fixed_field()
     additionalProperties: FieldSource["bool | NestedSchema"] | None = fixed_field()
 
     # JSON Schema Metadata
@@ -174,9 +174,7 @@ def build(
         assert schema.type.value == 'string'
         assert schema.minLength.value == 1
     """
-    # Initialize context once at the beginning
-    if context is None:
-        context = Context()
+    context = context or Context()
 
     if not isinstance(root, yaml.MappingNode):
         # Preserve invalid root data instead of returning None
@@ -280,16 +278,18 @@ def build(
                 field_values[field_name] = FieldSource(
                     value=schema_or_ref, key_node=key_node, value_node=value_node
                 )
-        # properties (dict[KeySource[str], ValueSource[NestedSchema]])
+        # properties (dict[KeySource[str], NestedSchema])
         elif key == "properties":
             if isinstance(value_node, yaml.MappingNode):
-                properties_dict: dict[KeySource[str], ValueSource[NestedSchema]] = {}
+                properties_dict: dict[KeySource[str], NestedSchema] = {}
                 for prop_key_node, prop_value_node in value_node.value:
                     prop_key = context.yaml_constructor.construct_yaml_str(prop_key_node)
                     # Recursively build each property schema
-                    prop_schema_or_ref = _build_schema_or_reference(prop_value_node, context)
+                    prop_schema_or_ref: NestedSchema = _build_schema_or_reference(
+                        prop_value_node, context
+                    )
                     properties_dict[KeySource(value=prop_key, key_node=prop_key_node)] = (
-                        ValueSource(value=prop_schema_or_ref, value_node=prop_value_node)
+                        prop_schema_or_ref
                     )
                 field_values[field_name] = FieldSource(
                     value=properties_dict, key_node=key_node, value_node=value_node

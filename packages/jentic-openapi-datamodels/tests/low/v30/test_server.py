@@ -131,12 +131,11 @@ def test_build_with_single_variable():
     assert var_keys[0].value == "environment"
 
     var_value = result.variables.value[var_keys[0]]
-    assert isinstance(var_value, ValueSource)
-    assert isinstance(var_value.value, ServerVariable)
-    assert var_value.value.default is not None
-    assert var_value.value.default.value == "production"
-    assert var_value.value.description is not None
-    assert var_value.value.description.value == "The deployment environment"
+    assert isinstance(var_value, ServerVariable)
+    assert var_value.default is not None
+    assert var_value.default.value == "production"
+    assert var_value.description is not None
+    assert var_value.description.value == "The deployment environment"
 
 
 def test_build_with_multiple_variables():
@@ -175,7 +174,7 @@ def test_build_with_multiple_variables():
 
     # Check environment variable
     env_key = next(k for k in result.variables.value.keys() if k.value == "environment")
-    env_var = result.variables.value[env_key].value
+    env_var = result.variables.value[env_key]
     assert isinstance(env_var, ServerVariable)
     assert env_var.default is not None
     assert env_var.default.value == "production"
@@ -184,7 +183,7 @@ def test_build_with_multiple_variables():
 
     # Check port variable
     port_key = next(k for k in result.variables.value.keys() if k.value == "port")
-    port_var = result.variables.value[port_key].value
+    port_var = result.variables.value[port_key]
     assert isinstance(port_var, ServerVariable)
     assert port_var.default is not None
     assert port_var.default.value == "8443"
@@ -338,8 +337,7 @@ def test_build_with_invalid_variable_data():
     # The invalid data should be preserved - child builder returns ValueSource for invalid data
     var_value = result.variables.value[var_keys[0]]
     assert isinstance(var_value, ValueSource)
-    assert isinstance(var_value.value, ValueSource)
-    assert var_value.value.value == "invalid-string-not-object"
+    assert var_value.value == "invalid-string-not-object"
 
 
 def test_build_with_custom_context():
@@ -500,7 +498,7 @@ def test_build_real_world_example():
 
     # Check username variable
     username_key = next(k for k in result.variables.value.keys() if k.value == "username")
-    username_var = result.variables.value[username_key].value
+    username_var = result.variables.value[username_key]
     assert isinstance(username_var, ServerVariable)
     assert username_var.default is not None
     assert username_var.default.value == "demo"
@@ -509,7 +507,7 @@ def test_build_real_world_example():
 
     # Check port variable with enum
     port_key = next(k for k in result.variables.value.keys() if k.value == "port")
-    port_var = result.variables.value[port_key].value
+    port_var = result.variables.value[port_key]
     assert isinstance(port_var, ServerVariable)
     assert port_var.default is not None
     assert port_var.default.value == "8443"
@@ -543,9 +541,9 @@ def test_variable_source_tracking():
     for var_key, var_value in result.variables.value.items():
         assert isinstance(var_key, KeySource)
         assert var_key.key_node is not None
-        assert isinstance(var_value, ValueSource)
-        assert var_value.value_node is not None
 
-        # Check that the ServerVariable itself has proper root_node
-        if isinstance(var_value.value, ServerVariable):
-            assert var_value.value.root_node is not None
+        # Check that the ServerVariable or ValueSource has proper root_node/value_node
+        if isinstance(var_value, ServerVariable):
+            assert var_value.root_node is not None
+        elif isinstance(var_value, ValueSource):
+            assert var_value.value_node is not None

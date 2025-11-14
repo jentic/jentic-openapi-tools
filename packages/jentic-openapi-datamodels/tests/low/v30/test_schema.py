@@ -469,7 +469,7 @@ def test_build_with_properties_references():
     assert len(result.properties.value) == 3
 
     # Extract properties for easier testing
-    properties = {k.value: v.value for k, v in result.properties.value.items()}
+    properties = {k.value: v for k, v in result.properties.value.items()}
 
     # user and address should be References
     assert isinstance(properties["user"], Reference)
@@ -942,7 +942,7 @@ def test_build_with_self_referential_schema():
 
     # Check that the self-referential structure is preserved
     assert result.properties is not None
-    properties = {k.value: v.value for k, v in result.properties.value.items()}
+    properties = {k.value: v for k, v in result.properties.value.items()}
     assert "children" in properties
     # Type narrow to Schema before accessing attributes
     children_value = properties["children"]

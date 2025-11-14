@@ -40,10 +40,7 @@ class Server:
     url: FieldSource[str] | None = fixed_field()
     description: FieldSource[str] | None = fixed_field()
     variables: (
-        FieldSource[
-            dict[KeySource[str], ValueSource[ServerVariable | ValueSource[YAMLInvalidValue]]]
-        ]
-        | None
+        FieldSource[dict[KeySource[str], ServerVariable | ValueSource[YAMLInvalidValue]]] | None
     ) = fixed_field()
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
@@ -103,15 +100,13 @@ def build(
             # Handle variables field - map of ServerVariable objects
             if isinstance(value_node, yaml.MappingNode):
                 variables_dict: dict[
-                    KeySource[str], ValueSource[ServerVariable | ValueSource[YAMLInvalidValue]]
+                    KeySource[str], ServerVariable | ValueSource[YAMLInvalidValue]
                 ] = {}
                 for var_key_node, var_value_node in value_node.value:
                     var_key = context.yaml_constructor.construct_yaml_str(var_key_node)
                     # Build ServerVariable for each variable - child builder handles invalid nodes
-                    # ValueSource will wrap the result
-                    server_variable = build_server_variable(var_value_node, context=context)
-                    variables_dict[KeySource(value=var_key, key_node=var_key_node)] = ValueSource(
-                        value=server_variable, value_node=var_value_node
+                    variables_dict[KeySource(value=var_key, key_node=var_key_node)] = (
+                        build_server_variable(var_value_node, context=context)
                     )
                 variables = FieldSource(
                     value=variables_dict, key_node=key_node, value_node=value_node
