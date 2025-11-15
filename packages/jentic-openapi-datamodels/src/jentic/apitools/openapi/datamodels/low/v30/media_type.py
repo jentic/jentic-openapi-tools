@@ -101,9 +101,9 @@ def build(
 
         if key == "schema":
             # Handle schema field - can be Schema or Reference
-            schema_or_ref = build_schema_or_reference(value_node, context)
+            schema_or_reference = build_schema_or_reference(value_node, context)
             replacements["schema"] = FieldSource(
-                value=schema_or_ref, key_node=key_node, value_node=value_node
+                value=schema_or_reference, key_node=key_node, value_node=value_node
             )
         elif key == "examples":
             # Handle examples field - map of Example or Reference objects
@@ -114,9 +114,9 @@ def build(
                 for example_key_node, example_value_node in value_node.value:
                     example_key = context.yaml_constructor.construct_yaml_str(example_key_node)
                     # Build Example or Reference - child builder handles invalid nodes
-                    example_or_ref = build_example_or_reference(example_value_node, context)
+                    example_or_reference = build_example_or_reference(example_value_node, context)
                     examples_dict[KeySource(value=example_key, key_node=example_key_node)] = (
-                        example_or_ref
+                        example_or_reference
                     )
                 replacements["examples"] = FieldSource(
                     value=examples_dict, key_node=key_node, value_node=value_node

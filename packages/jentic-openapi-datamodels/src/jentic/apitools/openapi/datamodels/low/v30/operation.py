@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field, replace
+from typing import TYPE_CHECKING
 
 from ruamel import yaml
 
@@ -12,24 +13,22 @@ from jentic.apitools.openapi.datamodels.low.sources import (
     YAMLInvalidValue,
     YAMLValue,
 )
-from jentic.apitools.openapi.datamodels.low.v30.callback import Callback
-from jentic.apitools.openapi.datamodels.low.v30.callback import (
-    build_callback_or_reference as build_callback_or_ref,
-)
 from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
     ExternalDocumentation,
 )
+
+
+if TYPE_CHECKING:
+    from jentic.apitools.openapi.datamodels.low.v30.callback import Callback
+
 from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
     build as build_external_docs,
 )
 from jentic.apitools.openapi.datamodels.low.v30.parameter import Parameter
-from jentic.apitools.openapi.datamodels.low.v30.parameter import (
-    build_parameter_or_reference as build_parameter_or_ref,
-)
 from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
-from jentic.apitools.openapi.datamodels.low.v30.request_body import RequestBody
 from jentic.apitools.openapi.datamodels.low.v30.request_body import (
-    build_request_body_or_reference as build_request_body_or_ref,
+    RequestBody,
+    build_request_body_or_reference,
 )
 from jentic.apitools.openapi.datamodels.low.v30.responses import Responses
 from jentic.apitools.openapi.datamodels.low.v30.responses import (
@@ -42,9 +41,6 @@ from jentic.apitools.openapi.datamodels.low.v30.security_requirement import (
     build as build_security_requirement,
 )
 from jentic.apitools.openapi.datamodels.low.v30.server import Server
-from jentic.apitools.openapi.datamodels.low.v30.server import (
-    build as build_server,
-)
 
 
 __all__ = ["Operation", "build"]
@@ -82,15 +78,15 @@ class Operation:
         metadata={"yaml_name": "externalDocs"}
     )
     operation_id: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "operationId"})
-    parameters: FieldSource[list[Parameter | Reference]] | None = fixed_field()
+    parameters: FieldSource[list["Parameter | Reference"]] | None = fixed_field()
     request_body: FieldSource[RequestBody | Reference] | None = fixed_field(
         metadata={"yaml_name": "requestBody"}
     )
     responses: FieldSource[Responses] | None = fixed_field()
-    callbacks: FieldSource[dict[KeySource[str], Callback | Reference]] | None = fixed_field()
+    callbacks: FieldSource[dict[KeySource[str], "Callback | Reference"]] | None = fixed_field()
     deprecated: FieldSource[bool] | None = fixed_field()
     security: FieldSource[list[SecurityRequirement]] | None = fixed_field()
-    servers: FieldSource[list[Server]] | None = fixed_field()
+    servers: FieldSource[list["Server"]] | None = fixed_field()
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
@@ -145,27 +141,11 @@ def build(
             replacements["external_docs"] = FieldSource(
                 value=external_docs, key_node=key_node, value_node=value_node
             )
-        elif key == "parameters":
-            # Handle parameters field - array of Parameter or Reference objects
-            if isinstance(value_node, yaml.SequenceNode):
-                parameters_list: list[Parameter | Reference | ValueSource[YAMLInvalidValue]] = []
-                for item_node in value_node.value:
-                    param_or_ref = build_parameter_or_ref(item_node, context)
-                    parameters_list.append(param_or_ref)
-                replacements["parameters"] = FieldSource(
-                    value=parameters_list, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a sequence - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["parameters"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
         elif key == "requestBody":
             # Handle requestBody field - RequestBody or Reference
-            request_body_or_ref = build_request_body_or_ref(value_node, context)
+            request_body_or_reference = build_request_body_or_reference(value_node, context)
             replacements["request_body"] = FieldSource(
-                value=request_body_or_ref, key_node=key_node, value_node=value_node
+                value=request_body_or_reference, key_node=key_node, value_node=value_node
             )
         elif key == "responses":
             # Handle responses field - Responses object
@@ -175,15 +155,22 @@ def build(
             )
         elif key == "callbacks":
             # Handle callbacks field - map of Callback or Reference objects
+            # Lazy import to avoid circular dependency
+            from jentic.apitools.openapi.datamodels.low.v30.callback import (
+                build_callback_or_reference,
+            )
+
             if isinstance(value_node, yaml.MappingNode):
                 callbacks_dict: dict[
                     KeySource[str], Callback | Reference | ValueSource[YAMLInvalidValue]
                 ] = {}
                 for callback_key_node, callback_value_node in value_node.value:
                     callback_key = context.yaml_constructor.construct_yaml_str(callback_key_node)
-                    callback_or_ref = build_callback_or_ref(callback_value_node, context)
+                    callback_or_reference = build_callback_or_reference(
+                        callback_value_node, context
+                    )
                     callbacks_dict[KeySource(value=callback_key, key_node=callback_key_node)] = (
-                        callback_or_ref
+                        callback_or_reference
                     )
                 replacements["callbacks"] = FieldSource(
                     value=callbacks_dict, key_node=key_node, value_node=value_node
@@ -208,22 +195,6 @@ def build(
                 # Not a sequence - preserve as-is for validation
                 value = context.yaml_constructor.construct_object(value_node, deep=True)
                 replacements["security"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
-        elif key == "servers":
-            # Handle servers field - array of Server objects
-            if isinstance(value_node, yaml.SequenceNode):
-                servers_list: list[Server | ValueSource[YAMLInvalidValue]] = []
-                for item_node in value_node.value:
-                    server_obj = build_server(item_node, context)
-                    servers_list.append(server_obj)
-                replacements["servers"] = FieldSource(
-                    value=servers_list, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a sequence - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["servers"] = FieldSource(
                     value=value, key_node=key_node, value_node=value_node
                 )
 

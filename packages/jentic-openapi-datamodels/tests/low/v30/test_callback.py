@@ -223,10 +223,12 @@ def test_source_tracking():
         assert isinstance(key_source, KeySource)
         assert key_source.key_node is not None
 
-    # Check expression value source tracking
-    for value_source in result.expressions.values():
-        assert isinstance(value_source, ValueSource)
-        assert value_source.value_node is not None
+    # Check expression value is now a PathItem object
+    from jentic.apitools.openapi.datamodels.low.v30.path_item import PathItem
+
+    for path_item in result.expressions.values():
+        assert isinstance(path_item, PathItem)
+        assert path_item.root_node is not None
 
     # Check extension source tracking
     for key_source, value_source in result.extensions.items():
@@ -241,7 +243,7 @@ def test_source_tracking():
 
 
 def test_build_preserves_path_item_structure():
-    """Test that path item structure is preserved as raw YAML."""
+    """Test that path item structure is properly built as PathItem object."""
     yaml_content = textwrap.dedent(
         """
         '{$request.body#/callbackUrl}':
@@ -269,14 +271,20 @@ def test_build_preserves_path_item_structure():
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
 
-    # Get the path item value
+    # Get the path item
+    from jentic.apitools.openapi.datamodels.low.v30.path_item import PathItem
+
     key = next(iter(result.expressions.keys()))
     path_item = result.expressions[key]
 
-    # Verify it's stored as raw YAML
-    assert isinstance(path_item.value, dict)
-    assert "post" in path_item.value
-    assert path_item.value["post"]["summary"] == "Callback endpoint"
+    # Verify it's a PathItem object with proper structure
+    from jentic.apitools.openapi.datamodels.low.v30.operation import Operation
+
+    assert isinstance(path_item, PathItem)
+    assert path_item.post is not None
+    assert isinstance(path_item.post.value, Operation)
+    # Verify the operation has responses
+    assert path_item.post.value.responses is not None
 
 
 def test_build_real_world_webhook_callback():
@@ -343,13 +351,15 @@ def test_build_with_multiple_http_methods():
     assert isinstance(result, callback.Callback)
 
     # Get the path item
+    from jentic.apitools.openapi.datamodels.low.v30.path_item import PathItem
+
     key = next(iter(result.expressions.keys()))
     path_item = result.expressions[key]
 
-    # Verify both methods are present
-    assert isinstance(path_item.value, dict)
-    assert "post" in path_item.value
-    assert "put" in path_item.value
+    # Verify it's a PathItem with both methods present
+    assert isinstance(path_item, PathItem)
+    assert path_item.post is not None
+    assert path_item.put is not None
 
 
 def test_build_with_expression_using_response():

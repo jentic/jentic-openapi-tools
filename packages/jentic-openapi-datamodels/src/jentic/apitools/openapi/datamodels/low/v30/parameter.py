@@ -25,9 +25,9 @@ from jentic.apitools.openapi.datamodels.low.v30.reference import (
 from jentic.apitools.openapi.datamodels.low.v30.reference import (
     build as build_reference,
 )
-from jentic.apitools.openapi.datamodels.low.v30.schema import Schema
 from jentic.apitools.openapi.datamodels.low.v30.schema import (
-    build_schema_or_reference as build_schema_or_ref,
+    Schema,
+    build_schema_or_reference,
 )
 
 
@@ -127,9 +127,9 @@ def build(
 
         if key == "schema":
             # Handle schema field - can be Schema or Reference
-            schema_or_ref = build_schema_or_ref(value_node, context)
+            schema_or_reference = build_schema_or_reference(value_node, context)
             replacements["schema"] = FieldSource(
-                value=schema_or_ref, key_node=key_node, value_node=value_node
+                value=schema_or_reference, key_node=key_node, value_node=value_node
             )
         elif key == "examples":
             # Handle examples field - map of Example or Reference objects

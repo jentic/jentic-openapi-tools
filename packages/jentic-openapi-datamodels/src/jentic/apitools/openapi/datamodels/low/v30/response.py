@@ -114,9 +114,9 @@ def build(
                 for header_key_node, header_value_node in value_node.value:
                     header_key = context.yaml_constructor.construct_yaml_str(header_key_node)
                     # Build Header or Reference - child builder handles invalid nodes
-                    header_or_ref = build_header_or_reference(header_value_node, context)
+                    header_or_reference = build_header_or_reference(header_value_node, context)
                     headers_dict[KeySource(value=header_key, key_node=header_key_node)] = (
-                        header_or_ref
+                        header_or_reference
                     )
                 replacements["headers"] = FieldSource(
                     value=headers_dict, key_node=key_node, value_node=value_node
@@ -156,8 +156,10 @@ def build(
                 for link_key_node, link_value_node in value_node.value:
                     link_key = context.yaml_constructor.construct_yaml_str(link_key_node)
                     # Build Link or Reference - child builder handles invalid nodes
-                    link_or_ref = build_link_or_reference(link_value_node, context)
-                    links_dict[KeySource(value=link_key, key_node=link_key_node)] = link_or_ref
+                    link_or_reference = build_link_or_reference(link_value_node, context)
+                    links_dict[KeySource(value=link_key, key_node=link_key_node)] = (
+                        link_or_reference
+                    )
                 replacements["links"] = FieldSource(
                     value=links_dict, key_node=key_node, value_node=value_node
                 )

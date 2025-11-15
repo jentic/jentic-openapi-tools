@@ -122,9 +122,9 @@ def build(
 
         if key == "schema":
             # Handle schema field - can be Schema or Reference
-            schema_or_ref = build_schema_or_reference(value_node, context)
+            schema_or_reference = build_schema_or_reference(value_node, context)
             replacements["schema"] = FieldSource(
-                value=schema_or_ref, key_node=key_node, value_node=value_node
+                value=schema_or_reference, key_node=key_node, value_node=value_node
             )
         elif key == "examples":
             # Handle examples field - map of Example or Reference objects

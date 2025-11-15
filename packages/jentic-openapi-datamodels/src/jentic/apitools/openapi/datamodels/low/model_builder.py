@@ -1,5 +1,5 @@
 from dataclasses import fields
-from typing import Any, TypeVar, cast, get_args
+from typing import TYPE_CHECKING, Any, TypeVar, cast, get_args
 
 from ruamel import yaml
 
@@ -13,6 +13,12 @@ from jentic.apitools.openapi.datamodels.low.sources import (
     YAMLInvalidValue,
     YAMLValue,
 )
+
+
+if TYPE_CHECKING:
+    from jentic.apitools.openapi.datamodels.low.v30.parameter import Parameter
+    from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
+    from jentic.apitools.openapi.datamodels.low.v30.server import Server
 
 
 __all__ = ["build_model"]
@@ -113,6 +119,46 @@ def build_model(
                         value_list.append(ValueSource(value=item_value, value_node=item_node))
                     field_values[field_name] = FieldSource(
                         value=value_list, key_node=key_node, value_node=value_node
+                    )
+                else:
+                    # Not a sequence - preserve as-is for validation
+                    value = context.yaml_constructor.construct_object(value_node, deep=True)
+                    field_values[field_name] = FieldSource(
+                        value=value, key_node=key_node, value_node=value_node
+                    )
+            elif field_type_args & {FieldSource[list["Server"]]}:
+                # Handle list[Server] with lazy import
+                from jentic.apitools.openapi.datamodels.low.v30.server import (
+                    build as build_server,
+                )
+
+                if isinstance(value_node, yaml.SequenceNode):
+                    servers_list = []
+                    for item_node in value_node.value:
+                        server_obj = build_server(item_node, context)
+                        servers_list.append(server_obj)
+                    field_values[field_name] = FieldSource(
+                        value=servers_list, key_node=key_node, value_node=value_node
+                    )
+                else:
+                    # Not a sequence - preserve as-is for validation
+                    value = context.yaml_constructor.construct_object(value_node, deep=True)
+                    field_values[field_name] = FieldSource(
+                        value=value, key_node=key_node, value_node=value_node
+                    )
+            elif field_type_args & {FieldSource[list["Parameter | Reference"]]}:
+                # Handle list[Parameter | Reference] with lazy import
+                from jentic.apitools.openapi.datamodels.low.v30.parameter import (
+                    build_parameter_or_reference,
+                )
+
+                if isinstance(value_node, yaml.SequenceNode):
+                    parameters_list = []
+                    for item_node in value_node.value:
+                        parameter_or_reference = build_parameter_or_reference(item_node, context)
+                        parameters_list.append(parameter_or_reference)
+                    field_values[field_name] = FieldSource(
+                        value=parameters_list, key_node=key_node, value_node=value_node
                     )
                 else:
                     # Not a sequence - preserve as-is for validation

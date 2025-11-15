@@ -244,8 +244,8 @@ def build(
             if isinstance(value_node, yaml.SequenceNode):
                 schemas = []
                 for item_node in value_node.value:
-                    schema_or_ref = build_schema_or_reference(item_node, context)
-                    schemas.append(schema_or_ref)
+                    schema_or_reference = build_schema_or_reference(item_node, context)
+                    schemas.append(schema_or_reference)
                 field_values[field_name] = FieldSource(
                     value=schemas, key_node=key_node, value_node=value_node
                 )
@@ -257,9 +257,9 @@ def build(
                 )
         # Recursive schema single fields (not, items)
         elif key in ("not", "items"):
-            schema_or_ref = build_schema_or_reference(value_node, context)
+            schema_or_reference = build_schema_or_reference(value_node, context)
             field_values[field_name] = FieldSource(
-                value=schema_or_ref, key_node=key_node, value_node=value_node
+                value=schema_or_reference, key_node=key_node, value_node=value_node
             )
         # additionalProperties (boolean | schema | reference)
         elif key == "additionalProperties":
@@ -274,9 +274,9 @@ def build(
                 )
             else:
                 # It's a schema or reference
-                schema_or_ref = build_schema_or_reference(value_node, context)
+                schema_or_reference = build_schema_or_reference(value_node, context)
                 field_values[field_name] = FieldSource(
-                    value=schema_or_ref, key_node=key_node, value_node=value_node
+                    value=schema_or_reference, key_node=key_node, value_node=value_node
                 )
         # properties (dict[KeySource[str], NestedSchema])
         elif key == "properties":
@@ -285,11 +285,11 @@ def build(
                 for prop_key_node, prop_value_node in value_node.value:
                     prop_key = context.yaml_constructor.construct_yaml_str(prop_key_node)
                     # Recursively build each property schema
-                    prop_schema_or_ref: NestedSchema = build_schema_or_reference(
+                    prop_schema_or_reference: NestedSchema = build_schema_or_reference(
                         prop_value_node, context
                     )
                     properties_dict[KeySource(value=prop_key, key_node=prop_key_node)] = (
-                        prop_schema_or_ref
+                        prop_schema_or_reference
                     )
                 field_values[field_name] = FieldSource(
                     value=properties_dict, key_node=key_node, value_node=value_node
