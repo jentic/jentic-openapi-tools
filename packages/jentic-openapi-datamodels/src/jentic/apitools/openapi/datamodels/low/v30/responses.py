@@ -95,15 +95,15 @@ def build(
 
         if key == "default":
             # Handle default response - can be Response or Reference
-            response_or_ref = build_response_or_reference(value_node, context)
+            response_or_reference = build_response_or_reference(value_node, context)
             default = cast(
                 FieldSource[Response | Reference],
-                FieldSource(value=response_or_ref, key_node=key_node, value_node=value_node),
+                FieldSource(value=response_or_reference, key_node=key_node, value_node=value_node),
             )
         elif _HTTP_STATUS_CODE_PATTERN.match(key):
             # Valid HTTP status code (100-599) or pattern (1XX-5XX)
-            response_or_ref = build_response_or_reference(value_node, context)
-            responses[KeySource(value=key, key_node=key_node)] = response_or_ref
+            response_or_reference = build_response_or_reference(value_node, context)
+            responses[KeySource(value=key, key_node=key_node)] = response_or_reference
 
     # Create and return the Responses object with collected data
     return Responses(

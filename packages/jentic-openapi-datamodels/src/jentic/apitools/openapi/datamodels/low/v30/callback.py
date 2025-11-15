@@ -10,6 +10,10 @@ from jentic.apitools.openapi.datamodels.low.sources import (
     YAMLInvalidValue,
     YAMLValue,
 )
+from jentic.apitools.openapi.datamodels.low.v30.path_item import PathItem
+from jentic.apitools.openapi.datamodels.low.v30.path_item import (
+    build as build_path_item,
+)
 from jentic.apitools.openapi.datamodels.low.v30.reference import (
     Reference,
 )
@@ -35,13 +39,12 @@ class Callback:
     Attributes:
         root_node: The top-level node representing the entire Callback object in the original source file
         expressions: Map of expression keys to Path Item Objects. Each key is a runtime expression
-                    that will be evaluated to determine the callback URL. Since Path Item Object is not
-                    yet implemented, values are stored as generic YAML values.
+                    that will be evaluated to determine the callback URL.
         extensions: Specification extensions (x-* fields)
     """
 
     root_node: yaml.Node
-    expressions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
+    expressions: dict[KeySource[str], PathItem] = field(default_factory=dict)
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
@@ -94,23 +97,20 @@ def build(
     extension_properties = {k.value for k in extensions.keys()}
 
     # Process each field to determine if it's an expression (not an extension)
-    expressions: dict[KeySource[str], ValueSource[YAMLValue]] = {}
+    expressions: dict[KeySource[str], PathItem | ValueSource[YAMLInvalidValue]] = {}
 
     for key_node, value_node in root.value:
         key = context.yaml_constructor.construct_yaml_str(key_node)
 
         if key not in extension_properties:
-            # Expression field (any key that's not an extension)
-            # TODO: When Path Item Object is implemented, build it here instead of raw value
-            value = context.yaml_constructor.construct_object(value_node, deep=True)
-            expressions[KeySource(value=key, key_node=key_node)] = ValueSource(
-                value=value, value_node=value_node
-            )
+            # Expression field (any key that's not an extension) - build as Path Item
+            path_item_obj = build_path_item(value_node, context)
+            expressions[KeySource(value=key, key_node=key_node)] = path_item_obj
 
     # Create and return the Callback object with collected data
     return Callback(
         root_node=root,
-        expressions=expressions,
+        expressions=expressions,  # type: ignore[arg-type]
         extensions=extensions,
     )
 
