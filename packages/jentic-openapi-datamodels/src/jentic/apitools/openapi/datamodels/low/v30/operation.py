@@ -21,9 +21,6 @@ from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
 if TYPE_CHECKING:
     from jentic.apitools.openapi.datamodels.low.v30.callback import Callback
 
-from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
-    build as build_external_docs,
-)
 from jentic.apitools.openapi.datamodels.low.v30.parameter import Parameter
 from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 from jentic.apitools.openapi.datamodels.low.v30.request_body import (
@@ -36,9 +33,6 @@ from jentic.apitools.openapi.datamodels.low.v30.responses import (
 )
 from jentic.apitools.openapi.datamodels.low.v30.security_requirement import (
     SecurityRequirement,
-)
-from jentic.apitools.openapi.datamodels.low.v30.security_requirement import (
-    build as build_security_requirement,
 )
 from jentic.apitools.openapi.datamodels.low.v30.server import Server
 
@@ -74,7 +68,7 @@ class Operation:
     tags: FieldSource[list[ValueSource[str]]] | None = fixed_field()
     summary: FieldSource[str] | None = fixed_field()
     description: FieldSource[str] | None = fixed_field()
-    external_docs: FieldSource[ExternalDocumentation] | None = fixed_field(
+    external_docs: FieldSource["ExternalDocumentation"] | None = fixed_field(
         metadata={"yaml_name": "externalDocs"}
     )
     operation_id: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "operationId"})
@@ -85,7 +79,7 @@ class Operation:
     responses: FieldSource[Responses] | None = fixed_field()
     callbacks: FieldSource[dict[KeySource[str], "Callback | Reference"]] | None = fixed_field()
     deprecated: FieldSource[bool] | None = fixed_field()
-    security: FieldSource[list[SecurityRequirement]] | None = fixed_field()
+    security: FieldSource[list["SecurityRequirement"]] | None = fixed_field()
     servers: FieldSource[list["Server"]] | None = fixed_field()
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
@@ -123,7 +117,7 @@ def build(
     """
     context = context or Context()
 
-    # Use build_model to handle simple fields
+    # Use build_model for initial construction
     operation = build_model(root, Operation, context=context)
 
     # If build_model returned ValueSource (invalid node), return it immediately
@@ -135,13 +129,7 @@ def build(
     for key_node, value_node in root.value:
         key = context.yaml_constructor.construct_yaml_str(key_node)
 
-        if key == "externalDocs":
-            # Handle externalDocs field - ExternalDocumentation object
-            external_docs = build_external_docs(value_node, context)
-            replacements["external_docs"] = FieldSource(
-                value=external_docs, key_node=key_node, value_node=value_node
-            )
-        elif key == "requestBody":
+        if key == "requestBody":
             # Handle requestBody field - RequestBody or Reference
             request_body_or_reference = build_request_body_or_reference(value_node, context)
             replacements["request_body"] = FieldSource(
@@ -178,19 +166,6 @@ def build(
             else:
                 # Not a mapping - preserve as-is for validation
                 replacements["callbacks"] = build_field_source(key_node, value_node, context)
-        elif key == "security":
-            # Handle security field - array of SecurityRequirement objects
-            if isinstance(value_node, yaml.SequenceNode):
-                security_list: list[SecurityRequirement | ValueSource[YAMLInvalidValue]] = []
-                for item_node in value_node.value:
-                    security_req = build_security_requirement(item_node, context)
-                    security_list.append(security_req)
-                replacements["security"] = FieldSource(
-                    value=security_list, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a sequence - preserve as-is for validation
-                replacements["security"] = build_field_source(key_node, value_node, context)
 
     # Apply all replacements at once
     if replacements:

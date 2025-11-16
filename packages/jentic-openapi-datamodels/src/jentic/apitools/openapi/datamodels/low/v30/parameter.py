@@ -110,7 +110,7 @@ def build(
     """
     context = context or Context()
 
-    # Use build_model to handle simple fields
+    # Use build_model for initial construction
     parameter = build_model(root, Parameter, context=context)
 
     # If build_model returned ValueSource (invalid node), return it immediately

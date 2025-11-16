@@ -83,7 +83,7 @@ def build(
     """
     context = context or Context()
 
-    # Use build_model to handle most fields
+    # Use build_model for initial construction
     security_scheme = build_model(root, SecurityScheme, context=context)
 
     # If build_model returned ValueSource (invalid node), return it immediately

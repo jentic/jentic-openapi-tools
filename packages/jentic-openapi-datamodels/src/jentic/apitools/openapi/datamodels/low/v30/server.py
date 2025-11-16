@@ -83,7 +83,7 @@ def build(
     """
     context = context or Context()
 
-    # Use build_model to handle simple fields (url, description)
+    # Use build_model for initial construction
     server = build_model(root, Server, context=context)
 
     # If build_model returned ValueSource (invalid node), return it immediately
