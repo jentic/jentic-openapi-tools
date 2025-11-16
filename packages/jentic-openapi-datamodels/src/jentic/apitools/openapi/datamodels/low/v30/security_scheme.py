@@ -14,9 +14,11 @@ from jentic.apitools.openapi.datamodels.low.sources import (
 )
 from jentic.apitools.openapi.datamodels.low.v30.oauth_flows import OAuthFlows
 from jentic.apitools.openapi.datamodels.low.v30.oauth_flows import build as build_oauth_flows
+from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
+from jentic.apitools.openapi.datamodels.low.v30.reference import build as build_reference
 
 
-__all__ = ["SecurityScheme", "build"]
+__all__ = ["SecurityScheme", "build", "build_security_scheme_or_reference"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,3 +106,30 @@ def build(
             break
 
     return security_scheme
+
+
+def build_security_scheme_or_reference(
+    node: yaml.Node, context: Context
+) -> SecurityScheme | Reference | ValueSource[YAMLInvalidValue]:
+    """
+    Build either a SecurityScheme or Reference from a YAML node.
+
+    This helper handles the polymorphic nature of OpenAPI where many fields
+    can contain either a SecurityScheme object or a Reference object ($ref).
+
+    Args:
+        node: The YAML node to parse
+        context: Parsing context
+
+    Returns:
+        A SecurityScheme, Reference, or ValueSource if the node is invalid
+    """
+    # Check if it's a reference (has $ref key)
+    if isinstance(node, yaml.MappingNode):
+        for key_node, _ in node.value:
+            key = context.yaml_constructor.construct_yaml_str(key_node)
+            if key == "$ref":
+                return build_reference(node, context)
+
+    # Otherwise, try to build as SecurityScheme
+    return build(node, context)
