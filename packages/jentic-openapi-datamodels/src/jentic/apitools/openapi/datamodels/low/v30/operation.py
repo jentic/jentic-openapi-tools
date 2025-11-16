@@ -5,7 +5,7 @@ from ruamel import yaml
 
 from jentic.apitools.openapi.datamodels.low.context import Context
 from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_model
+from jentic.apitools.openapi.datamodels.low.model_builder import build_field_source, build_model
 from jentic.apitools.openapi.datamodels.low.sources import (
     FieldSource,
     KeySource,
@@ -177,10 +177,7 @@ def build(
                 )
             else:
                 # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["callbacks"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
+                replacements["callbacks"] = build_field_source(key_node, value_node, context)
         elif key == "security":
             # Handle security field - array of SecurityRequirement objects
             if isinstance(value_node, yaml.SequenceNode):
@@ -193,10 +190,7 @@ def build(
                 )
             else:
                 # Not a sequence - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["security"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
+                replacements["security"] = build_field_source(key_node, value_node, context)
 
     # Apply all replacements at once
     if replacements:

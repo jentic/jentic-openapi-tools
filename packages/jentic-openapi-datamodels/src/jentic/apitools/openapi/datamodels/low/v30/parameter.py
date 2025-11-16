@@ -12,12 +12,9 @@ from jentic.apitools.openapi.datamodels.low.sources import (
     YAMLInvalidValue,
     YAMLValue,
 )
-from jentic.apitools.openapi.datamodels.low.v30.example import Example, build_example_or_reference
+from jentic.apitools.openapi.datamodels.low.v30.example import Example
 from jentic.apitools.openapi.datamodels.low.v30.media_type import (
     MediaType,
-)
-from jentic.apitools.openapi.datamodels.low.v30.media_type import (
-    build as build_media_type,
 )
 from jentic.apitools.openapi.datamodels.low.v30.reference import (
     Reference,
@@ -75,8 +72,8 @@ class Parameter:
     allow_reserved: FieldSource[bool] | None = fixed_field(metadata={"yaml_name": "allowReserved"})
     schema: FieldSource[Schema | Reference] | None = fixed_field()
     example: FieldSource[YAMLValue] | None = fixed_field()
-    examples: FieldSource[dict[KeySource[str], Example | Reference]] | None = fixed_field()
-    content: FieldSource[dict[KeySource[str], MediaType]] | None = fixed_field()
+    examples: FieldSource[dict[KeySource[str], "Example | Reference"]] | None = fixed_field()
+    content: FieldSource[dict[KeySource[str], "MediaType"]] | None = fixed_field()
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
@@ -131,47 +128,6 @@ def build(
             replacements["schema"] = FieldSource(
                 value=schema_or_reference, key_node=key_node, value_node=value_node
             )
-        elif key == "examples":
-            # Handle examples field - map of Example or Reference objects
-            if isinstance(value_node, yaml.MappingNode):
-                examples_dict: dict[
-                    KeySource[str], Example | Reference | ValueSource[YAMLInvalidValue]
-                ] = {}
-                for example_key_node, example_value_node in value_node.value:
-                    example_key = context.yaml_constructor.construct_yaml_str(example_key_node)
-                    # Build Example or Reference - child builder handles invalid nodes
-                    examples_dict[KeySource(value=example_key, key_node=example_key_node)] = (
-                        build_example_or_reference(example_value_node, context)
-                    )
-                replacements["examples"] = FieldSource(
-                    value=examples_dict, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["examples"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
-        elif key == "content":
-            # Handle content field - map of MediaType objects
-            if isinstance(value_node, yaml.MappingNode):
-                content_dict: dict[KeySource[str], MediaType | ValueSource[YAMLInvalidValue]] = {}
-                for content_key_node, content_value_node in value_node.value:
-                    content_key = context.yaml_constructor.construct_yaml_str(content_key_node)
-                    # Build MediaType - child builder handles invalid nodes
-                    media_type_obj = build_media_type(content_value_node, context)
-                    content_dict[KeySource(value=content_key, key_node=content_key_node)] = (
-                        media_type_obj
-                    )
-                replacements["content"] = FieldSource(
-                    value=content_dict, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["content"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
 
     # Apply all replacements at once
     if replacements:

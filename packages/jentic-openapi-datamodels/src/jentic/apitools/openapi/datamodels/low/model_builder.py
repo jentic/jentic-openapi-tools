@@ -16,12 +16,15 @@ from jentic.apitools.openapi.datamodels.low.sources import (
 
 
 if TYPE_CHECKING:
+    from jentic.apitools.openapi.datamodels.low.v30.example import Example
+    from jentic.apitools.openapi.datamodels.low.v30.header import Header
+    from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
     from jentic.apitools.openapi.datamodels.low.v30.parameter import Parameter
     from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
     from jentic.apitools.openapi.datamodels.low.v30.server import Server
 
 
-__all__ = ["build_model"]
+__all__ = ["build_model", "build_field_source"]
 
 
 T = TypeVar("T")
@@ -85,10 +88,7 @@ def build_model(
                 FieldSource[int],
                 FieldSource[YAMLValue],
             }:
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                field_values[field_name] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
+                field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource[dict[KeySource[str], ValueSource[str]]]}:
                 # Handle dict with KeySource/ValueSource wrapping
                 if isinstance(value_node, yaml.MappingNode):
@@ -106,10 +106,7 @@ def build_model(
                     )
                 else:
                     # Not a mapping - preserve as-is for validation
-                    value = context.yaml_constructor.construct_object(value_node, deep=True)
-                    field_values[field_name] = FieldSource(
-                        value=value, key_node=key_node, value_node=value_node
-                    )
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource[list[ValueSource[str]]]}:
                 # Handle list with ValueSource wrapping for each item
                 if isinstance(value_node, yaml.SequenceNode):
@@ -122,10 +119,7 @@ def build_model(
                     )
                 else:
                     # Not a sequence - preserve as-is for validation
-                    value = context.yaml_constructor.construct_object(value_node, deep=True)
-                    field_values[field_name] = FieldSource(
-                        value=value, key_node=key_node, value_node=value_node
-                    )
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource[list["Server"]]}:
                 # Handle list[Server] with lazy import
                 from jentic.apitools.openapi.datamodels.low.v30.server import (
@@ -142,10 +136,7 @@ def build_model(
                     )
                 else:
                     # Not a sequence - preserve as-is for validation
-                    value = context.yaml_constructor.construct_object(value_node, deep=True)
-                    field_values[field_name] = FieldSource(
-                        value=value, key_node=key_node, value_node=value_node
-                    )
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource[list["Parameter | Reference"]]}:
                 # Handle list[Parameter | Reference] with lazy import
                 from jentic.apitools.openapi.datamodels.low.v30.parameter import (
@@ -162,10 +153,67 @@ def build_model(
                     )
                 else:
                     # Not a sequence - preserve as-is for validation
-                    value = context.yaml_constructor.construct_object(value_node, deep=True)
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
+            elif field_type_args & {FieldSource[dict[KeySource[str], "Example | Reference"]]}:
+                # Handle dict[KeySource[str], Example | Reference] with lazy import
+                from jentic.apitools.openapi.datamodels.low.v30.example import (
+                    build_example_or_reference,
+                )
+
+                if isinstance(value_node, yaml.MappingNode):
+                    examples_dict = {}
+                    for map_key_node, map_value_node in value_node.value:
+                        map_key = context.yaml_constructor.construct_yaml_str(map_key_node)
+                        example_or_reference = build_example_or_reference(map_value_node, context)
+                        examples_dict[KeySource(value=map_key, key_node=map_key_node)] = (
+                            example_or_reference
+                        )
                     field_values[field_name] = FieldSource(
-                        value=value, key_node=key_node, value_node=value_node
+                        value=examples_dict, key_node=key_node, value_node=value_node
                     )
+                else:
+                    # Not a mapping - preserve as-is for validation
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
+            elif field_type_args & {FieldSource[dict[KeySource[str], "MediaType"]]}:
+                # Handle dict[KeySource[str], MediaType] with lazy import
+                from jentic.apitools.openapi.datamodels.low.v30.media_type import (
+                    build as build_media_type,
+                )
+
+                if isinstance(value_node, yaml.MappingNode):
+                    content_dict = {}
+                    for map_key_node, map_value_node in value_node.value:
+                        map_key = context.yaml_constructor.construct_yaml_str(map_key_node)
+                        media_type_obj = build_media_type(map_value_node, context)
+                        content_dict[KeySource(value=map_key, key_node=map_key_node)] = (
+                            media_type_obj
+                        )
+                    field_values[field_name] = FieldSource(
+                        value=content_dict, key_node=key_node, value_node=value_node
+                    )
+                else:
+                    # Not a mapping - preserve as-is for validation
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
+            elif field_type_args & {FieldSource[dict[KeySource[str], "Header | Reference"]]}:
+                # Handle dict[KeySource[str], Header | Reference] with lazy import
+                from jentic.apitools.openapi.datamodels.low.v30.header import (
+                    build_header_or_reference,
+                )
+
+                if isinstance(value_node, yaml.MappingNode):
+                    headers_dict = {}
+                    for map_key_node, map_value_node in value_node.value:
+                        map_key = context.yaml_constructor.construct_yaml_str(map_key_node)
+                        header_or_reference = build_header_or_reference(map_value_node, context)
+                        headers_dict[KeySource(value=map_key, key_node=map_key_node)] = (
+                            header_or_reference
+                        )
+                    field_values[field_name] = FieldSource(
+                        value=headers_dict, key_node=key_node, value_node=value_node
+                    )
+                else:
+                    # Not a mapping - preserve as-is for validation
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
 
     # Build and return the dataclass instance
     # Conditionally include extensions field if dataclass supports it
@@ -179,3 +227,26 @@ def build_model(
             **({"extensions": extract_extension_fields(root, context)} if has_extensions else {}),
         ),
     )
+
+
+def build_field_source(
+    key_node: yaml.Node,
+    value_node: yaml.Node,
+    context: Context,
+) -> FieldSource[Any]:
+    """
+    Build a FieldSource from a YAML node.
+
+    Constructs the Python value from the YAML node and wraps it in a FieldSource
+    that preserves the original node locations for error reporting.
+
+    Args:
+        key_node: The YAML node for the field key
+        value_node: The YAML node for the field value
+        context: Parsing context
+
+    Returns:
+        A FieldSource containing the constructed value and node references
+    """
+    value = context.yaml_constructor.construct_object(value_node, deep=True)
+    return FieldSource(value=value, key_node=key_node, value_node=value_node)

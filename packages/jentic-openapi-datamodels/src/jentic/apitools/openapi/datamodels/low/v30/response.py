@@ -4,7 +4,7 @@ from ruamel import yaml
 
 from jentic.apitools.openapi.datamodels.low.context import Context
 from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_model
+from jentic.apitools.openapi.datamodels.low.model_builder import build_field_source, build_model
 from jentic.apitools.openapi.datamodels.low.sources import (
     FieldSource,
     KeySource,
@@ -14,16 +14,12 @@ from jentic.apitools.openapi.datamodels.low.sources import (
 )
 from jentic.apitools.openapi.datamodels.low.v30.header import (
     Header,
-    build_header_or_reference,
 )
 from jentic.apitools.openapi.datamodels.low.v30.link import (
     Link,
     build_link_or_reference,
 )
 from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
-from jentic.apitools.openapi.datamodels.low.v30.media_type import (
-    build as build_media_type,
-)
 from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 from jentic.apitools.openapi.datamodels.low.v30.reference import (
     build as build_reference,
@@ -54,8 +50,8 @@ class Response:
 
     root_node: yaml.Node
     description: FieldSource[str] | None = fixed_field()
-    headers: FieldSource[dict[KeySource[str], Header | Reference]] | None = fixed_field()
-    content: FieldSource[dict[KeySource[str], MediaType]] | None = fixed_field()
+    headers: FieldSource[dict[KeySource[str], "Header | Reference"]] | None = fixed_field()
+    content: FieldSource[dict[KeySource[str], "MediaType"]] | None = fixed_field()
     links: FieldSource[dict[KeySource[str], Link | Reference]] | None = fixed_field()
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
@@ -105,49 +101,7 @@ def build(
     for key_node, value_node in root.value:
         key = context.yaml_constructor.construct_yaml_str(key_node)
 
-        if key == "headers":
-            # Handle headers field - map of Header or Reference objects
-            if isinstance(value_node, yaml.MappingNode):
-                headers_dict: dict[
-                    KeySource[str], Header | Reference | ValueSource[YAMLInvalidValue]
-                ] = {}
-                for header_key_node, header_value_node in value_node.value:
-                    header_key = context.yaml_constructor.construct_yaml_str(header_key_node)
-                    # Build Header or Reference - child builder handles invalid nodes
-                    header_or_reference = build_header_or_reference(header_value_node, context)
-                    headers_dict[KeySource(value=header_key, key_node=header_key_node)] = (
-                        header_or_reference
-                    )
-                replacements["headers"] = FieldSource(
-                    value=headers_dict, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["headers"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
-        elif key == "content":
-            # Handle content field - map of media types
-            if isinstance(value_node, yaml.MappingNode):
-                content_dict: dict[KeySource[str], MediaType | ValueSource[YAMLInvalidValue]] = {}
-                for content_key_node, content_value_node in value_node.value:
-                    content_key = context.yaml_constructor.construct_yaml_str(content_key_node)
-                    # Build MediaType - child builder handles invalid nodes
-                    media_type_obj = build_media_type(content_value_node, context)
-                    content_dict[KeySource(value=content_key, key_node=content_key_node)] = (
-                        media_type_obj
-                    )
-                replacements["content"] = FieldSource(
-                    value=content_dict, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["content"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
-        elif key == "links":
+        if key == "links":
             # Handle links field - map of Link or Reference objects
             if isinstance(value_node, yaml.MappingNode):
                 links_dict: dict[
@@ -165,10 +119,7 @@ def build(
                 )
             else:
                 # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["links"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
+                replacements["links"] = build_field_source(key_node, value_node, context)
 
     # Apply all replacements at once
     if replacements:

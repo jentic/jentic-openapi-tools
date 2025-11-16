@@ -4,7 +4,7 @@ from ruamel import yaml
 
 from jentic.apitools.openapi.datamodels.low.context import Context
 from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_model
+from jentic.apitools.openapi.datamodels.low.model_builder import build_field_source, build_model
 from jentic.apitools.openapi.datamodels.low.sources import (
     FieldSource,
     KeySource,
@@ -16,7 +16,6 @@ from jentic.apitools.openapi.datamodels.low.v30.encoding import Encoding
 from jentic.apitools.openapi.datamodels.low.v30.encoding import build as build_encoding
 from jentic.apitools.openapi.datamodels.low.v30.example import (
     Example,
-    build_example_or_reference,
 )
 from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 from jentic.apitools.openapi.datamodels.low.v30.schema import (
@@ -49,7 +48,7 @@ class MediaType:
     root_node: yaml.Node
     schema: FieldSource[Schema | Reference] | None = fixed_field()
     example: FieldSource[YAMLValue] | None = fixed_field()
-    examples: FieldSource[dict[KeySource[str], Example | Reference]] | None = fixed_field()
+    examples: FieldSource[dict[KeySource[str], "Example | Reference"]] | None = fixed_field()
     encoding: FieldSource[dict[KeySource[str], Encoding]] | None = fixed_field()
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
@@ -105,28 +104,6 @@ def build(
             replacements["schema"] = FieldSource(
                 value=schema_or_reference, key_node=key_node, value_node=value_node
             )
-        elif key == "examples":
-            # Handle examples field - map of Example or Reference objects
-            if isinstance(value_node, yaml.MappingNode):
-                examples_dict: dict[
-                    KeySource[str], Example | Reference | ValueSource[YAMLInvalidValue]
-                ] = {}
-                for example_key_node, example_value_node in value_node.value:
-                    example_key = context.yaml_constructor.construct_yaml_str(example_key_node)
-                    # Build Example or Reference - child builder handles invalid nodes
-                    example_or_reference = build_example_or_reference(example_value_node, context)
-                    examples_dict[KeySource(value=example_key, key_node=example_key_node)] = (
-                        example_or_reference
-                    )
-                replacements["examples"] = FieldSource(
-                    value=examples_dict, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["examples"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
         elif key == "encoding":
             # Handle encoding field - map of Encoding objects
             if isinstance(value_node, yaml.MappingNode):
@@ -143,10 +120,7 @@ def build(
                 )
             else:
                 # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["encoding"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
+                replacements["encoding"] = build_field_source(key_node, value_node, context)
 
     # Apply all replacements at once
     if replacements:

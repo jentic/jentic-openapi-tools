@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 
 from ruamel import yaml
 
@@ -13,9 +13,6 @@ from jentic.apitools.openapi.datamodels.low.sources import (
     YAMLValue,
 )
 from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
-from jentic.apitools.openapi.datamodels.low.v30.media_type import (
-    build as build_media_type,
-)
 from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 from jentic.apitools.openapi.datamodels.low.v30.reference import (
     build as build_reference,
@@ -43,7 +40,7 @@ class RequestBody:
 
     root_node: yaml.Node
     description: FieldSource[str] | None = fixed_field()
-    content: FieldSource[dict[KeySource[str], MediaType]] | None = fixed_field()
+    content: FieldSource[dict[KeySource[str], "MediaType"]] | None = fixed_field()
     required: FieldSource[bool] | None = fixed_field()
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
@@ -88,36 +85,6 @@ def build(
     # If build_model returned ValueSource (invalid node), return it immediately
     if not isinstance(request_body, RequestBody):
         return request_body
-
-    # Manually handle nested content field
-    for key_node, value_node in root.value:
-        key = context.yaml_constructor.construct_yaml_str(key_node)
-
-        if key == "content":
-            # Handle content field - map of media types
-            if isinstance(value_node, yaml.MappingNode):
-                content_dict: dict[KeySource[str], MediaType | ValueSource[YAMLInvalidValue]] = {}
-                for content_key_node, content_value_node in value_node.value:
-                    content_key = context.yaml_constructor.construct_yaml_str(content_key_node)
-                    # Build MediaType - child builder handles invalid nodes
-                    media_type_obj = build_media_type(content_value_node, context)
-                    content_dict[KeySource(value=content_key, key_node=content_key_node)] = (
-                        media_type_obj
-                    )
-                request_body = replace(
-                    request_body,
-                    content=FieldSource(
-                        value=content_dict, key_node=key_node, value_node=value_node
-                    ),
-                )
-            else:
-                # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                request_body = replace(
-                    request_body,
-                    content=FieldSource(value=value, key_node=key_node, value_node=value_node),
-                )
-            break
 
     return request_body
 

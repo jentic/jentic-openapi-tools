@@ -4,7 +4,7 @@ from ruamel import yaml
 
 from jentic.apitools.openapi.datamodels.low.context import Context
 from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_model
+from jentic.apitools.openapi.datamodels.low.model_builder import build_field_source, build_model
 from jentic.apitools.openapi.datamodels.low.sources import (
     FieldSource,
     KeySource,
@@ -111,10 +111,7 @@ def build(root: yaml.Node, context: Context | None = None) -> Link | ValueSource
                 )
             else:
                 # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                replacements["parameters"] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
+                replacements["parameters"] = build_field_source(key_node, value_node, context)
 
     # Apply all replacements at once
     if replacements:
