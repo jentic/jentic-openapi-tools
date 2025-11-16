@@ -89,7 +89,7 @@ def build(
     """
     context = context or Context()
 
-    # Use build_model to handle simple fields
+    # Use build_model for initial construction
     response = build_model(root, Response, context=context)
 
     # If build_model returned ValueSource (invalid node), return it immediately

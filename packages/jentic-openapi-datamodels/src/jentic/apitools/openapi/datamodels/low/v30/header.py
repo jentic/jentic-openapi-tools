@@ -107,7 +107,7 @@ def build(
     """
     context = context or Context()
 
-    # Use build_model to handle simple fields
+    # Use build_model for initial construction
     header = build_model(root, Header, context=context)
 
     # If build_model returned ValueSource (invalid node), return it immediately

@@ -109,7 +109,7 @@ def build(
     """
     context = context or Context()
 
-    # Use build_model to handle simple fields (openapi, servers, security, external_docs) and extensions
+    # Use build_model for initial construction
     openapi_obj = build_model(root, OpenAPI30, context=context)
 
     # If build_model returned ValueSource (invalid node), return it immediately

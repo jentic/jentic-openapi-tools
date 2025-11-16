@@ -75,7 +75,7 @@ def build(root: yaml.Node, context: Context | None = None) -> Link | ValueSource
     """
     context = context or Context()
 
-    # Use build_model to handle most fields
+    # Use build_model for initial construction
     link = build_model(root, Link, context=context)
 
     # If build_model returned ValueSource (invalid node), return it immediately
