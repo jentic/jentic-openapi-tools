@@ -6,6 +6,7 @@ from ruamel import yaml
 from jentic.apitools.openapi.datamodels.low.context import Context
 from jentic.apitools.openapi.datamodels.low.extractors import extract_extension_fields
 from jentic.apitools.openapi.datamodels.low.fields import fixed_field, fixed_fields
+from jentic.apitools.openapi.datamodels.low.model_builder import build_field_source
 from jentic.apitools.openapi.datamodels.low.sources import (
     FieldSource,
     KeySource,
@@ -214,10 +215,7 @@ def build(
             FieldSource[int | float],
             FieldSource[YAMLValue],
         }:
-            value = context.yaml_constructor.construct_object(value_node, deep=True)
-            field_values[field_name] = FieldSource(
-                value=value, key_node=key_node, value_node=value_node
-            )
+            field_values[field_name] = build_field_source(key_node, value_node, context)
 
         # Handle list with ValueSource wrapping for each item (e.g., required, enum fields)
         elif field_type_args & {
@@ -234,10 +232,7 @@ def build(
                 )
             else:
                 # Not a sequence - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                field_values[field_name] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
+                field_values[field_name] = build_field_source(key_node, value_node, context)
 
         # Recursive schema list fields (allOf, oneOf, anyOf)
         elif key in ("allOf", "oneOf", "anyOf"):
@@ -251,10 +246,7 @@ def build(
                 )
             else:
                 # Not a sequence - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                field_values[field_name] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
+                field_values[field_name] = build_field_source(key_node, value_node, context)
         # Recursive schema single fields (not, items)
         elif key in ("not", "items"):
             schema_or_reference = build_schema_or_reference(value_node, context)
@@ -268,10 +260,7 @@ def build(
                 isinstance(value_node, yaml.ScalarNode)
                 and value_node.tag == "tag:yaml.org,2002:bool"
             ):
-                value = context.yaml_constructor.construct_object(value_node)
-                field_values[field_name] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
+                field_values[field_name] = build_field_source(key_node, value_node, context)
             else:
                 # It's a schema or reference
                 schema_or_reference = build_schema_or_reference(value_node, context)
@@ -296,10 +285,7 @@ def build(
                 )
             else:
                 # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                field_values[field_name] = FieldSource(
-                    value=value, key_node=key_node, value_node=value_node
-                )
+                field_values[field_name] = build_field_source(key_node, value_node, context)
         # Nested objects (discriminator, xml, externalDocs)
         elif key == "discriminator":
             field_values[field_name] = FieldSource(

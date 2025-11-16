@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 
 from ruamel import yaml
 
@@ -12,10 +12,7 @@ from jentic.apitools.openapi.datamodels.low.sources import (
     YAMLInvalidValue,
     YAMLValue,
 )
-from jentic.apitools.openapi.datamodels.low.v30.header import (
-    Header,
-    build_header_or_reference,
-)
+from jentic.apitools.openapi.datamodels.low.v30.header import Header
 from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 
 
@@ -49,7 +46,7 @@ class Encoding:
 
     root_node: yaml.Node
     contentType: FieldSource[str] | None = fixed_field()
-    headers: FieldSource[dict[KeySource[str], Header | Reference]] | None = fixed_field()
+    headers: FieldSource[dict[KeySource[str], "Header | Reference"]] | None = fixed_field()
     style: FieldSource[str] | None = fixed_field()
     explode: FieldSource[bool] | None = fixed_field()
     allowReserved: FieldSource[bool] | None = fixed_field()
@@ -95,36 +92,5 @@ def build(
     # If build_model returned ValueSource (invalid node), return it immediately
     if not isinstance(encoding, Encoding):
         return encoding
-
-    # Manually handle nested headers field
-    for key_node, value_node in root.value:
-        key = context.yaml_constructor.construct_yaml_str(key_node)
-
-        if key == "headers":
-            # Handle headers field - map of Header or Reference objects
-            if isinstance(value_node, yaml.MappingNode):
-                headers_dict: dict[
-                    KeySource[str], Header | Reference | ValueSource[YAMLInvalidValue]
-                ] = {}
-                for header_key_node, header_value_node in value_node.value:
-                    header_key = context.yaml_constructor.construct_yaml_str(header_key_node)
-                    # Build Header or Reference - child builder handles invalid nodes
-                    headers_dict[KeySource(value=header_key, key_node=header_key_node)] = (
-                        build_header_or_reference(header_value_node, context)
-                    )
-                encoding = replace(
-                    encoding,
-                    headers=FieldSource(
-                        value=headers_dict, key_node=key_node, value_node=value_node
-                    ),
-                )
-            else:
-                # Not a mapping - preserve as-is for validation
-                value = context.yaml_constructor.construct_object(value_node, deep=True)
-                encoding = replace(
-                    encoding,
-                    headers=FieldSource(value=value, key_node=key_node, value_node=value_node),
-                )
-            break
 
     return encoding
