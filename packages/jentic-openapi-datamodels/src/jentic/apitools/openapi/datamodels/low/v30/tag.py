@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 
 from ruamel import yaml
 
@@ -14,9 +14,6 @@ from jentic.apitools.openapi.datamodels.low.sources import (
 )
 from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
     ExternalDocumentation,
-)
-from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
-    build as build_external_documentation,
 )
 
 
@@ -42,7 +39,7 @@ class Tag:
     root_node: yaml.Node
     name: FieldSource[str] | None = fixed_field()
     description: FieldSource[str] | None = fixed_field()
-    external_docs: FieldSource[ExternalDocumentation] | None = fixed_field(
+    external_docs: FieldSource["ExternalDocumentation"] | None = fixed_field(
         metadata={"yaml_name": "externalDocs"}
     )
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
@@ -71,28 +68,4 @@ def build(root: yaml.Node, context: Context | None = None) -> Tag | ValueSource[
         tag = build(root)
         assert tag.name.value == 'pet'
     """
-    context = context or Context()
-
-    # Use build_model to handle most fields
-    tag = build_model(root, Tag, context=context)
-
-    # If build_model returned ValueSource (invalid node), return it immediately
-    if not isinstance(tag, Tag):
-        return tag
-
-    # Manually handle special fields that build_model can't process (nested objects)
-    for key_node, value_node in root.value:
-        key = context.yaml_constructor.construct_yaml_str(key_node)
-
-        if key == "externalDocs":
-            # Handle nested ExternalDocumentation object - child builder handles invalid nodes
-            # FieldSource will auto-unwrap ValueSource if child returns it for invalid data
-            external_docs = FieldSource(
-                value=build_external_documentation(value_node, context=context),
-                key_node=key_node,
-                value_node=value_node,
-            )
-            tag = replace(tag, external_docs=external_docs)
-            break
-
-    return tag
+    return build_model(root, Tag, context=context)

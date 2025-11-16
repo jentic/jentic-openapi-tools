@@ -16,12 +16,18 @@ from jentic.apitools.openapi.datamodels.low.sources import (
 
 
 if TYPE_CHECKING:
-    from jentic.apitools.openapi.datamodels.low.v30.example import Example
-    from jentic.apitools.openapi.datamodels.low.v30.header import Header
-    from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
-    from jentic.apitools.openapi.datamodels.low.v30.parameter import Parameter
-    from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
-    from jentic.apitools.openapi.datamodels.low.v30.server import Server
+    from jentic.apitools.openapi.datamodels.low.v30.example import Example  # noqa: F401
+    from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (  # noqa: F401
+        ExternalDocumentation,
+    )
+    from jentic.apitools.openapi.datamodels.low.v30.header import Header  # noqa: F401
+    from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType  # noqa: F401
+    from jentic.apitools.openapi.datamodels.low.v30.parameter import Parameter  # noqa: F401
+    from jentic.apitools.openapi.datamodels.low.v30.reference import Reference  # noqa: F401
+    from jentic.apitools.openapi.datamodels.low.v30.security_requirement import (  # noqa: F401
+        SecurityRequirement,
+    )
+    from jentic.apitools.openapi.datamodels.low.v30.server import Server  # noqa: F401
 
 
 __all__ = ["build_model", "build_field_source"]
@@ -137,6 +143,23 @@ def build_model(
                 else:
                     # Not a sequence - preserve as-is for validation
                     field_values[field_name] = build_field_source(key_node, value_node, context)
+            elif field_type_args & {FieldSource[list["SecurityRequirement"]]}:
+                # Handle list[SecurityRequirement] with lazy import
+                from jentic.apitools.openapi.datamodels.low.v30.security_requirement import (
+                    build as build_security_requirement,
+                )
+
+                if isinstance(value_node, yaml.SequenceNode):
+                    security_list = []
+                    for item_node in value_node.value:
+                        security_req = build_security_requirement(item_node, context)
+                        security_list.append(security_req)
+                    field_values[field_name] = FieldSource(
+                        value=security_list, key_node=key_node, value_node=value_node
+                    )
+                else:
+                    # Not a sequence - preserve as-is for validation
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource[list["Parameter | Reference"]]}:
                 # Handle list[Parameter | Reference] with lazy import
                 from jentic.apitools.openapi.datamodels.low.v30.parameter import (
@@ -214,6 +237,17 @@ def build_model(
                 else:
                     # Not a mapping - preserve as-is for validation
                     field_values[field_name] = build_field_source(key_node, value_node, context)
+            elif field_type_args & {FieldSource["ExternalDocumentation"]}:
+                # Handle ExternalDocumentation with lazy import
+                from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
+                    build as build_external_docs,
+                )
+
+                field_values[field_name] = FieldSource(
+                    value=build_external_docs(value_node, context),
+                    key_node=key_node,
+                    value_node=value_node,
+                )
 
     # Build and return the dataclass instance
     # Conditionally include extensions field if dataclass supports it
