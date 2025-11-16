@@ -8,6 +8,7 @@ from jentic.apitools.openapi.datamodels.low.context import Context
 from jentic.apitools.openapi.datamodels.low.sources import FieldSource, ValueSource
 from jentic.apitools.openapi.datamodels.low.v30 import security_scheme
 from jentic.apitools.openapi.datamodels.low.v30.oauth_flows import OAuthFlows
+from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 
 
 def test_build_with_api_key_in_header():
@@ -512,3 +513,53 @@ def test_build_with_all_security_types():
     assert isinstance(oidc_result, security_scheme.SecurityScheme)
     assert oidc_result.type is not None
     assert oidc_result.type.value == "openIdConnect"
+
+
+def test_build_security_scheme_or_reference_with_security_scheme():
+    """Test build_security_scheme_or_reference with a SecurityScheme object."""
+    yaml_content = textwrap.dedent(
+        """
+        type: apiKey
+        name: api_key
+        in: header
+        description: API key authentication
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = security_scheme.build_security_scheme_or_reference(root, Context())
+    assert isinstance(result, security_scheme.SecurityScheme)
+    assert result.type is not None
+    assert result.type.value == "apiKey"
+    assert result.name is not None
+    assert result.name.value == "api_key"
+    assert result.in_ is not None
+    assert result.in_.value == "header"
+
+
+def test_build_security_scheme_or_reference_with_reference():
+    """Test build_security_scheme_or_reference with a Reference object."""
+    yaml_content = textwrap.dedent(
+        """
+        $ref: '#/components/securitySchemes/ApiKeyAuth'
+        """
+    )
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
+
+    result = security_scheme.build_security_scheme_or_reference(root, Context())
+    assert isinstance(result, Reference)
+    assert result.ref is not None
+    assert result.ref.value == "#/components/securitySchemes/ApiKeyAuth"
+
+
+def test_build_security_scheme_or_reference_with_invalid_data():
+    """Test build_security_scheme_or_reference with invalid data."""
+    yaml_parser = YAML()
+
+    # Scalar node
+    scalar_root = yaml_parser.compose("not-a-security-scheme")
+    result = security_scheme.build_security_scheme_or_reference(scalar_root, Context())
+    assert isinstance(result, ValueSource)
+    assert result.value == "not-a-security-scheme"
