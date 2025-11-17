@@ -1,5 +1,3 @@
-from semantic_release.cli.commands.version import build_distributions
-
 # jentic-openapi-datamodels
 
 Low-level and high-level data models for OpenAPI specifications.
@@ -49,13 +47,55 @@ pip install jentic-openapi-datamodels
 
 ## Quick Start
 
-### Basic Usage
+### Parsing OpenAPI Documents
+
+The main use case is parsing complete OpenAPI 3.0 documents:
 
 ```python
 from ruamel.yaml import YAML
-from jentic.apitools.openapi.datamodels.low.v30.security_scheme import build
+from jentic.apitools.openapi.datamodels.low.v30 import build
 
-# Parse YAML
+# Parse OpenAPI document
+yaml = YAML()
+root = yaml.compose("""
+openapi: 3.0.3
+info:
+  title: Pet Store API
+  version: 1.0.0
+paths:
+  /pets:
+    get:
+      summary: List all pets
+      responses:
+        '200':
+          description: A list of pets
+""")
+
+# Build OpenAPI document model
+openapi_doc = build(root)
+
+# Access document fields via Python naming (snake_case)
+print(openapi_doc.openapi.value)  # "3.0.3"
+print(openapi_doc.info.value.title.value)  # "Pet Store API"
+print(openapi_doc.info.value.version.value)  # "1.0.0"
+
+# Access nested fields with full type safety
+for path_key, path_item in openapi_doc.paths.value.path_items.items():
+    print(f"Path: {path_key.value}")  # "/pets"
+    if path_item.value.get:
+        operation = path_item.value.get.value
+        print(f"  Summary: {operation.summary.value}")  # "List all pets"
+```
+
+### Parsing Individual Spec Objects
+
+You can also parse individual OpenAPI specification objects:
+
+```python
+from ruamel.yaml import YAML
+from jentic.apitools.openapi.datamodels.low.v30.security_scheme import build as build_security_scheme
+
+# Parse a Security Scheme object
 yaml = YAML()
 root = yaml.compose("""
 type: http
@@ -63,8 +103,7 @@ scheme: bearer
 bearerFormat: JWT
 """)
 
-# Build low-level model
-security_scheme = build(root)
+security_scheme = build_security_scheme(root)
 
 # Access via Python field names (snake_case)
 print(security_scheme.bearer_format.value)  # "JWT"
@@ -106,28 +145,42 @@ The package provides three immutable wrapper types for preserving source informa
 
 ```python
 from ruamel.yaml import YAML
-from jentic.apitools.openapi.datamodels.low.v30.security_scheme import build as build_security_scheme
-from jentic.apitools.openapi.datamodels.low.v30.discriminator import build as build_discriminator
+from jentic.apitools.openapi.datamodels.low.v30 import build
 
-# FieldSource: Fixed specification fields
+# FieldSource: Fixed specification fields in OpenAPI document
 yaml = YAML()
-root = yaml.compose("type: http\nscheme: bearer\nbearerFormat: JWT")
-security_scheme = build_security_scheme(root)
+root = yaml.compose("""
+openapi: 3.0.3
+info:
+  title: Pet Store API
+  version: 1.0.0
+paths: {}
+""")
+openapi_doc = build(root)
 
-field = security_scheme.bearer_format  # FieldSource[str]
-print(field.value)  # "JWT" - The actual value
-print(field.key_node)  # YAML node for "bearerFormat"
-print(field.value_node)  # YAML node for "JWT"
+field = openapi_doc.info.value.title  # FieldSource[str]
+print(field.value)  # "Pet Store API" - The actual value
+print(field.key_node)  # YAML node for "title"
+print(field.value_node)  # YAML node for "Pet Store API"
 
-# KeySource/ValueSource: Dictionary fields (mapping, extensions)
-root = yaml.compose("propertyName: petType\nmapping:\n  dog: Dog\n  cat: Cat")
-discriminator = build_discriminator(root)
+# KeySource/ValueSource: Dictionary fields (extensions, mapping)
+# Extensions in OpenAPI objects use KeySource/ValueSource
+root = yaml.compose("""
+openapi: 3.0.3
+info:
+  title: API
+  version: 1.0.0
+  x-custom: value
+  x-another: data
+paths: {}
+""")
+openapi_doc = build(root)
 
-for key, value in discriminator.mapping.value.items():
-    print(key.value)  # KeySource[str]: "dog" or "cat"
-    print(key.key_node)  # YAML node for the key
-    print(value.value)  # ValueSource[str]: "Dog" or "Cat"
-    print(value.value_node)  # YAML node for the value
+for key, value in openapi_doc.info.value.extensions.items():
+    print(key.value)  # KeySource[str]: "x-custom" or "x-another"
+    print(key.key_node)  # YAML node for the extension key
+    print(value.value)  # ValueSource: "value" or "data"
+    print(value.value_node)  # YAML node for the extension value
 ```
 
 ### Location Ranges
@@ -136,27 +189,29 @@ Access precise location ranges within the source document using start_mark and e
 
 ```python
 from ruamel.yaml import YAML
-from jentic.apitools.openapi.datamodels.low.v30.security_scheme import build as build_security_scheme
+from jentic.apitools.openapi.datamodels.low.v30 import build
 
 yaml_content = """
-type: http
-scheme: bearer
-bearerFormat: JWT
-description: Bearer token authentication
+openapi: 3.0.3
+info:
+  title: Pet Store API
+  version: 1.0.0
+  description: A sample Pet Store API
+paths: {}
 """
 
 yaml = YAML()
 root = yaml.compose(yaml_content)
-security_scheme = build_security_scheme(root)
+openapi_doc = build(root)
 
 # Access location information for any field
-field = security_scheme.bearer_format
+field = openapi_doc.info.value.title
 
-# Key location (e.g., "bearerFormat")
+# Key location (e.g., "title")
 print(f"Key start: line {field.key_node.start_mark.line}, col {field.key_node.start_mark.column}")
 print(f"Key end: line {field.key_node.end_mark.line}, col {field.key_node.end_mark.column}")
 
-# Value location (e.g., "JWT")
+# Value location (e.g., "Pet Store API")
 print(f"Value start: line {field.value_node.start_mark.line}, col {field.value_node.start_mark.column}")
 print(f"Value end: line {field.value_node.end_mark.line}, col {field.value_node.end_mark.column}")
 
@@ -168,18 +223,27 @@ print(f"Field range: ({start.line}:{start.column}) to ({end.line}:{end.column})"
 
 ### Invalid Data Handling
 
-Low-level models preserve invalid data:
+Low-level models preserve invalid data without validation:
 
 ```python
 from ruamel.yaml import YAML
-from jentic.apitools.openapi.datamodels.low.v30.security_scheme import build as build_security_scheme
+from jentic.apitools.openapi.datamodels.low.v30 import build
 
 yaml = YAML()
-root = yaml.compose("bearerFormat: 123")  # Wrong type (should be string)
+root = yaml.compose("""
+openapi: 3.0.3
+info:
+  title: 123  # Intentionally wrong type for demonstration (should be string)
+  version: 1.0.0
+paths: {}
+""")
 
-security_scheme = build_security_scheme(root)
-print(security_scheme.bearer_format.value)  # 123 (preserved as-is)
-print(type(security_scheme.bearer_format.value))  # <class 'int'>
+openapi_doc = build(root)
+print(openapi_doc.info.value.title.value)  # 123 (preserved as-is)
+print(type(openapi_doc.info.value.title.value))  # <class 'int'>
+
+# Invalid data is preserved with full source tracking for validation tools
+print(openapi_doc.info.value.title.value_node.start_mark.line)  # Line number
 ```
 
 ### Error Reporting
