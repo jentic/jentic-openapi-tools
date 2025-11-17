@@ -4,12 +4,12 @@ from ruamel import yaml
 
 from ..context import Context
 from ..fields import fixed_field
-from ..model_builder import build_model
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
 from .contact import Contact
 from .contact import build as build_contact
 from .license import License
 from .license import build as build_license
+from .model_builder import build_model
 
 
 __all__ = ["Info", "build"]

@@ -5,12 +5,12 @@ from ruamel import yaml
 from ..context import Context
 from ..extractors import extract_extension_fields
 from ..fields import fixed_field
-from ..model_builder import build_field_source
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
 from .callback import Callback, build_callback_or_reference
 from .example import Example, build_example_or_reference
 from .header import Header, build_header_or_reference
 from .link import Link, build_link_or_reference
+from .model_builder import build_field_source
 from .parameter import Parameter, build_parameter_or_reference
 from .reference import Reference
 from .request_body import RequestBody, build_request_body_or_reference

@@ -4,11 +4,11 @@ from ruamel import yaml
 
 from ..context import Context
 from ..fields import fixed_field
-from ..model_builder import build_field_source, build_model
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
 from .encoding import Encoding
 from .encoding import build as build_encoding
 from .example import Example
+from .model_builder import build_field_source, build_model
 from .reference import Reference
 from .schema import Schema, build_schema_or_reference
 

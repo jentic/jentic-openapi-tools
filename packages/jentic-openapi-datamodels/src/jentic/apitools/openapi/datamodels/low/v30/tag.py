@@ -4,9 +4,9 @@ from ruamel import yaml
 
 from ..context import Context
 from ..fields import fixed_field
-from ..model_builder import build_model
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
 from .external_documentation import ExternalDocumentation
+from .model_builder import build_model
 
 
 __all__ = ["Tag", "build"]

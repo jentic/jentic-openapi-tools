@@ -3,31 +3,21 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast, get_args
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.extractors import extract_extension_fields
-from jentic.apitools.openapi.datamodels.low.fields import fixed_fields
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
+from ..context import Context
+from ..extractors import extract_extension_fields
+from ..fields import fixed_fields
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
 
 
 if TYPE_CHECKING:
-    from jentic.apitools.openapi.datamodels.low.v30.example import Example  # noqa: F401
-    from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (  # noqa: F401
-        ExternalDocumentation,
-    )
-    from jentic.apitools.openapi.datamodels.low.v30.header import Header  # noqa: F401
-    from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType  # noqa: F401
-    from jentic.apitools.openapi.datamodels.low.v30.parameter import Parameter  # noqa: F401
-    from jentic.apitools.openapi.datamodels.low.v30.reference import Reference  # noqa: F401
-    from jentic.apitools.openapi.datamodels.low.v30.security_requirement import (  # noqa: F401
-        SecurityRequirement,
-    )
-    from jentic.apitools.openapi.datamodels.low.v30.server import Server  # noqa: F401
+    from .example import Example  # noqa: F401
+    from .external_documentation import ExternalDocumentation  # noqa: F401
+    from .header import Header  # noqa: F401
+    from .media_type import MediaType  # noqa: F401
+    from .parameter import Parameter  # noqa: F401
+    from .reference import Reference  # noqa: F401
+    from .security_requirement import SecurityRequirement  # noqa: F401
+    from .server import Server  # noqa: F401
 
 
 __all__ = ["build_model", "build_field_source"]
