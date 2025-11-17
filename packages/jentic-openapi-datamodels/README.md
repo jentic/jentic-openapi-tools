@@ -233,7 +233,7 @@ yaml = YAML()
 root = yaml.compose("""
 openapi: 3.0.3
 info:
-  title: 123  # Wrong type (should be string)
+  title: 123  # Intentionally wrong type for demonstration (should be string)
   version: 1.0.0
 paths: {}
 """)
