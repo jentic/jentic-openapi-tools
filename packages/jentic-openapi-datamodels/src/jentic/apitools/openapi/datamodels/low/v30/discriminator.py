@@ -2,15 +2,10 @@ from dataclasses import dataclass
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_model
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-)
+from ..context import Context
+from ..fields import fixed_field
+from ..model_builder import build_model
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue
 
 
 __all__ = ["Discriminator", "build"]

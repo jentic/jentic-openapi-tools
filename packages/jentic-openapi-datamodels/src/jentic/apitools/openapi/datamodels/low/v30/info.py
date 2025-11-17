@@ -2,20 +2,14 @@ from dataclasses import dataclass, field, replace
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_model
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.contact import Contact
-from jentic.apitools.openapi.datamodels.low.v30.contact import build as build_contact
-from jentic.apitools.openapi.datamodels.low.v30.license import License
-from jentic.apitools.openapi.datamodels.low.v30.license import build as build_license
+from ..context import Context
+from ..fields import fixed_field
+from ..model_builder import build_model
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .contact import Contact
+from .contact import build as build_contact
+from .license import License
+from .license import build as build_license
 
 
 __all__ = ["Info", "build"]

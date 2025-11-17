@@ -2,23 +2,15 @@ from dataclasses import dataclass, field, replace
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_model
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.operation import Operation
-from jentic.apitools.openapi.datamodels.low.v30.operation import (
-    build as build_operation,
-)
-from jentic.apitools.openapi.datamodels.low.v30.parameter import Parameter
-from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
-from jentic.apitools.openapi.datamodels.low.v30.server import Server
+from ..context import Context
+from ..fields import fixed_field
+from ..model_builder import build_model
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .operation import Operation
+from .operation import build as build_operation
+from .parameter import Parameter
+from .reference import Reference
+from .server import Server
 
 
 __all__ = ["PathItem", "build"]

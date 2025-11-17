@@ -3,18 +3,12 @@ from typing import Any
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.extractors import extract_extension_fields
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field, fixed_fields
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.oauth_flow import OAuthFlow
-from jentic.apitools.openapi.datamodels.low.v30.oauth_flow import build as build_oauth_flow
+from ..context import Context
+from ..extractors import extract_extension_fields
+from ..fields import fixed_field, fixed_fields
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .oauth_flow import OAuthFlow
+from .oauth_flow import build as build_oauth_flow
 
 
 __all__ = ["OAuthFlows", "build"]

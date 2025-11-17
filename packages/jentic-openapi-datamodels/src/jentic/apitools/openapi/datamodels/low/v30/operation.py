@@ -3,38 +3,23 @@ from typing import TYPE_CHECKING
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_field_source, build_model
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
-    ExternalDocumentation,
-)
+from ..context import Context
+from ..fields import fixed_field
+from ..model_builder import build_field_source, build_model
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .external_documentation import ExternalDocumentation
 
 
 if TYPE_CHECKING:
-    from jentic.apitools.openapi.datamodels.low.v30.callback import Callback
+    from .callback import Callback
 
-from jentic.apitools.openapi.datamodels.low.v30.parameter import Parameter
-from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
-from jentic.apitools.openapi.datamodels.low.v30.request_body import (
-    RequestBody,
-    build_request_body_or_reference,
-)
-from jentic.apitools.openapi.datamodels.low.v30.responses import Responses
-from jentic.apitools.openapi.datamodels.low.v30.responses import (
-    build as build_responses,
-)
-from jentic.apitools.openapi.datamodels.low.v30.security_requirement import (
-    SecurityRequirement,
-)
-from jentic.apitools.openapi.datamodels.low.v30.server import Server
+from .parameter import Parameter
+from .reference import Reference
+from .request_body import RequestBody, build_request_body_or_reference
+from .responses import Responses
+from .responses import build as build_responses
+from .security_requirement import SecurityRequirement
+from .server import Server
 
 
 __all__ = ["Operation", "build"]
@@ -144,9 +129,7 @@ def build(
         elif key == "callbacks":
             # Handle callbacks field - map of Callback or Reference objects
             # Lazy import to avoid circular dependency
-            from jentic.apitools.openapi.datamodels.low.v30.callback import (
-                build_callback_or_reference,
-            )
+            from .callback import build_callback_or_reference
 
             if isinstance(value_node, yaml.MappingNode):
                 callbacks_dict: dict[

@@ -2,30 +2,15 @@ from dataclasses import dataclass, field, replace
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_model
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.example import Example
-from jentic.apitools.openapi.datamodels.low.v30.media_type import (
-    MediaType,
-)
-from jentic.apitools.openapi.datamodels.low.v30.reference import (
-    Reference,
-)
-from jentic.apitools.openapi.datamodels.low.v30.reference import (
-    build as build_reference,
-)
-from jentic.apitools.openapi.datamodels.low.v30.schema import (
-    Schema,
-    build_schema_or_reference,
-)
+from ..context import Context
+from ..fields import fixed_field
+from ..model_builder import build_model
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .example import Example
+from .media_type import MediaType
+from .reference import Reference
+from .reference import build as build_reference
+from .schema import Schema, build_schema_or_reference
 
 
 __all__ = ["Parameter", "build", "build_parameter_or_reference"]

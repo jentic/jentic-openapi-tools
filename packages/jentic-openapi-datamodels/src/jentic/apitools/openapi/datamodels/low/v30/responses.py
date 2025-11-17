@@ -4,21 +4,12 @@ from typing import cast
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.extractors import extract_extension_fields
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
-from jentic.apitools.openapi.datamodels.low.v30.response import (
-    Response,
-    build_response_or_reference,
-)
+from ..context import Context
+from ..extractors import extract_extension_fields
+from ..fields import fixed_field
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .reference import Reference
+from .response import Response, build_response_or_reference
 
 
 __all__ = ["Responses", "build"]

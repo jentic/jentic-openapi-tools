@@ -2,51 +2,21 @@ from dataclasses import dataclass, field
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.extractors import extract_extension_fields
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_field_source
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.callback import (
-    Callback,
-    build_callback_or_reference,
-)
-from jentic.apitools.openapi.datamodels.low.v30.example import (
-    Example,
-    build_example_or_reference,
-)
-from jentic.apitools.openapi.datamodels.low.v30.header import (
-    Header,
-    build_header_or_reference,
-)
-from jentic.apitools.openapi.datamodels.low.v30.link import Link, build_link_or_reference
-from jentic.apitools.openapi.datamodels.low.v30.parameter import (
-    Parameter,
-    build_parameter_or_reference,
-)
-from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
-from jentic.apitools.openapi.datamodels.low.v30.request_body import (
-    RequestBody,
-    build_request_body_or_reference,
-)
-from jentic.apitools.openapi.datamodels.low.v30.response import (
-    Response,
-    build_response_or_reference,
-)
-from jentic.apitools.openapi.datamodels.low.v30.schema import (
-    Schema,
-    build_schema_or_reference,
-)
-from jentic.apitools.openapi.datamodels.low.v30.security_scheme import (
-    SecurityScheme,
-    build_security_scheme_or_reference,
-)
+from ..context import Context
+from ..extractors import extract_extension_fields
+from ..fields import fixed_field
+from ..model_builder import build_field_source
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .callback import Callback, build_callback_or_reference
+from .example import Example, build_example_or_reference
+from .header import Header, build_header_or_reference
+from .link import Link, build_link_or_reference
+from .parameter import Parameter, build_parameter_or_reference
+from .reference import Reference
+from .request_body import RequestBody, build_request_body_or_reference
+from .response import Response, build_response_or_reference
+from .schema import Schema, build_schema_or_reference
+from .security_scheme import SecurityScheme, build_security_scheme_or_reference
 
 
 __all__ = ["Components", "build"]
