@@ -4,13 +4,13 @@ from ruamel import yaml
 
 from ..context import Context
 from ..fields import fixed_field
-from ..model_builder import build_field_source, build_model
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
 from .components import Components
 from .components import build as build_components
 from .external_documentation import ExternalDocumentation
 from .info import Info
 from .info import build as build_info
+from .model_builder import build_field_source, build_model
 from .paths import Paths
 from .paths import build as build_paths
 from .security_requirement import SecurityRequirement

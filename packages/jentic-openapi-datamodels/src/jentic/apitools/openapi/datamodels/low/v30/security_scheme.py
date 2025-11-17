@@ -4,8 +4,8 @@ from ruamel import yaml
 
 from ..context import Context
 from ..fields import fixed_field
-from ..model_builder import build_model
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .model_builder import build_model
 from .oauth_flows import OAuthFlows
 from .oauth_flows import build as build_oauth_flows
 from .reference import Reference
