@@ -3,13 +3,9 @@ from dataclasses import dataclass
 from ruamel import yaml
 from ruamel.yaml import MappingNode, SequenceNode
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.fields import patterned_field
-from jentic.apitools.openapi.datamodels.low.sources import (
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-)
+from ..context import Context
+from ..fields import patterned_field
+from ..sources import KeySource, ValueSource, YAMLInvalidValue
 
 
 __all__ = ["SecurityRequirement", "build"]

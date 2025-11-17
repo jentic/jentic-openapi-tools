@@ -2,24 +2,13 @@ from dataclasses import dataclass, field
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.extractors import extract_extension_fields
-from jentic.apitools.openapi.datamodels.low.sources import (
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.path_item import PathItem
-from jentic.apitools.openapi.datamodels.low.v30.path_item import (
-    build as build_path_item,
-)
-from jentic.apitools.openapi.datamodels.low.v30.reference import (
-    Reference,
-)
-from jentic.apitools.openapi.datamodels.low.v30.reference import (
-    build as build_reference,
-)
+from ..context import Context
+from ..extractors import extract_extension_fields
+from ..sources import KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .path_item import PathItem
+from .path_item import build as build_path_item
+from .reference import Reference
+from .reference import build as build_reference
 
 
 __all__ = ["Callback", "build", "build_callback_or_reference"]

@@ -2,21 +2,13 @@ from dataclasses import dataclass, field
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_model
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.media_type import MediaType
-from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
-from jentic.apitools.openapi.datamodels.low.v30.reference import (
-    build as build_reference,
-)
+from ..context import Context
+from ..fields import fixed_field
+from ..model_builder import build_model
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .media_type import MediaType
+from .reference import Reference
+from .reference import build as build_reference
 
 
 __all__ = ["RequestBody", "build", "build_request_body_or_reference"]

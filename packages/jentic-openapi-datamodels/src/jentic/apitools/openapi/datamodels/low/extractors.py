@@ -1,8 +1,8 @@
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.fields import fixed_fields
-from jentic.apitools.openapi.datamodels.low.sources import KeySource, ValueSource, YAMLValue
+from .context import Context
+from .fields import fixed_fields
+from .sources import KeySource, ValueSource, YAMLValue
 
 
 __all__ = ["extract_extension_fields", "extract_unknown_fields"]

@@ -2,20 +2,14 @@ from dataclasses import dataclass, field, replace
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import build_model
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.oauth_flows import OAuthFlows
-from jentic.apitools.openapi.datamodels.low.v30.oauth_flows import build as build_oauth_flows
-from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
-from jentic.apitools.openapi.datamodels.low.v30.reference import build as build_reference
+from ..context import Context
+from ..fields import fixed_field
+from ..model_builder import build_model
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .oauth_flows import OAuthFlows
+from .oauth_flows import build as build_oauth_flows
+from .reference import Reference
+from .reference import build as build_reference
 
 
 __all__ = ["SecurityScheme", "build", "build_security_scheme_or_reference"]

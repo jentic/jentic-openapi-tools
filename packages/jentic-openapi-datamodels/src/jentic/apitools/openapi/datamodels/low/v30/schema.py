@@ -3,29 +3,19 @@ from typing import Any, TypeAlias, get_args
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.extractors import extract_extension_fields
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field, fixed_fields
-from jentic.apitools.openapi.datamodels.low.model_builder import build_field_source
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.discriminator import Discriminator
-from jentic.apitools.openapi.datamodels.low.v30.discriminator import build as build_discriminator
-from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
-    ExternalDocumentation,
-)
-from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
-    build as build_external_documentation,
-)
-from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
-from jentic.apitools.openapi.datamodels.low.v30.reference import build as build_reference
-from jentic.apitools.openapi.datamodels.low.v30.xml import XML
-from jentic.apitools.openapi.datamodels.low.v30.xml import build as build_xml
+from ..context import Context
+from ..extractors import extract_extension_fields
+from ..fields import fixed_field, fixed_fields
+from ..model_builder import build_field_source
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .discriminator import Discriminator
+from .discriminator import build as build_discriminator
+from .external_documentation import ExternalDocumentation
+from .external_documentation import build as build_external_documentation
+from .reference import Reference
+from .reference import build as build_reference
+from .xml import XML
+from .xml import build as build_xml
 
 
 __all__ = ["Schema", "NestedSchema", "build", "build_schema_or_reference"]

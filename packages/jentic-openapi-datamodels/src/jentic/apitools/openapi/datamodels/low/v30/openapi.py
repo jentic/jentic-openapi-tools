@@ -2,34 +2,21 @@ from dataclasses import dataclass, field, replace
 
 from ruamel import yaml
 
-from jentic.apitools.openapi.datamodels.low.context import Context
-from jentic.apitools.openapi.datamodels.low.fields import fixed_field
-from jentic.apitools.openapi.datamodels.low.model_builder import (
-    build_field_source,
-    build_model,
-)
-from jentic.apitools.openapi.datamodels.low.sources import (
-    FieldSource,
-    KeySource,
-    ValueSource,
-    YAMLInvalidValue,
-    YAMLValue,
-)
-from jentic.apitools.openapi.datamodels.low.v30.components import Components
-from jentic.apitools.openapi.datamodels.low.v30.components import build as build_components
-from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
-    ExternalDocumentation,
-)
-from jentic.apitools.openapi.datamodels.low.v30.info import Info
-from jentic.apitools.openapi.datamodels.low.v30.info import build as build_info
-from jentic.apitools.openapi.datamodels.low.v30.paths import Paths
-from jentic.apitools.openapi.datamodels.low.v30.paths import build as build_paths
-from jentic.apitools.openapi.datamodels.low.v30.security_requirement import (
-    SecurityRequirement,
-)
-from jentic.apitools.openapi.datamodels.low.v30.server import Server
-from jentic.apitools.openapi.datamodels.low.v30.tag import Tag
-from jentic.apitools.openapi.datamodels.low.v30.tag import build as build_tag
+from ..context import Context
+from ..fields import fixed_field
+from ..model_builder import build_field_source, build_model
+from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .components import Components
+from .components import build as build_components
+from .external_documentation import ExternalDocumentation
+from .info import Info
+from .info import build as build_info
+from .paths import Paths
+from .paths import build as build_paths
+from .security_requirement import SecurityRequirement
+from .server import Server
+from .tag import Tag
+from .tag import build as build_tag
 
 
 __all__ = ["OpenAPI30", "build"]
