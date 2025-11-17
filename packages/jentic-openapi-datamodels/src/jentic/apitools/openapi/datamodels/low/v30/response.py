@@ -5,10 +5,10 @@ from ruamel import yaml
 from ..context import Context
 from ..fields import fixed_field
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .builders import build_field_source, build_model
 from .header import Header
 from .link import Link, build_link_or_reference
 from .media_type import MediaType
-from .model_builder import build_field_source, build_model
 from .reference import Reference
 from .reference import build as build_reference
 

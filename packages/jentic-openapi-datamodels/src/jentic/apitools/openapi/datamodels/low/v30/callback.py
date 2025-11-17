@@ -27,13 +27,13 @@ class Callback:
 
     Attributes:
         root_node: The top-level node representing the entire Callback object in the original source file
-        expressions: Map of expression keys to Path Item Objects. Each key is a runtime expression
+        path_items: Map of expression keys to Path Item Objects. Each key is a runtime expression
                     that will be evaluated to determine the callback URL.
         extensions: Specification extensions (x-* fields)
     """
 
     root_node: yaml.Node
-    expressions: dict[KeySource[str], PathItem] = field(default_factory=dict)
+    path_items: dict[KeySource[str], PathItem] = field(default_factory=dict)
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
@@ -72,7 +72,7 @@ def build(
                 description: callback successfully processed
         ''')
         callback = build(root)
-        assert len(callback.expressions) > 0
+        assert len(callback.path_items) > 0
     """
     context = context or Context()
 
@@ -86,7 +86,7 @@ def build(
     extension_properties = {k.value for k in extensions.keys()}
 
     # Process each field to determine if it's an expression (not an extension)
-    expressions: dict[KeySource[str], PathItem | ValueSource[YAMLInvalidValue]] = {}
+    path_items: dict[KeySource[str], PathItem | ValueSource[YAMLInvalidValue]] = {}
 
     for key_node, value_node in root.value:
         key = context.yaml_constructor.construct_yaml_str(key_node)
@@ -94,12 +94,12 @@ def build(
         if key not in extension_properties:
             # Expression field (any key that's not an extension) - build as Path Item
             path_item_obj = build_path_item(value_node, context)
-            expressions[KeySource(value=key, key_node=key_node)] = path_item_obj
+            path_items[KeySource(value=key, key_node=key_node)] = path_item_obj
 
     # Create and return the Callback object with collected data
     return Callback(
         root_node=root,
-        expressions=expressions,  # type: ignore[arg-type]
+        path_items=path_items,  # type: ignore[arg-type]
         extensions=extensions,
     )
 

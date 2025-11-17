@@ -1,23 +1,28 @@
+"""Builders for OpenAPI 3.1.x specification objects."""
+
 from dataclasses import fields
 from typing import TYPE_CHECKING, Any, TypeVar, cast, get_args
 
 from ruamel import yaml
 
-from ..context import Context
-from ..extractors import extract_extension_fields
-from ..fields import fixed_fields
-from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from ...context import Context
+from ...extractors import extract_extension_fields
+from ...fields import fixed_fields
+from ...sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
 
 
 if TYPE_CHECKING:
-    from .example import Example  # noqa: F401
-    from .external_documentation import ExternalDocumentation  # noqa: F401
-    from .header import Header  # noqa: F401
-    from .media_type import MediaType  # noqa: F401
-    from .parameter import Parameter  # noqa: F401
-    from .reference import Reference  # noqa: F401
-    from .security_requirement import SecurityRequirement  # noqa: F401
-    from .server import Server  # noqa: F401
+    from ..callback import Callback  # noqa: F401
+    from ..example import Example  # noqa: F401
+    from ..external_documentation import ExternalDocumentation  # noqa: F401
+    from ..header import Header  # noqa: F401
+    from ..media_type import MediaType  # noqa: F401
+    from ..parameter import Parameter  # noqa: F401
+    from ..path_item import PathItem  # noqa: F401
+    from ..reference import Reference  # noqa: F401
+    from ..schema import Schema  # noqa: F401
+    from ..security_requirement import SecurityRequirement  # noqa: F401
+    from ..server import Server  # noqa: F401
 
 
 __all__ = ["build_model", "build_field_source"]
@@ -30,7 +35,7 @@ def build_model(
     root: yaml.Node, dataclass_type: type[T], *, context: Context | None = None
 ) -> T | ValueSource[YAMLInvalidValue]:
     """
-    Generic builder for OpenAPI low model.
+    Generic builder for OpenAPI 3.1 low model.
 
     Builds any dataclass that follows the pattern:
     - Has a required `root_node: yaml.Node` field
@@ -118,9 +123,7 @@ def build_model(
                     field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource[list["Server"]]}:
                 # Handle list[Server] with lazy import
-                from jentic.apitools.openapi.datamodels.low.v30.server import (
-                    build as build_server,
-                )
+                from ..server import build as build_server
 
                 if isinstance(value_node, yaml.SequenceNode):
                     servers_list = []
@@ -135,9 +138,7 @@ def build_model(
                     field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource[list["SecurityRequirement"]]}:
                 # Handle list[SecurityRequirement] with lazy import
-                from jentic.apitools.openapi.datamodels.low.v30.security_requirement import (
-                    build as build_security_requirement,
-                )
+                from ..security_requirement import build as build_security_requirement
 
                 if isinstance(value_node, yaml.SequenceNode):
                     security_list = []
@@ -152,9 +153,7 @@ def build_model(
                     field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource[list["Parameter | Reference"]]}:
                 # Handle list[Parameter | Reference] with lazy import
-                from jentic.apitools.openapi.datamodels.low.v30.parameter import (
-                    build_parameter_or_reference,
-                )
+                from ..parameter import build_parameter_or_reference
 
                 if isinstance(value_node, yaml.SequenceNode):
                     parameters_list = []
@@ -169,9 +168,7 @@ def build_model(
                     field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource[dict[KeySource[str], "Example | Reference"]]}:
                 # Handle dict[KeySource[str], Example | Reference] with lazy import
-                from jentic.apitools.openapi.datamodels.low.v30.example import (
-                    build_example_or_reference,
-                )
+                from ..example import build_example_or_reference
 
                 if isinstance(value_node, yaml.MappingNode):
                     examples_dict = {}
@@ -189,9 +186,7 @@ def build_model(
                     field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource[dict[KeySource[str], "MediaType"]]}:
                 # Handle dict[KeySource[str], MediaType] with lazy import
-                from jentic.apitools.openapi.datamodels.low.v30.media_type import (
-                    build as build_media_type,
-                )
+                from ..media_type import build as build_media_type
 
                 if isinstance(value_node, yaml.MappingNode):
                     content_dict = {}
@@ -209,9 +204,7 @@ def build_model(
                     field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource[dict[KeySource[str], "Header | Reference"]]}:
                 # Handle dict[KeySource[str], Header | Reference] with lazy import
-                from jentic.apitools.openapi.datamodels.low.v30.header import (
-                    build_header_or_reference,
-                )
+                from ..header import build_header_or_reference
 
                 if isinstance(value_node, yaml.MappingNode):
                     headers_dict = {}
@@ -229,15 +222,56 @@ def build_model(
                     field_values[field_name] = build_field_source(key_node, value_node, context)
             elif field_type_args & {FieldSource["ExternalDocumentation"]}:
                 # Handle ExternalDocumentation with lazy import
-                from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
-                    build as build_external_docs,
-                )
+                from ..external_documentation import build as build_external_docs
 
                 field_values[field_name] = FieldSource(
                     value=build_external_docs(value_node, context),
                     key_node=key_node,
                     value_node=value_node,
                 )
+            elif field_type_args & {FieldSource["Schema"]}:
+                # Handle Schema | Reference union with lazy import
+                from ..schema import build as build_schema
+
+                field_values[field_name] = FieldSource(
+                    value=build_schema(value_node, context),
+                    key_node=key_node,
+                    value_node=value_node,
+                )
+            elif field_type_args & {FieldSource[dict[KeySource[str], "PathItem"]]}:
+                # Handle dict[KeySource[str], PathItem] with lazy import
+                from ..path_item import build as build_path_item
+
+                if isinstance(value_node, yaml.MappingNode):
+                    path_items_dict = {}
+                    for map_key_node, map_value_node in value_node.value:
+                        map_key = context.yaml_constructor.construct_yaml_str(map_key_node)
+                        path_item = build_path_item(map_value_node, context)
+                        path_items_dict[KeySource(value=map_key, key_node=map_key_node)] = path_item
+                    field_values[field_name] = FieldSource(
+                        value=path_items_dict, key_node=key_node, value_node=value_node
+                    )
+                else:
+                    # Not a mapping - preserve as-is for validation
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
+            elif field_type_args & {FieldSource[dict[KeySource[str], "Callback | Reference"]]}:
+                # Handle dict[KeySource[str], Callback | Reference] with lazy import
+                from ..callback import build_callback_or_reference
+
+                if isinstance(value_node, yaml.MappingNode):
+                    callbacks_dict = {}
+                    for map_key_node, map_value_node in value_node.value:
+                        map_key = context.yaml_constructor.construct_yaml_str(map_key_node)
+                        callback_or_reference = build_callback_or_reference(map_value_node, context)
+                        callbacks_dict[KeySource(value=map_key, key_node=map_key_node)] = (
+                            callback_or_reference
+                        )
+                    field_values[field_name] = FieldSource(
+                        value=callbacks_dict, key_node=key_node, value_node=value_node
+                    )
+                else:
+                    # Not a mapping - preserve as-is for validation
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
 
     # Build and return the dataclass instance
     # Conditionally include extensions field if dataclass supports it

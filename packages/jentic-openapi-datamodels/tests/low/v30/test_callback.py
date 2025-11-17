@@ -30,11 +30,11 @@ def test_build_with_single_expression():
     assert isinstance(result, callback.Callback)
 
     assert result.root_node == root
-    assert len(result.expressions) == 1
+    assert len(result.path_items) == 1
     assert result.extensions == {}
 
     # Check the expression key
-    expression_keys = {k.value for k in result.expressions.keys()}
+    expression_keys = {k.value for k in result.path_items.keys()}
     assert "{$request.body#/callbackUrl}" in expression_keys
 
 
@@ -60,8 +60,8 @@ def test_build_with_multiple_expressions():
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
 
-    assert len(result.expressions) == 2
-    expression_keys = {k.value for k in result.expressions.keys()}
+    assert len(result.path_items) == 2
+    expression_keys = {k.value for k in result.path_items.keys()}
     assert expression_keys == {"{$request.body#/callbackUrl}", "{$request.body#/webhookUrl}"}
 
 
@@ -84,7 +84,7 @@ def test_build_with_extensions():
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
 
-    assert len(result.expressions) == 1
+    assert len(result.path_items) == 1
     assert len(result.extensions) == 2
     ext_dict = {k.value: v.value for k, v in result.extensions.items()}
     assert ext_dict["x-callback-timeout"] == 30
@@ -113,8 +113,8 @@ def test_build_with_url_expression():
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
 
-    assert len(result.expressions) == 1
-    expression_keys = {k.value for k in result.expressions.keys()}
+    assert len(result.path_items) == 1
+    expression_keys = {k.value for k in result.path_items.keys()}
     assert "https://example.com/callback" in expression_keys
 
 
@@ -140,8 +140,8 @@ def test_build_with_complex_expression():
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
 
-    assert len(result.expressions) == 2
-    expression_keys = {k.value for k in result.expressions.keys()}
+    assert len(result.path_items) == 2
+    expression_keys = {k.value for k in result.path_items.keys()}
     assert "{$request.header.X-Callback-Url}" in expression_keys
     assert "{$request.query.callback}" in expression_keys
 
@@ -156,7 +156,7 @@ def test_build_with_empty_object():
     assert isinstance(result, callback.Callback)
 
     assert result.root_node == root
-    assert result.expressions == {}
+    assert result.path_items == {}
     assert result.extensions == {}
 
 
@@ -197,7 +197,7 @@ def test_build_with_custom_context():
     result = callback.build(root, context=custom_context)
     assert isinstance(result, callback.Callback)
 
-    assert len(result.expressions) == 1
+    assert len(result.path_items) == 1
 
 
 def test_source_tracking():
@@ -219,14 +219,14 @@ def test_source_tracking():
     assert isinstance(result, callback.Callback)
 
     # Check expression key source tracking
-    for key_source in result.expressions.keys():
+    for key_source in result.path_items.keys():
         assert isinstance(key_source, KeySource)
         assert key_source.key_node is not None
 
     # Check expression value is now a PathItem object
     from jentic.apitools.openapi.datamodels.low.v30.path_item import PathItem
 
-    for path_item in result.expressions.values():
+    for path_item in result.path_items.values():
         assert isinstance(path_item, PathItem)
         assert path_item.root_node is not None
 
@@ -238,7 +238,7 @@ def test_source_tracking():
         assert value_source.value_node is not None
 
     # Check line numbers are available
-    first_key = next(iter(result.expressions.keys()))
+    first_key = next(iter(result.path_items.keys()))
     assert hasattr(first_key.key_node.start_mark, "line")
 
 
@@ -274,8 +274,8 @@ def test_build_preserves_path_item_structure():
     # Get the path item
     from jentic.apitools.openapi.datamodels.low.v30.path_item import PathItem
 
-    key = next(iter(result.expressions.keys()))
-    path_item = result.expressions[key]
+    key = next(iter(result.path_items.keys()))
+    path_item = result.path_items[key]
 
     # Verify it's a PathItem object with proper structure
     from jentic.apitools.openapi.datamodels.low.v30.operation import Operation
@@ -321,7 +321,7 @@ def test_build_real_world_webhook_callback():
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
 
-    assert len(result.expressions) == 1
+    assert len(result.path_items) == 1
     assert len(result.extensions) == 1
 
     # Check extension
@@ -353,8 +353,8 @@ def test_build_with_multiple_http_methods():
     # Get the path item
     from jentic.apitools.openapi.datamodels.low.v30.path_item import PathItem
 
-    key = next(iter(result.expressions.keys()))
-    path_item = result.expressions[key]
+    key = next(iter(result.path_items.keys()))
+    path_item = result.path_items[key]
 
     # Verify it's a PathItem with both methods present
     assert isinstance(path_item, PathItem)
@@ -379,7 +379,7 @@ def test_build_with_expression_using_response():
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
 
-    expression_keys = {k.value for k in result.expressions.keys()}
+    expression_keys = {k.value for k in result.path_items.keys()}
     assert "{$response.body#/callbackUrl}" in expression_keys
 
 
@@ -411,7 +411,7 @@ def test_build_preserves_order():
     assert isinstance(result, callback.Callback)
 
     # Dict should maintain insertion order (Python 3.7+)
-    expression_keys_list = [k.value for k in result.expressions.keys()]
+    expression_keys_list = [k.value for k in result.path_items.keys()]
     assert expression_keys_list == [
         "{$request.body#/url1}",
         "{$request.body#/url2}",
@@ -444,10 +444,10 @@ def test_build_with_all_fields():
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
 
-    assert len(result.expressions) == 2
+    assert len(result.path_items) == 2
     assert len(result.extensions) == 3
 
-    expression_keys = {k.value for k in result.expressions.keys()}
+    expression_keys = {k.value for k in result.path_items.keys()}
     assert expression_keys == {"{$request.body#/callbackUrl}", "{$request.body#/webhookUrl}"}
 
     ext_dict = {k.value: v.value for k, v in result.extensions.items()}
@@ -472,7 +472,7 @@ def test_build_callback_or_reference_with_callback():
 
     result = callback.build_callback_or_reference(root, Context())
     assert isinstance(result, callback.Callback)
-    assert len(result.expressions) == 1
+    assert len(result.path_items) == 1
 
 
 def test_build_callback_or_reference_with_reference():

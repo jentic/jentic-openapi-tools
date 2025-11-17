@@ -1,16 +1,15 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from ruamel import yaml
 
 from ..context import Context
-from ..extractors import extract_extension_fields
 from ..fields import fixed_field
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
-from .callback import Callback, build_callback_or_reference
+from .builders import build_field_source, build_model
+from .callback import Callback
 from .example import Example, build_example_or_reference
 from .header import Header, build_header_or_reference
 from .link import Link, build_link_or_reference
-from .model_builder import build_field_source
 from .parameter import Parameter, build_parameter_or_reference
 from .reference import Reference
 from .request_body import RequestBody, build_request_body_or_reference
@@ -61,7 +60,7 @@ class Components:
         fixed_field(metadata={"yaml_name": "securitySchemes"})
     )
     links: FieldSource[dict[KeySource[str], Link | Reference]] | None = fixed_field()
-    callbacks: FieldSource[dict[KeySource[str], Callback | Reference]] | None = fixed_field()
+    callbacks: FieldSource[dict[KeySource[str], "Callback | Reference"]] | None = fixed_field()
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
@@ -104,33 +103,17 @@ def build(
     """
     context = context or Context()
 
-    # Check if root is a MappingNode, if not return ValueSource with invalid data
-    if not isinstance(root, yaml.MappingNode):
-        value = context.yaml_constructor.construct_object(root, deep=True)
-        return ValueSource(value=value, value_node=root)
+    # Use build_model for initial construction
+    components_obj = build_model(root, Components, context=context)
 
-    # Extract extensions first
-    extensions = extract_extension_fields(root, context)
-    extension_properties = {k.value for k in extensions.keys()}
+    # If build_model returned ValueSource (invalid node), return it immediately
+    if not isinstance(components_obj, Components):
+        return components_obj
 
-    # Initialize all component fields
-    schemas = None
-    responses = None
-    parameters = None
-    examples = None
-    request_bodies = None
-    headers = None
-    security_schemes = None
-    links = None
-    callbacks = None
-
-    # Process each field in single pass
+    # Manually handle nested complex fields that aren't covered by build_model
+    replacements = {}
     for key_node, value_node in root.value:
         key = context.yaml_constructor.construct_yaml_str(key_node)
-
-        # Skip extensions - already processed
-        if key in extension_properties:
-            continue
 
         if key == "schemas":
             # Handle schemas field - map of Schema or Reference objects
@@ -142,10 +125,12 @@ def build(
                     schemas_dict[KeySource(value=schema_key, key_node=schema_key_node)] = (
                         schema_or_reference
                     )
-                schemas = FieldSource(value=schemas_dict, key_node=key_node, value_node=value_node)
+                replacements["schemas"] = FieldSource(
+                    value=schemas_dict, key_node=key_node, value_node=value_node
+                )
             else:
                 # Not a mapping - preserve as-is for validation
-                schemas = build_field_source(key_node, value_node, context)
+                replacements["schemas"] = build_field_source(key_node, value_node, context)
 
         elif key == "responses":
             # Handle responses field - map of Response or Reference objects
@@ -159,12 +144,12 @@ def build(
                     responses_dict[KeySource(value=response_key, key_node=response_key_node)] = (
                         response_or_reference
                     )
-                responses = FieldSource(
+                replacements["responses"] = FieldSource(
                     value=responses_dict, key_node=key_node, value_node=value_node
                 )
             else:
                 # Not a mapping - preserve as-is for validation
-                responses = build_field_source(key_node, value_node, context)
+                replacements["responses"] = build_field_source(key_node, value_node, context)
 
         elif key == "parameters":
             # Handle parameters field - map of Parameter or Reference objects
@@ -178,12 +163,12 @@ def build(
                     parameters_dict[KeySource(value=parameter_key, key_node=parameter_key_node)] = (
                         parameter_or_reference
                     )
-                parameters = FieldSource(
+                replacements["parameters"] = FieldSource(
                     value=parameters_dict, key_node=key_node, value_node=value_node
                 )
             else:
                 # Not a mapping - preserve as-is for validation
-                parameters = build_field_source(key_node, value_node, context)
+                replacements["parameters"] = build_field_source(key_node, value_node, context)
 
         elif key == "examples":
             # Handle examples field - map of Example or Reference objects
@@ -195,12 +180,12 @@ def build(
                     examples_dict[KeySource(value=example_key, key_node=example_key_node)] = (
                         example_or_reference
                     )
-                examples = FieldSource(
+                replacements["examples"] = FieldSource(
                     value=examples_dict, key_node=key_node, value_node=value_node
                 )
             else:
                 # Not a mapping - preserve as-is for validation
-                examples = build_field_source(key_node, value_node, context)
+                replacements["examples"] = build_field_source(key_node, value_node, context)
 
         elif key == "requestBodies":
             # Handle requestBodies field - map of RequestBody or Reference objects
@@ -216,12 +201,12 @@ def build(
                     request_bodies_dict[
                         KeySource(value=request_body_key, key_node=request_body_key_node)
                     ] = request_body_or_reference
-                request_bodies = FieldSource(
+                replacements["request_bodies"] = FieldSource(
                     value=request_bodies_dict, key_node=key_node, value_node=value_node
                 )
             else:
                 # Not a mapping - preserve as-is for validation
-                request_bodies = build_field_source(key_node, value_node, context)
+                replacements["request_bodies"] = build_field_source(key_node, value_node, context)
 
         elif key == "headers":
             # Handle headers field - map of Header or Reference objects
@@ -233,10 +218,12 @@ def build(
                     headers_dict[KeySource(value=header_key, key_node=header_key_node)] = (
                         header_or_reference
                     )
-                headers = FieldSource(value=headers_dict, key_node=key_node, value_node=value_node)
+                replacements["headers"] = FieldSource(
+                    value=headers_dict, key_node=key_node, value_node=value_node
+                )
             else:
                 # Not a mapping - preserve as-is for validation
-                headers = build_field_source(key_node, value_node, context)
+                replacements["headers"] = build_field_source(key_node, value_node, context)
 
         elif key == "securitySchemes":
             # Handle securitySchemes field - map of SecurityScheme or Reference objects
@@ -252,12 +239,12 @@ def build(
                     security_schemes_dict[
                         KeySource(value=security_scheme_key, key_node=security_scheme_key_node)
                     ] = security_scheme_or_reference
-                security_schemes = FieldSource(
+                replacements["security_schemes"] = FieldSource(
                     value=security_schemes_dict, key_node=key_node, value_node=value_node
                 )
             else:
                 # Not a mapping - preserve as-is for validation
-                security_schemes = build_field_source(key_node, value_node, context)
+                replacements["security_schemes"] = build_field_source(key_node, value_node, context)
 
         elif key == "links":
             # Handle links field - map of Link or Reference objects
@@ -269,41 +256,15 @@ def build(
                     links_dict[KeySource(value=link_key, key_node=link_key_node)] = (
                         link_or_reference
                     )
-                links = FieldSource(value=links_dict, key_node=key_node, value_node=value_node)
-            else:
-                # Not a mapping - preserve as-is for validation
-                links = build_field_source(key_node, value_node, context)
-
-        elif key == "callbacks":
-            # Handle callbacks field - map of Callback or Reference objects
-            if isinstance(value_node, yaml.MappingNode):
-                callbacks_dict = {}
-                for callback_key_node, callback_value_node in value_node.value:
-                    callback_key = context.yaml_constructor.construct_yaml_str(callback_key_node)
-                    callback_or_reference = build_callback_or_reference(
-                        callback_value_node, context
-                    )
-                    callbacks_dict[KeySource(value=callback_key, key_node=callback_key_node)] = (
-                        callback_or_reference
-                    )
-                callbacks = FieldSource(
-                    value=callbacks_dict, key_node=key_node, value_node=value_node
+                replacements["links"] = FieldSource(
+                    value=links_dict, key_node=key_node, value_node=value_node
                 )
             else:
                 # Not a mapping - preserve as-is for validation
-                callbacks = build_field_source(key_node, value_node, context)
+                replacements["links"] = build_field_source(key_node, value_node, context)
 
-    # Create and return the Components object with collected data
-    return Components(
-        root_node=root,
-        schemas=schemas,
-        responses=responses,
-        parameters=parameters,
-        examples=examples,
-        request_bodies=request_bodies,
-        headers=headers,
-        security_schemes=security_schemes,
-        links=links,
-        callbacks=callbacks,
-        extensions=extensions,
-    )
+    # Apply all replacements at once
+    if replacements:
+        components_obj = replace(components_obj, **replacements)
+
+    return components_obj

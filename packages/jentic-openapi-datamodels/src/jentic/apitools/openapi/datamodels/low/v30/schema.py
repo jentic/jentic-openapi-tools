@@ -7,11 +7,11 @@ from ..context import Context
 from ..extractors import extract_extension_fields
 from ..fields import fixed_field, fixed_fields
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .builders import build_field_source
 from .discriminator import Discriminator
 from .discriminator import build as build_discriminator
 from .external_documentation import ExternalDocumentation
 from .external_documentation import build as build_external_documentation
-from .model_builder import build_field_source
 from .reference import Reference
 from .reference import build as build_reference
 from .xml import XML
