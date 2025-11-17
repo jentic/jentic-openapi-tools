@@ -53,7 +53,7 @@ The main use case is parsing complete OpenAPI 3.0 documents:
 
 ```python
 from ruamel.yaml import YAML
-from jentic.apitools.openapi.datamodels.low.v30 import OpenAPI30, build
+from jentic.apitools.openapi.datamodels.low.v30 import build
 
 # Parse OpenAPI document
 yaml = YAML()
