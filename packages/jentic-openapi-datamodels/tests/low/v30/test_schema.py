@@ -15,7 +15,7 @@ from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 from jentic.apitools.openapi.datamodels.low.v30.xml import XML
 
 
-def test_build_with_primitive_string_schema():
+def test_build_with_primitive_string_schema(parse_yaml):
     """Test building Schema with simple string type."""
     yaml_content = textwrap.dedent(
         """
@@ -25,8 +25,7 @@ def test_build_with_primitive_string_schema():
         pattern: "^[a-zA-Z0-9]+$"
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -46,7 +45,7 @@ def test_build_with_primitive_string_schema():
     assert result.pattern.value == "^[a-zA-Z0-9]+$"
 
 
-def test_build_with_primitive_number_schema():
+def test_build_with_primitive_number_schema(parse_yaml):
     """Test building Schema with number type and numeric constraints."""
     yaml_content = textwrap.dedent(
         """
@@ -57,8 +56,7 @@ def test_build_with_primitive_number_schema():
         multipleOf: 0.5
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -75,7 +73,7 @@ def test_build_with_primitive_number_schema():
     assert result.multiple_of.value == 0.5
 
 
-def test_build_with_integer_schema():
+def test_build_with_integer_schema(parse_yaml):
     """Test building Schema with integer type."""
     yaml_content = textwrap.dedent(
         """
@@ -86,8 +84,7 @@ def test_build_with_integer_schema():
         exclusiveMaximum: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -100,7 +97,7 @@ def test_build_with_integer_schema():
     assert result.exclusive_maximum.value is True
 
 
-def test_build_with_exclusive_minimum():
+def test_build_with_exclusive_minimum(parse_yaml):
     """Test building Schema with exclusiveMinimum validation."""
     yaml_content = textwrap.dedent(
         """
@@ -111,8 +108,7 @@ def test_build_with_exclusive_minimum():
         exclusiveMinimum: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -129,7 +125,7 @@ def test_build_with_exclusive_minimum():
     assert result.exclusive_minimum.value is True
 
 
-def test_build_with_array_schema():
+def test_build_with_array_schema(parse_yaml):
     """Test building Schema with array type."""
     yaml_content = textwrap.dedent(
         """
@@ -141,8 +137,7 @@ def test_build_with_array_schema():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -163,7 +158,7 @@ def test_build_with_array_schema():
     assert result.items.value.type.value == "string"
 
 
-def test_build_with_object_schema():
+def test_build_with_object_schema(parse_yaml):
     """Test building Schema with object type and properties."""
     yaml_content = textwrap.dedent(
         """
@@ -184,8 +179,7 @@ def test_build_with_object_schema():
         maxProperties: 10
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -209,7 +203,7 @@ def test_build_with_object_schema():
     assert result.max_properties.value == 10
 
 
-def test_build_with_enum():
+def test_build_with_enum(parse_yaml):
     """Test building Schema with enum constraint."""
     yaml_content = textwrap.dedent(
         """
@@ -220,8 +214,7 @@ def test_build_with_enum():
           - rejected
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -230,7 +223,7 @@ def test_build_with_enum():
     assert [item.value for item in result.enum.value] == ["pending", "approved", "rejected"]
 
 
-def test_build_with_allof():
+def test_build_with_allof(parse_yaml):
     """Test building Schema with allOf composition."""
     yaml_content = textwrap.dedent(
         """
@@ -245,8 +238,7 @@ def test_build_with_allof():
                 type: integer
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -264,7 +256,7 @@ def test_build_with_allof():
     assert result.all_of.value[1].type.value == "object"
 
 
-def test_build_with_oneof():
+def test_build_with_oneof(parse_yaml):
     """Test building Schema with oneOf composition."""
     yaml_content = textwrap.dedent(
         """
@@ -273,8 +265,7 @@ def test_build_with_oneof():
           - type: number
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -284,7 +275,7 @@ def test_build_with_oneof():
     assert len(result.one_of.value) == 2
 
 
-def test_build_with_anyof():
+def test_build_with_anyof(parse_yaml):
     """Test building Schema with anyOf composition."""
     yaml_content = textwrap.dedent(
         """
@@ -295,8 +286,7 @@ def test_build_with_anyof():
             format: email
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -306,7 +296,7 @@ def test_build_with_anyof():
     assert len(result.any_of.value) == 2
 
 
-def test_build_with_not():
+def test_build_with_not(parse_yaml):
     """Test building Schema with not keyword."""
     yaml_content = textwrap.dedent(
         """
@@ -314,8 +304,7 @@ def test_build_with_not():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -326,7 +315,7 @@ def test_build_with_not():
     assert result.not_.value.type.value == "string"
 
 
-def test_build_with_allof_references():
+def test_build_with_allof_references(parse_yaml):
     """Test building Schema with allOf containing $ref (Reference objects)."""
     yaml_content = textwrap.dedent(
         """
@@ -338,8 +327,7 @@ def test_build_with_allof_references():
                 type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -359,7 +347,7 @@ def test_build_with_allof_references():
     assert result.all_of.value[1].type.value == "object"
 
 
-def test_build_with_oneof_references():
+def test_build_with_oneof_references(parse_yaml):
     """Test building Schema with oneOf containing $ref (Reference objects)."""
     yaml_content = textwrap.dedent(
         """
@@ -372,8 +360,7 @@ def test_build_with_oneof_references():
                 type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -396,7 +383,7 @@ def test_build_with_oneof_references():
     assert result.one_of.value[2].type.value == "object"
 
 
-def test_build_with_anyof_references():
+def test_build_with_anyof_references(parse_yaml):
     """Test building Schema with anyOf containing $ref (Reference objects)."""
     yaml_content = textwrap.dedent(
         """
@@ -405,8 +392,7 @@ def test_build_with_anyof_references():
           - $ref: '#/components/schemas/NumberFormat'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -424,7 +410,7 @@ def test_build_with_anyof_references():
     assert result.any_of.value[1].ref.value == "#/components/schemas/NumberFormat"
 
 
-def test_build_with_not_reference():
+def test_build_with_not_reference(parse_yaml):
     """Test building Schema with not containing $ref (Reference object)."""
     yaml_content = textwrap.dedent(
         """
@@ -432,8 +418,7 @@ def test_build_with_not_reference():
           $ref: '#/components/schemas/Forbidden'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -444,7 +429,7 @@ def test_build_with_not_reference():
     assert result.not_.value.ref.value == "#/components/schemas/Forbidden"
 
 
-def test_build_with_properties_references():
+def test_build_with_properties_references(parse_yaml):
     """Test building Schema with properties containing $ref (Reference objects)."""
     yaml_content = textwrap.dedent(
         """
@@ -458,8 +443,7 @@ def test_build_with_properties_references():
             type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -485,7 +469,7 @@ def test_build_with_properties_references():
     assert properties["name"].type.value == "string"
 
 
-def test_build_with_additional_properties_reference():
+def test_build_with_additional_properties_reference(parse_yaml):
     """Test building Schema with additionalProperties containing $ref (Reference object)."""
     yaml_content = textwrap.dedent(
         """
@@ -494,8 +478,7 @@ def test_build_with_additional_properties_reference():
           $ref: '#/components/schemas/StringValue'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -506,7 +489,7 @@ def test_build_with_additional_properties_reference():
     assert result.additional_properties.value.ref.value == "#/components/schemas/StringValue"
 
 
-def test_build_with_additional_properties_boolean():
+def test_build_with_additional_properties_boolean(parse_yaml):
     """Test building Schema with additionalProperties as boolean."""
     yaml_content = textwrap.dedent(
         """
@@ -514,8 +497,7 @@ def test_build_with_additional_properties_boolean():
         additionalProperties: false
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -524,7 +506,7 @@ def test_build_with_additional_properties_boolean():
     assert result.additional_properties.value is False
 
 
-def test_build_with_additional_properties_schema():
+def test_build_with_additional_properties_schema(parse_yaml):
     """Test building Schema with additionalProperties as schema."""
     yaml_content = textwrap.dedent(
         """
@@ -533,8 +515,7 @@ def test_build_with_additional_properties_schema():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -545,7 +526,7 @@ def test_build_with_additional_properties_schema():
     assert result.additional_properties.value.type.value == "string"
 
 
-def test_build_with_nullable():
+def test_build_with_nullable(parse_yaml):
     """Test building Schema with nullable property."""
     yaml_content = textwrap.dedent(
         """
@@ -553,8 +534,7 @@ def test_build_with_nullable():
         nullable: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -563,7 +543,7 @@ def test_build_with_nullable():
     assert result.nullable.value is True
 
 
-def test_build_with_discriminator():
+def test_build_with_discriminator(parse_yaml):
     """Test building Schema with discriminator."""
     yaml_content = textwrap.dedent(
         """
@@ -577,8 +557,7 @@ def test_build_with_discriminator():
             dog: '#/components/schemas/Dog'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -589,7 +568,7 @@ def test_build_with_discriminator():
     assert result.discriminator.value.property_name.value == "petType"
 
 
-def test_build_with_readonly_writeonly():
+def test_build_with_readonly_writeonly(parse_yaml):
     """Test building Schema with readOnly and writeOnly."""
     yaml_content = textwrap.dedent(
         """
@@ -603,8 +582,7 @@ def test_build_with_readonly_writeonly():
             writeOnly: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -616,7 +594,7 @@ def test_build_with_readonly_writeonly():
     assert "id" in {k.value: v for k, v in properties.items()}
 
 
-def test_build_with_xml():
+def test_build_with_xml(parse_yaml):
     """Test building Schema with XML object."""
     yaml_content = textwrap.dedent(
         """
@@ -627,8 +605,7 @@ def test_build_with_xml():
           prefix: usr
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -639,7 +616,7 @@ def test_build_with_xml():
     assert result.xml.value.name.value == "user"
 
 
-def test_build_with_external_docs():
+def test_build_with_external_docs(parse_yaml):
     """Test building Schema with externalDocs."""
     yaml_content = textwrap.dedent(
         """
@@ -649,8 +626,7 @@ def test_build_with_external_docs():
           description: User schema documentation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -661,7 +637,7 @@ def test_build_with_external_docs():
     assert result.external_docs.value.url.value == "https://example.com/docs/user"
 
 
-def test_build_with_example():
+def test_build_with_example(parse_yaml):
     """Test building Schema with example."""
     yaml_content = textwrap.dedent(
         """
@@ -673,8 +649,7 @@ def test_build_with_example():
           name: John Doe
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -684,7 +659,7 @@ def test_build_with_example():
     assert result.example.value["name"] == "John Doe"
 
 
-def test_build_with_deprecated():
+def test_build_with_deprecated(parse_yaml):
     """Test building Schema with deprecated flag."""
     yaml_content = textwrap.dedent(
         """
@@ -692,8 +667,7 @@ def test_build_with_deprecated():
         deprecated: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -702,7 +676,7 @@ def test_build_with_deprecated():
     assert result.deprecated.value is True
 
 
-def test_build_with_default():
+def test_build_with_default(parse_yaml):
     """Test building Schema with default value."""
     yaml_content = textwrap.dedent(
         """
@@ -710,8 +684,7 @@ def test_build_with_default():
         default: "N/A"
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -720,7 +693,7 @@ def test_build_with_default():
     assert result.default.value == "N/A"
 
 
-def test_build_with_title_and_description():
+def test_build_with_title_and_description(parse_yaml):
     """Test building Schema with title and description."""
     yaml_content = textwrap.dedent(
         """
@@ -732,8 +705,7 @@ def test_build_with_title_and_description():
           This represents a registered user with all their details.
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -744,7 +716,7 @@ def test_build_with_title_and_description():
     assert "A user in the system" in result.description.value
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building Schema with specification extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -755,8 +727,7 @@ def test_build_with_extensions():
           version: "1.0"
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -775,7 +746,7 @@ def test_build_with_extensions():
     assert ext_dict["x-validation-level"] == "strict"
 
 
-def test_build_with_complex_nested_schema():
+def test_build_with_complex_nested_schema(parse_yaml):
     """Test building Schema with complex nested structure."""
     yaml_content = textwrap.dedent(
         """
@@ -796,8 +767,7 @@ def test_build_with_complex_nested_schema():
                 - id
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -809,7 +779,7 @@ def test_build_with_complex_nested_schema():
     assert result.properties is not None
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -818,8 +788,7 @@ def test_build_preserves_invalid_types():
         enum: not-an-array
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -833,11 +802,10 @@ def test_build_preserves_invalid_types():
     assert result.enum.value == "not-an-array"
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Schema from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -868,7 +836,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Schema with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -876,8 +844,7 @@ def test_build_with_custom_context():
         format: email
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = schema.build(root, context=custom_context)
@@ -889,7 +856,7 @@ def test_build_with_custom_context():
     assert result.format.value == "email"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -897,8 +864,7 @@ def test_source_tracking():
         minLength: 1
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
@@ -920,7 +886,7 @@ def test_source_tracking():
     assert hasattr(result.type.value_node.start_mark, "line")
 
 
-def test_build_with_self_referential_schema():
+def test_build_with_self_referential_schema(parse_yaml):
     """Test building Schema with self-referential structure (recursive schema)."""
     yaml_content = textwrap.dedent(
         """
@@ -934,8 +900,7 @@ def test_build_with_self_referential_schema():
               $ref: '#/components/schemas/Node'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = schema.build(root)
     assert isinstance(result, schema.Schema)

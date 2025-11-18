@@ -7,7 +7,7 @@ from ruamel.yaml import YAML
 from jentic.apitools.openapi.datamodels.low.v30 import xml
 
 
-def test_field_location_tracking():
+def test_field_location_tracking(parse_yaml):
     """Test accessing line and column information for fixed fields."""
     yaml_content = textwrap.dedent(
         """
@@ -16,8 +16,7 @@ def test_field_location_tracking():
         prefix: ex
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -40,7 +39,7 @@ def test_field_location_tracking():
     assert result.name.value_node.end_mark.column == 8
 
 
-def test_extension_location_tracking():
+def test_extension_location_tracking(parse_yaml):
     """Test accessing line and column information for extension fields."""
     yaml_content = textwrap.dedent(
         """
@@ -49,8 +48,7 @@ def test_extension_location_tracking():
         x-internal: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -80,7 +78,7 @@ def test_extension_location_tracking():
     assert value.value == "my-value"
 
 
-def test_multiline_value_location():
+def test_multiline_value_location(parse_yaml):
     """Test location tracking for multiline values."""
     yaml_content = textwrap.dedent(
         """
@@ -90,8 +88,7 @@ def test_multiline_value_location():
         prefix: ex
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -112,7 +109,7 @@ def test_multiline_value_location():
     assert "value" in result.name.value
 
 
-def test_error_reporting_format():
+def test_error_reporting_format(parse_yaml):
     """Test formatting location information for error messages."""
     yaml_content = textwrap.dedent(
         """
@@ -120,8 +117,7 @@ def test_error_reporting_format():
         namespace: invalid
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -143,7 +139,7 @@ def test_error_reporting_format():
         assert "expected string, got int" in error_msg
 
 
-def test_location_with_nested_structures():
+def test_location_with_nested_structures(parse_yaml):
     """Test location tracking with nested data structures."""
     yaml_content = textwrap.dedent(
         """
@@ -153,8 +149,7 @@ def test_location_with_nested_structures():
           version: 1.0
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -182,7 +177,7 @@ def test_location_with_nested_structures():
     assert value.value == {"author": "John", "version": 1.0}
 
 
-def test_source_file_name():
+def test_source_file_name(parse_yaml):
     """Test that source file name can be tracked if provided."""
     yaml_content = textwrap.dedent(
         """
@@ -207,7 +202,7 @@ def test_source_file_name():
     assert file_name is not None or file_name is None  # Flexible for different ruamel versions
 
 
-def test_complete_error_context():
+def test_complete_error_context(parse_yaml):
     """Test building complete error context with all location details."""
     yaml_content = textwrap.dedent(
         """
@@ -217,8 +212,7 @@ def test_complete_error_context():
         x-custom: extension
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -271,7 +265,7 @@ def test_complete_error_context():
     assert sorted_locations[2]["field"] == "x-custom"
 
 
-def test_range_information():
+def test_range_information(parse_yaml):
     """Test accessing the full range (start to end) of a field."""
     yaml_content = textwrap.dedent(
         """
@@ -279,8 +273,7 @@ def test_range_information():
         namespace: https://example.com/schema
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -310,7 +303,7 @@ def test_range_information():
             assert span_length > 30  # Reasonable length check
 
 
-def test_index_and_buffer_access():
+def test_index_and_buffer_access(parse_yaml):
     """Test accessing index and buffer position for advanced use cases."""
     yaml_content = textwrap.dedent(
         """
@@ -318,8 +311,7 @@ def test_index_and_buffer_access():
         namespace: https://example.com/schema
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)

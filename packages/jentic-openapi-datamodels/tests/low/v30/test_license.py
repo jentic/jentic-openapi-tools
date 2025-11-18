@@ -9,7 +9,7 @@ from jentic.apitools.openapi.datamodels.low.sources import FieldSource, KeySourc
 from jentic.apitools.openapi.datamodels.low.v30 import license as license_module
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building License with all specification fields."""
     yaml_content = textwrap.dedent(
         """
@@ -17,8 +17,7 @@ def test_build_with_all_fields():
         url: https://www.apache.org/licenses/LICENSE-2.0.html
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = license_module.build(root)
     assert isinstance(result, license_module.License)
@@ -37,15 +36,14 @@ def test_build_with_all_fields():
     assert result.url.value_node is not None
 
 
-def test_build_with_name_only():
+def test_build_with_name_only(parse_yaml):
     """Test building License with only required name field."""
     yaml_content = textwrap.dedent(
         """
         name: MIT
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = license_module.build(root)
     assert isinstance(result, license_module.License)
@@ -60,7 +58,7 @@ def test_build_with_name_only():
     assert result.extensions == {}
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building License with specification extensions (x-* fields)."""
     yaml_content = textwrap.dedent(
         """
@@ -70,8 +68,7 @@ def test_build_with_extensions():
         x-osi-approved: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = license_module.build(root)
     assert isinstance(result, license_module.License)
@@ -90,7 +87,7 @@ def test_build_with_extensions():
     assert ext_dict["x-osi-approved"] is True
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -98,8 +95,7 @@ def test_build_preserves_invalid_types():
         url: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = license_module.build(root)
     assert isinstance(result, license_module.License)
@@ -112,11 +108,10 @@ def test_build_preserves_invalid_types():
     assert result.url.value is True
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building License from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = license_module.build(root)
     assert isinstance(result, license_module.License)
@@ -147,7 +142,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building License with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -155,8 +150,7 @@ def test_build_with_custom_context():
         url: https://opensource.org/licenses/BSD-3-Clause
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = license_module.build(root, context=custom_context)
@@ -168,7 +162,7 @@ def test_build_with_custom_context():
     assert result.url.value == "https://opensource.org/licenses/BSD-3-Clause"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -176,8 +170,7 @@ def test_source_tracking():
         url: https://www.gnu.org/licenses/gpl-3.0.html
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = license_module.build(root)
     assert isinstance(result, license_module.License)
@@ -204,7 +197,7 @@ def test_source_tracking():
     assert hasattr(result.name.value_node.start_mark, "line")
 
 
-def test_mixed_extensions_and_fixed_fields():
+def test_mixed_extensions_and_fixed_fields(parse_yaml):
     """Test that extensions and fixed fields are properly separated."""
     yaml_content = textwrap.dedent(
         """
@@ -214,8 +207,7 @@ def test_mixed_extensions_and_fixed_fields():
         x-another: 123
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = license_module.build(root)
     assert isinstance(result, license_module.License)
@@ -236,7 +228,7 @@ def test_mixed_extensions_and_fixed_fields():
     assert ext_dict["x-another"] == 123
 
 
-def test_common_open_source_licenses():
+def test_common_open_source_licenses(parse_yaml):
     """Test that License handles common open source licenses."""
     test_cases = [
         ("MIT", "https://opensource.org/licenses/MIT"),
@@ -247,11 +239,9 @@ def test_common_open_source_licenses():
         ("LGPL-3.0-only", "https://www.gnu.org/licenses/lgpl-3.0.html"),
     ]
 
-    yaml_parser = YAML()
-
     for name, url in test_cases:
         yaml_content = f"name: {name}\nurl: {url}"
-        root = yaml_parser.compose(yaml_content)
+        root = parse_yaml(yaml_content)
         result = license_module.build(root)
 
         assert isinstance(result, license_module.License)
@@ -261,7 +251,7 @@ def test_common_open_source_licenses():
         assert result.url.value == url
 
 
-def test_null_url_value():
+def test_null_url_value(parse_yaml):
     """Test handling of explicit null url value."""
     yaml_content = textwrap.dedent(
         """
@@ -269,8 +259,7 @@ def test_null_url_value():
         url: null
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = license_module.build(root)
     assert isinstance(result, license_module.License)
@@ -283,7 +272,7 @@ def test_null_url_value():
     assert result.url.value is None
 
 
-def test_various_url_formats():
+def test_various_url_formats(parse_yaml):
     """Test that License preserves various URL formats."""
     test_cases = [
         "https://opensource.org/licenses/MIT",
@@ -292,11 +281,9 @@ def test_various_url_formats():
         "https://choosealicense.com/licenses/mit/",
     ]
 
-    yaml_parser = YAML()
-
     for url in test_cases:
         yaml_content = f"name: Test License\nurl: {url}"
-        root = yaml_parser.compose(yaml_content)
+        root = parse_yaml(yaml_content)
         result = license_module.build(root)
 
         assert isinstance(result, license_module.License)

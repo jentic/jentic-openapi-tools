@@ -6,7 +6,7 @@ A Python library for parsing OpenAPI documents using pluggable parser backends. 
 
 - **Pluggable Backend Architecture**: Support for multiple parsing strategies via entry points
 - **Multiple Input Formats**: Parse OpenAPI documents from file URIs or text strings (JSON/YAML)
-- **Multiple Parser Backends**: Choose from PyYAML, ruamel.yaml, or ruamel.yaml roundtrip modes
+- **Multiple Parser Backends**: Choose from PyYAML, ruamel.yaml (safe/roundtrip/AST modes)
 - **Enhanced JSON Serialization**: Built-in support for datetime, UUID, Path, Decimal, Enum, and attrs classes
 - **Type Safety**: Full type hints with overloaded methods for precise return types
 - **Extensible Design**: Easy integration of third-party parser backends
@@ -35,12 +35,12 @@ doc = parser.parse("file:///path/to/openapi.yaml")
 print(doc["info"]["title"])
 
 # Parse from JSON string
-json_doc = '{"openapi":"3.1.0","info":{"title":"My API","version":"1.0.0"}}'
+json_doc = '{"openapi":"3.1.2","info":{"title":"My API","version":"1.0.0"}}'
 doc = parser.parse(json_doc)
 
 # Parse from YAML string
 yaml_doc = """
-openapi: 3.1.0
+openapi: 3.1.2
 info:
   title: My API
   version: 1.0.0
@@ -77,6 +77,14 @@ parser = OpenAPIParser("ruamel-roundtrip")
 doc = parser.parse("file:///path/to/openapi.yaml", return_type=CommentedMap)
 # Access line/column information
 print(doc.lc.line, doc.lc.col)
+
+# Use ruamel.yaml AST mode (returns YAML nodes with source tracking)
+from jentic.apitools.openapi.parser.backends.ruamel_ast import MappingNode
+parser = OpenAPIParser("ruamel-ast")
+node = parser.parse("file:///path/to/openapi.yaml", return_type=MappingNode)
+# Access precise line/column for any node
+for key_node, value_node in node.value:
+    print(f"{key_node.value} at line {key_node.start_mark.line}")
 ```
 
 ## Configuration Options
@@ -153,7 +161,7 @@ class OpenAPIParser:
 
 **Parameters:**
 - `backend`: Parser backend to use. Can be:
-  - `str`: Name of a backend registered via entry points (e.g., "pyyaml", "ruamel-safe", "ruamel-roundtrip")
+  - `str`: Name of a backend registered via entry points (e.g., "pyyaml", "ruamel-safe", "ruamel-roundtrip", "ruamel-ast")
   - `BaseParserBackend`: Instance of a parser backend
   - `Type[BaseParserBackend]`: Class of a parser backend (will be instantiated)
   - Defaults to `"pyyaml"` if `None`
@@ -263,6 +271,42 @@ doc = parser.parse(content, return_type=CommentedMap)
 # Access line/column information
 print(f"Line: {doc.lc.line}, Column: {doc.lc.col}")
 ```
+
+### ruamel-ast
+ruamel.yaml AST mode that returns YAML nodes with complete source location tracking. Ideal for building low-level data models with precise error reporting.
+
+**Accepts:** `text` (JSON/YAML strings), `uri` (file paths/URLs)
+
+**Returns:** `yaml.MappingNode` (YAML AST) instead of dictionaries
+
+```python
+from jentic.apitools.openapi.parser.backends.ruamel_ast import MappingNode
+
+parser = OpenAPIParser("ruamel-ast")
+node = parser.parse(content, return_type=MappingNode)
+
+# Access YAML nodes with source information
+assert isinstance(node, MappingNode)
+
+# Get precise line/column information for any node
+for key_node, value_node in node.value:
+    print(f"Key: {key_node.value}")
+    print(f"  Line: {key_node.start_mark.line}, Column: {key_node.start_mark.column}")
+
+# Perfect for building low-level datamodels with source tracking
+# Works seamlessly with jentic-openapi-datamodels
+```
+
+**Note:** You can also import directly from `ruamel.yaml` if preferred:
+```python
+from ruamel.yaml import MappingNode  # Alternative import
+```
+
+**Use Cases:**
+- Building low-level data models that preserve source locations
+- Implementing precise error reporting with line/column numbers
+- AST-based transformations and analysis
+- Integration with validation tools that need exact source positions
 
 ## Testing
 

@@ -11,7 +11,7 @@ from jentic.apitools.openapi.datamodels.low.v31.contact import Contact
 from jentic.apitools.openapi.datamodels.low.v31.license import License
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Info with all specification fields."""
     yaml_content = textwrap.dedent(
         """
@@ -28,8 +28,7 @@ def test_build_with_all_fields():
         version: 1.0.1
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -71,7 +70,7 @@ def test_build_with_all_fields():
     assert result.license.value.url.value == "https://www.apache.org/licenses/LICENSE-2.0.html"
 
 
-def test_build_with_required_fields_only():
+def test_build_with_required_fields_only(parse_yaml):
     """Test building Info with only required fields (title and version)."""
     yaml_content = textwrap.dedent(
         """
@@ -79,8 +78,7 @@ def test_build_with_required_fields_only():
         version: 1.0.0
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -100,7 +98,7 @@ def test_build_with_required_fields_only():
     assert result.extensions == {}
 
 
-def test_build_with_contact_only():
+def test_build_with_contact_only(parse_yaml):
     """Test building Info with contact information."""
     yaml_content = textwrap.dedent(
         """
@@ -111,8 +109,7 @@ def test_build_with_contact_only():
           email: team@example.com
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -123,7 +120,7 @@ def test_build_with_contact_only():
     assert result.contact.value.name.value == "Support Team"
 
 
-def test_build_with_license_only():
+def test_build_with_license_only(parse_yaml):
     """Test building Info with license information."""
     yaml_content = textwrap.dedent(
         """
@@ -133,8 +130,7 @@ def test_build_with_license_only():
           name: MIT
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -145,7 +141,7 @@ def test_build_with_license_only():
     assert result.license.value.name.value == "MIT"
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building Info with specification extensions (x-* fields)."""
     yaml_content = textwrap.dedent(
         """
@@ -157,8 +153,7 @@ def test_build_with_extensions():
           url: https://example.com/logo.png
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -181,7 +176,7 @@ def test_build_with_extensions():
     assert x_logo["url"] == "https://example.com/logo.png"
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -192,8 +187,7 @@ def test_build_preserves_invalid_types():
         license: ['invalid', 'license']
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -212,11 +206,10 @@ def test_build_preserves_invalid_types():
     assert result.license.value == ["invalid", "license"]
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Info from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -251,7 +244,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Info with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -259,8 +252,7 @@ def test_build_with_custom_context():
         version: 2.5.0
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = info.build(root, context=custom_context)
@@ -272,7 +264,7 @@ def test_build_with_custom_context():
     assert result.version.value == "2.5.0"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -281,8 +273,7 @@ def test_source_tracking():
         description: API with tracked sources
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -313,7 +304,7 @@ def test_source_tracking():
     assert hasattr(result.title.value_node.start_mark, "line")
 
 
-def test_mixed_extensions_and_fixed_fields():
+def test_mixed_extensions_and_fixed_fields(parse_yaml):
     """Test that extensions and fixed fields are properly separated."""
     yaml_content = textwrap.dedent(
         """
@@ -324,8 +315,7 @@ def test_mixed_extensions_and_fixed_fields():
         description: An API with mixed fields
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -348,7 +338,7 @@ def test_mixed_extensions_and_fixed_fields():
     assert ext_dict["x-another"] == 123
 
 
-def test_commonmark_description():
+def test_commonmark_description(parse_yaml):
     """Test that description field can contain CommonMark formatted text."""
     yaml_content = textwrap.dedent(
         """
@@ -368,8 +358,7 @@ def test_commonmark_description():
           ```
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -382,7 +371,7 @@ def test_commonmark_description():
     assert '{"example": "code"}' in result.description.value
 
 
-def test_version_formats():
+def test_version_formats(parse_yaml):
     """Test that Info handles various version formats."""
     test_cases = [
         ("1.0.0", "1.0.0"),
@@ -406,7 +395,7 @@ def test_version_formats():
         assert result.version.value == expected_value
 
 
-def test_nested_contact_with_invalid_data():
+def test_nested_contact_with_invalid_data(parse_yaml):
     """Test that invalid contact data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -415,8 +404,7 @@ def test_nested_contact_with_invalid_data():
         contact: invalid-string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -426,7 +414,7 @@ def test_nested_contact_with_invalid_data():
     assert result.contact.value == "invalid-string"
 
 
-def test_nested_license_with_invalid_data():
+def test_nested_license_with_invalid_data(parse_yaml):
     """Test that invalid license data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -435,8 +423,7 @@ def test_nested_license_with_invalid_data():
         license: 123
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -446,7 +433,7 @@ def test_nested_license_with_invalid_data():
     assert result.license.value == 123
 
 
-def test_complete_real_world_example():
+def test_complete_real_world_example(parse_yaml):
     """Test a complete real-world Info object."""
     yaml_content = textwrap.dedent(
         """
@@ -467,8 +454,7 @@ def test_complete_real_world_example():
         version: 1.0.5
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -494,7 +480,7 @@ def test_complete_real_world_example():
     assert result.license.value.name.value == "Apache 2.0"
 
 
-def test_build_with_summary_field():
+def test_build_with_summary_field(parse_yaml):
     """Test building Info with summary field (new in OpenAPI 3.1)."""
     yaml_content = textwrap.dedent(
         """
@@ -504,8 +490,7 @@ def test_build_with_summary_field():
         description: This is a sample server for a pet store.
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -520,7 +505,7 @@ def test_build_with_summary_field():
     assert result.version.value == "1.0.1"
 
 
-def test_build_with_summary_only():
+def test_build_with_summary_only(parse_yaml):
     """Test building Info with summary but no description."""
     yaml_content = textwrap.dedent(
         """
@@ -529,8 +514,7 @@ def test_build_with_summary_only():
         version: 1.0.0
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -540,7 +524,7 @@ def test_build_with_summary_only():
     assert result.description is None
 
 
-def test_build_without_summary():
+def test_build_without_summary(parse_yaml):
     """Test building Info without summary field (optional in OpenAPI 3.1)."""
     yaml_content = textwrap.dedent(
         """
@@ -549,8 +533,7 @@ def test_build_without_summary():
         description: A description without summary
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)
@@ -560,7 +543,7 @@ def test_build_without_summary():
     assert result.description.value == "A description without summary"
 
 
-def test_summary_source_tracking():
+def test_summary_source_tracking(parse_yaml):
     """Test that summary field preserves source location information."""
     yaml_content = textwrap.dedent(
         """
@@ -569,8 +552,7 @@ def test_summary_source_tracking():
         version: 1.0.0
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = info.build(root)
     assert isinstance(result, info.Info)

@@ -13,11 +13,10 @@ from jentic.apitools.openapi.datamodels.low.v31.reference import Reference
 from jentic.apitools.openapi.datamodels.low.v31.server import Server
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building PathItem from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -28,7 +27,7 @@ def test_build_with_empty_object():
     assert result.extensions == {}
 
 
-def test_build_with_get_operation():
+def test_build_with_get_operation(parse_yaml):
     """Test building PathItem with GET operation."""
     yaml_content = textwrap.dedent(
         """
@@ -39,8 +38,7 @@ def test_build_with_get_operation():
               description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -49,7 +47,7 @@ def test_build_with_get_operation():
     assert isinstance(result.get.value, Operation)
 
 
-def test_build_with_post_operation():
+def test_build_with_post_operation(parse_yaml):
     """Test building PathItem with POST operation."""
     yaml_content = textwrap.dedent(
         """
@@ -60,8 +58,7 @@ def test_build_with_post_operation():
               description: item created
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -70,7 +67,7 @@ def test_build_with_post_operation():
     assert isinstance(result.post.value, Operation)
 
 
-def test_build_with_all_http_methods():
+def test_build_with_all_http_methods(parse_yaml):
     """Test building PathItem with all HTTP methods."""
     yaml_content = textwrap.dedent(
         """
@@ -108,8 +105,7 @@ def test_build_with_all_http_methods():
               description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -124,7 +120,7 @@ def test_build_with_all_http_methods():
     assert result.trace is not None
 
 
-def test_build_with_summary_and_description():
+def test_build_with_summary_and_description(parse_yaml):
     """Test building PathItem with summary and description."""
     yaml_content = textwrap.dedent(
         """
@@ -136,8 +132,7 @@ def test_build_with_summary_and_description():
               description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -148,15 +143,14 @@ def test_build_with_summary_and_description():
     assert result.description.value == "Operations related to user management"
 
 
-def test_build_with_ref():
+def test_build_with_ref(parse_yaml):
     """Test building PathItem with $ref."""
     yaml_content = textwrap.dedent(
         """
         $ref: '#/components/pathItems/UserPath'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -165,7 +159,7 @@ def test_build_with_ref():
     assert result.ref.value == "#/components/pathItems/UserPath"
 
 
-def test_build_with_servers():
+def test_build_with_servers(parse_yaml):
     """Test building PathItem with servers."""
     yaml_content = textwrap.dedent(
         """
@@ -180,8 +174,7 @@ def test_build_with_servers():
               description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -191,7 +184,7 @@ def test_build_with_servers():
     assert all(isinstance(s, Server) for s in result.servers.value)
 
 
-def test_build_with_parameters():
+def test_build_with_parameters(parse_yaml):
     """Test building PathItem with parameters."""
     yaml_content = textwrap.dedent(
         """
@@ -211,8 +204,7 @@ def test_build_with_parameters():
               description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -222,7 +214,7 @@ def test_build_with_parameters():
     assert all(isinstance(p, Parameter) for p in result.parameters.value)
 
 
-def test_build_with_parameter_references():
+def test_build_with_parameter_references(parse_yaml):
     """Test building PathItem with parameter references."""
     yaml_content = textwrap.dedent(
         """
@@ -238,8 +230,7 @@ def test_build_with_parameter_references():
               description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -250,7 +241,7 @@ def test_build_with_parameter_references():
     assert isinstance(result.parameters.value[1], Parameter)
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building PathItem with specification extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -262,8 +253,7 @@ def test_build_with_extensions():
               description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -274,7 +264,7 @@ def test_build_with_extensions():
     assert ext_dict["x-rate-limit"] == 100
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building PathItem with all possible fields."""
     yaml_content = textwrap.dedent(
         """
@@ -301,8 +291,7 @@ def test_build_with_all_fields():
         x-internal: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -335,7 +324,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building PathItem with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -345,8 +334,7 @@ def test_build_with_custom_context():
               description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = path_item.build(root, context=custom_context)
@@ -355,7 +343,7 @@ def test_build_with_custom_context():
     assert result.get is not None
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -367,8 +355,7 @@ def test_source_tracking():
         x-custom: value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -391,7 +378,7 @@ def test_source_tracking():
     assert hasattr(result.summary.value_node.start_mark, "line")
 
 
-def test_build_with_invalid_servers_data():
+def test_build_with_invalid_servers_data(parse_yaml):
     """Test that invalid servers data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -402,8 +389,7 @@ def test_build_with_invalid_servers_data():
               description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -413,7 +399,7 @@ def test_build_with_invalid_servers_data():
     assert result.servers.value == "not-an-array"
 
 
-def test_build_with_invalid_parameters_data():
+def test_build_with_invalid_parameters_data(parse_yaml):
     """Test that invalid parameters data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -424,8 +410,7 @@ def test_build_with_invalid_parameters_data():
               description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -435,7 +420,7 @@ def test_build_with_invalid_parameters_data():
     assert result.parameters.value == "not-an-array"
 
 
-def test_build_with_null_values():
+def test_build_with_null_values(parse_yaml):
     """Test that build preserves null values."""
     yaml_content = textwrap.dedent(
         """
@@ -447,8 +432,7 @@ def test_build_with_null_values():
               description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -459,7 +443,7 @@ def test_build_with_null_values():
     assert result.description.value is None
 
 
-def test_build_real_world_rest_endpoint():
+def test_build_real_world_rest_endpoint(parse_yaml):
     """Test a complete real-world REST endpoint."""
     yaml_content = textwrap.dedent(
         """
@@ -503,8 +487,7 @@ def test_build_real_world_rest_endpoint():
               description: user not found
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -518,7 +501,7 @@ def test_build_real_world_rest_endpoint():
     assert result.delete is not None
 
 
-def test_build_with_common_parameters():
+def test_build_with_common_parameters(parse_yaml):
     """Test PathItem with parameters shared across operations."""
     yaml_content = textwrap.dedent(
         """
@@ -543,8 +526,7 @@ def test_build_with_common_parameters():
               description: created
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)
@@ -555,7 +537,7 @@ def test_build_with_common_parameters():
     assert result.post is not None
 
 
-def test_build_with_alternative_servers():
+def test_build_with_alternative_servers(parse_yaml):
     """Test PathItem with alternative servers for specific path."""
     yaml_content = textwrap.dedent(
         """
@@ -569,8 +551,7 @@ def test_build_with_alternative_servers():
               description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = path_item.build(root)
     assert isinstance(result, path_item.PathItem)

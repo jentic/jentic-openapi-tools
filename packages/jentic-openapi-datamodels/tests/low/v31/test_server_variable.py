@@ -9,7 +9,7 @@ from jentic.apitools.openapi.datamodels.low.sources import FieldSource, KeySourc
 from jentic.apitools.openapi.datamodels.low.v31 import server_variable
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building ServerVariable with all specification fields."""
     yaml_content = textwrap.dedent(
         """
@@ -21,8 +21,7 @@ def test_build_with_all_fields():
         description: The deployment environment
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -47,15 +46,14 @@ def test_build_with_all_fields():
     assert result.description.value == "The deployment environment"
 
 
-def test_build_with_default_only():
+def test_build_with_default_only(parse_yaml):
     """Test building ServerVariable with only required default field."""
     yaml_content = textwrap.dedent(
         """
         default: v1
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -71,7 +69,7 @@ def test_build_with_default_only():
     assert result.extensions == {}
 
 
-def test_build_with_enum_values():
+def test_build_with_enum_values(parse_yaml):
     """Test building ServerVariable with enum values."""
     yaml_content = textwrap.dedent(
         """
@@ -81,8 +79,7 @@ def test_build_with_enum_values():
           - '443'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -93,7 +90,7 @@ def test_build_with_enum_values():
     assert [item.value for item in result.enum.value] == ["8443", "443"]
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building ServerVariable with specification extensions (x-* fields)."""
     yaml_content = textwrap.dedent(
         """
@@ -102,8 +99,7 @@ def test_build_with_extensions():
         x-internal: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -122,7 +118,7 @@ def test_build_with_extensions():
     assert ext_dict["x-internal"] is True
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -131,8 +127,7 @@ def test_build_preserves_invalid_types():
         description: 999
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -147,11 +142,10 @@ def test_build_preserves_invalid_types():
     assert result.description.value == 999
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building ServerVariable from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -183,7 +177,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building ServerVariable with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -191,8 +185,7 @@ def test_build_with_custom_context():
         description: Local server
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = server_variable.build(root, context=custom_context)
@@ -204,7 +197,7 @@ def test_build_with_custom_context():
     assert result.description.value == "Local server"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -215,8 +208,7 @@ def test_source_tracking():
         description: Subdomain selection
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -253,7 +245,7 @@ def test_source_tracking():
     assert hasattr(result.default.value_node.start_mark, "line")
 
 
-def test_mixed_extensions_and_fixed_fields():
+def test_mixed_extensions_and_fixed_fields(parse_yaml):
     """Test that extensions and fixed fields are properly separated."""
     yaml_content = textwrap.dedent(
         """
@@ -265,8 +257,7 @@ def test_mixed_extensions_and_fixed_fields():
         x-another: 123
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -287,7 +278,7 @@ def test_mixed_extensions_and_fixed_fields():
     assert ext_dict["x-another"] == 123
 
 
-def test_commonmark_description():
+def test_commonmark_description(parse_yaml):
     """Test that description field can contain CommonMark formatted text."""
     yaml_content = textwrap.dedent(
         """
@@ -302,8 +293,7 @@ def test_commonmark_description():
           See [documentation](https://example.com/docs) for details.
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -315,7 +305,7 @@ def test_commonmark_description():
     assert "[documentation](https://example.com/docs)" in result.description.value
 
 
-def test_port_number_variables():
+def test_port_number_variables(parse_yaml):
     """Test ServerVariable for port number substitution."""
     yaml_content = textwrap.dedent(
         """
@@ -325,8 +315,7 @@ def test_port_number_variables():
           - '8443'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -337,7 +326,7 @@ def test_port_number_variables():
     assert [item.value for item in result.enum.value] == ["443", "8443"]
 
 
-def test_protocol_variables():
+def test_protocol_variables(parse_yaml):
     """Test ServerVariable for protocol substitution."""
     yaml_content = textwrap.dedent(
         """
@@ -348,8 +337,7 @@ def test_protocol_variables():
         description: The transfer protocol
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -360,7 +348,7 @@ def test_protocol_variables():
     assert [item.value for item in result.enum.value] == ["https", "http"]
 
 
-def test_version_variables():
+def test_version_variables(parse_yaml):
     """Test ServerVariable for API version substitution."""
     yaml_content = textwrap.dedent(
         """
@@ -372,8 +360,7 @@ def test_version_variables():
         description: API version
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -384,7 +371,7 @@ def test_version_variables():
     assert len(result.enum.value) == 3
 
 
-def test_environment_variables():
+def test_environment_variables(parse_yaml):
     """Test ServerVariable for environment substitution."""
     yaml_content = textwrap.dedent(
         """
@@ -396,8 +383,7 @@ def test_environment_variables():
         description: The deployment environment
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -408,7 +394,7 @@ def test_environment_variables():
     assert [item.value for item in result.enum.value] == ["development", "staging", "production"]
 
 
-def test_null_values():
+def test_null_values(parse_yaml):
     """Test handling of explicit null values."""
     yaml_content = textwrap.dedent(
         """
@@ -417,8 +403,7 @@ def test_null_values():
         description:
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -434,7 +419,7 @@ def test_null_values():
     assert result.description.value is None
 
 
-def test_empty_enum_array():
+def test_empty_enum_array(parse_yaml):
     """Test that empty enum arrays are preserved (even though spec says they SHOULD NOT be empty)."""
     yaml_content = textwrap.dedent(
         """
@@ -442,8 +427,7 @@ def test_empty_enum_array():
         enum: []
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)
@@ -455,7 +439,7 @@ def test_empty_enum_array():
     assert result.enum.value == []
 
 
-def test_default_not_in_enum():
+def test_default_not_in_enum(parse_yaml):
     """Test that low-level model preserves default even when not in enum (validation layer's job)."""
     yaml_content = textwrap.dedent(
         """
@@ -465,8 +449,7 @@ def test_default_not_in_enum():
           - staging
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server_variable.build(root)
     assert isinstance(result, server_variable.ServerVariable)

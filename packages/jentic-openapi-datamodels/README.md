@@ -52,12 +52,13 @@ pip install jentic-openapi-datamodels
 The main use case is parsing complete OpenAPI Documents:
 
 ```python
-from ruamel.yaml import YAML
+from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.parser.backends.ruamel_ast import MappingNode
 from jentic.apitools.openapi.datamodels.low.v30 import build
 
 # Parse OpenAPI document
-yaml = YAML()
-root = yaml.compose("""
+parser = OpenAPIParser("ruamel-ast")
+root = parser.parse("""
 openapi: 3.0.4
 info:
   title: Pet Store API
@@ -69,7 +70,7 @@ paths:
       responses:
         '200':
           description: A list of pets
-""")
+""", return_type=MappingNode)
 
 # Build OpenAPI document model
 openapi_doc = build(root)
@@ -92,12 +93,13 @@ for path_key, path_item in openapi_doc.paths.value.path_items.items():
 OpenAPI 3.1 fully supports JSON Schema 2020-12, including advanced features like boolean schemas, conditional validation and vocabulary declarations:
 
 ```python
-from ruamel.yaml import YAML
+from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.parser.backends.ruamel_ast import MappingNode
 from jentic.apitools.openapi.datamodels.low.v31 import build
 
 # Parse OpenAPI 3.1 document with JSON Schema 2020-12 features
-yaml = YAML()
-root = yaml.compose("""
+parser = OpenAPIParser("ruamel-ast")
+root = parser.parse("""
 openapi: 3.1.2
 info:
   title: Pet Store API
@@ -119,7 +121,7 @@ paths:
                 contains:
                   type: object
                   required: [id]
-""")
+""", return_type=MappingNode)
 
 openapi_doc = build(root)
 
@@ -135,16 +137,17 @@ print(schema.contains.value.required.value[0].value)  # "id"
 You can also parse individual OpenAPI specification objects:
 
 ```python
-from ruamel.yaml import YAML
+from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.parser.backends.ruamel_ast import MappingNode
 from jentic.apitools.openapi.datamodels.low.v30.security_scheme import build as build_security_scheme
 
 # Parse a Security Scheme object
-yaml = YAML()
-root = yaml.compose("""
+parser = OpenAPIParser("ruamel-ast")
+root = parser.parse("""
 type: http
 scheme: bearer
 bearerFormat: JWT
-""")
+""", return_type=MappingNode)
 
 security_scheme = build_security_scheme(root)
 
@@ -159,12 +162,13 @@ print(security_scheme.bearer_format.key_node.start_mark.line)  # Line number
 You can also parse OpenAPI 3.1 Schema objects with JSON Schema 2020-12 features:
 
 ```python
-from ruamel.yaml import YAML
+from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.parser.backends.ruamel_ast import MappingNode
 from jentic.apitools.openapi.datamodels.low.v31.schema import build as build_schema
 
 # Parse a Schema object with JSON Schema 2020-12 features
-yaml = YAML()
-root = yaml.compose("""
+parser = OpenAPIParser("ruamel-ast")
+root = parser.parse("""
 type: object
 properties:
   id:
@@ -185,7 +189,7 @@ if:
       const: true
 then:
   required: [support_tier]
-""")
+""", return_type=MappingNode)
 
 schema = build_schema(root)
 
@@ -241,18 +245,19 @@ The package provides three immutable wrapper types for preserving source informa
 - Example: Values in `Discriminator.mapping` are `ValueSource[str]`
 
 ```python
-from ruamel.yaml import YAML
+from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.parser.backends.ruamel_ast import MappingNode
 from jentic.apitools.openapi.datamodels.low.v30 import build
 
 # FieldSource: Fixed specification fields in OpenAPI document
-yaml = YAML()
-root = yaml.compose("""
+parser = OpenAPIParser("ruamel-ast")
+root = parser.parse("""
 openapi: 3.0.4
 info:
   title: Pet Store API
   version: 1.0.0
 paths: {}
-""")
+""", return_type=MappingNode)
 openapi_doc = build(root)
 
 field = openapi_doc.info.value.title  # FieldSource[str]
@@ -262,7 +267,7 @@ print(field.value_node)  # YAML node for "Pet Store API"
 
 # KeySource/ValueSource: Dictionary fields (extensions, mapping)
 # Extensions in OpenAPI objects use KeySource/ValueSource
-root = yaml.compose("""
+root = parser.parse("""
 openapi: 3.0.4
 info:
   title: API
@@ -270,7 +275,7 @@ info:
   x-custom: value
   x-another: data
 paths: {}
-""")
+""", return_type=MappingNode)
 openapi_doc = build(root)
 
 for key, value in openapi_doc.info.value.extensions.items():
@@ -285,7 +290,8 @@ for key, value in openapi_doc.info.value.extensions.items():
 Access precise location ranges within the source document using start_mark and end_mark:
 
 ```python
-from ruamel.yaml import YAML
+from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.parser.backends.ruamel_ast import MappingNode
 from jentic.apitools.openapi.datamodels.low.v30 import build
 
 yaml_content = """
@@ -297,8 +303,8 @@ info:
 paths: {}
 """
 
-yaml = YAML()
-root = yaml.compose(yaml_content)
+parser = OpenAPIParser("ruamel-ast")
+root = parser.parse(yaml_content, return_type=MappingNode)
 openapi_doc = build(root)
 
 # Access location information for any field
@@ -323,17 +329,18 @@ print(f"Field range: ({start.line}:{start.column}) to ({end.line}:{end.column})"
 Low-level models preserve invalid data without validation:
 
 ```python
-from ruamel.yaml import YAML
+from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.parser.backends.ruamel_ast import MappingNode
 from jentic.apitools.openapi.datamodels.low.v30 import build
 
-yaml = YAML()
-root = yaml.compose("""
+parser = OpenAPIParser("ruamel-ast")
+root = parser.parse("""
 openapi: 3.0.4
 info:
   title: 123  # Intentionally wrong type for demonstration (should be string)
   version: 1.0.0
 paths: {}
-""")
+""", return_type=MappingNode)
 
 openapi_doc = build(root)
 print(openapi_doc.info.value.title.value)  # 123 (preserved as-is)

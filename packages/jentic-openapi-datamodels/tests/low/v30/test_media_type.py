@@ -14,7 +14,7 @@ from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 from jentic.apitools.openapi.datamodels.low.v30.schema import Schema
 
 
-def test_build_with_schema_only():
+def test_build_with_schema_only(parse_yaml):
     """Test building MediaType with only schema field."""
     yaml_content = textwrap.dedent(
         """
@@ -22,8 +22,7 @@ def test_build_with_schema_only():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -41,7 +40,7 @@ def test_build_with_schema_only():
     assert result.extensions == {}
 
 
-def test_build_with_schema_reference():
+def test_build_with_schema_reference(parse_yaml):
     """Test building MediaType with schema as $ref."""
     yaml_content = textwrap.dedent(
         """
@@ -49,8 +48,7 @@ def test_build_with_schema_reference():
           $ref: '#/components/schemas/User'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -61,7 +59,7 @@ def test_build_with_schema_reference():
     assert result.schema.value.ref.value == "#/components/schemas/User"
 
 
-def test_build_with_example():
+def test_build_with_example(parse_yaml):
     """Test building MediaType with example field."""
     yaml_content = textwrap.dedent(
         """
@@ -72,8 +70,7 @@ def test_build_with_example():
           name: John Doe
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -84,7 +81,7 @@ def test_build_with_example():
     assert result.example.value["name"] == "John Doe"
 
 
-def test_build_with_examples():
+def test_build_with_examples(parse_yaml):
     """Test building MediaType with examples field."""
     yaml_content = textwrap.dedent(
         """
@@ -99,8 +96,7 @@ def test_build_with_examples():
             summary: Second user
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -121,7 +117,7 @@ def test_build_with_examples():
     assert user1_example.value.value == "John Doe"
 
 
-def test_build_with_examples_reference():
+def test_build_with_examples_reference(parse_yaml):
     """Test building MediaType with examples containing $ref."""
     yaml_content = textwrap.dedent(
         """
@@ -134,8 +130,7 @@ def test_build_with_examples_reference():
             value: Custom User
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -156,7 +151,7 @@ def test_build_with_examples_reference():
     assert isinstance(custom_example, Example)
 
 
-def test_build_with_encoding():
+def test_build_with_encoding(parse_yaml):
     """Test building MediaType with encoding field."""
     yaml_content = textwrap.dedent(
         """
@@ -176,8 +171,7 @@ def test_build_with_encoding():
                   type: integer
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -197,7 +191,7 @@ def test_build_with_encoding():
     assert profile_image_encoding.contentType.value == "image/png"
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building MediaType with all fields."""
     yaml_content = textwrap.dedent(
         """
@@ -219,8 +213,7 @@ def test_build_with_all_fields():
         x-internal: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -240,11 +233,10 @@ def test_build_with_all_fields():
     assert ext_dict["x-internal"] is True
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building MediaType from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -276,7 +268,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types."""
     yaml_content = textwrap.dedent(
         """
@@ -286,8 +278,7 @@ def test_build_preserves_invalid_types():
         encoding: 123
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -306,7 +297,7 @@ def test_build_preserves_invalid_types():
     assert result.encoding.value == 123
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building MediaType with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -315,8 +306,7 @@ def test_build_with_custom_context():
         example: test value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = media_type.build(root, context=custom_context)
@@ -327,7 +317,7 @@ def test_build_with_custom_context():
     assert result.example.value == "test value"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -336,8 +326,7 @@ def test_source_tracking():
         example: test
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -360,7 +349,7 @@ def test_source_tracking():
     assert hasattr(result.schema.value_node.start_mark, "line")
 
 
-def test_build_with_null_values():
+def test_build_with_null_values(parse_yaml):
     """Test that build preserves null values."""
     yaml_content = textwrap.dedent(
         """
@@ -369,8 +358,7 @@ def test_build_with_null_values():
         examples:
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -385,7 +373,7 @@ def test_build_with_null_values():
     assert result.examples.value is None
 
 
-def test_build_with_complex_extensions():
+def test_build_with_complex_extensions(parse_yaml):
     """Test building MediaType with complex extension objects."""
     yaml_content = textwrap.dedent(
         """
@@ -397,8 +385,7 @@ def test_build_with_complex_extensions():
         x-cache-ttl: 3600
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -416,7 +403,7 @@ def test_build_with_complex_extensions():
     assert ext_dict["x-cache-ttl"] == 3600
 
 
-def test_build_real_world_json_media_type():
+def test_build_real_world_json_media_type(parse_yaml):
     """Test a complete real-world application/json MediaType."""
     yaml_content = textwrap.dedent(
         """
@@ -439,8 +426,7 @@ def test_build_real_world_json_media_type():
           email: john@example.com
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -458,7 +444,7 @@ def test_build_real_world_json_media_type():
     assert result.example.value["name"] == "John Doe"
 
 
-def test_build_real_world_multipart_media_type():
+def test_build_real_world_multipart_media_type(parse_yaml):
     """Test a complete real-world multipart/form-data MediaType."""
     yaml_content = textwrap.dedent(
         """
@@ -481,8 +467,7 @@ def test_build_real_world_multipart_media_type():
             contentType: application/json
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -500,7 +485,7 @@ def test_build_real_world_multipart_media_type():
     assert file_encoding.contentType.value == "application/octet-stream"
 
 
-def test_examples_source_tracking():
+def test_examples_source_tracking(parse_yaml):
     """Test that examples maintain proper source tracking."""
     yaml_content = textwrap.dedent(
         """
@@ -513,8 +498,7 @@ def test_examples_source_tracking():
             value: example2
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -531,7 +515,7 @@ def test_examples_source_tracking():
             assert example_value.root_node is not None
 
 
-def test_encoding_source_tracking():
+def test_encoding_source_tracking(parse_yaml):
     """Test that encoding maintains proper source tracking."""
     yaml_content = textwrap.dedent(
         """
@@ -544,8 +528,7 @@ def test_encoding_source_tracking():
             contentType: application/json
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -562,7 +545,7 @@ def test_encoding_source_tracking():
             assert encoding_value.root_node is not None
 
 
-def test_build_with_complex_schema():
+def test_build_with_complex_schema(parse_yaml):
     """Test building MediaType with complex nested schema."""
     yaml_content = textwrap.dedent(
         """
@@ -584,8 +567,7 @@ def test_build_with_complex_schema():
                   type: array
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)
@@ -596,7 +578,7 @@ def test_build_with_complex_schema():
     assert len(result.schema.value.one_of.value) == 2
 
 
-def test_build_with_array_example():
+def test_build_with_array_example(parse_yaml):
     """Test building MediaType with array example."""
     yaml_content = textwrap.dedent(
         """
@@ -610,8 +592,7 @@ def test_build_with_array_example():
           - item3
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = media_type.build(root)
     assert isinstance(result, media_type.MediaType)

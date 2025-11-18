@@ -9,7 +9,7 @@ from jentic.apitools.openapi.datamodels.low.sources import FieldSource, KeySourc
 from jentic.apitools.openapi.datamodels.low.v30 import contact
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Contact with all specification fields."""
     yaml_content = textwrap.dedent(
         """
@@ -18,8 +18,7 @@ def test_build_with_all_fields():
         email: support@example.com
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)
@@ -43,15 +42,14 @@ def test_build_with_all_fields():
     assert result.email.value_node is not None
 
 
-def test_build_with_name_only():
+def test_build_with_name_only(parse_yaml):
     """Test building Contact with only name field."""
     yaml_content = textwrap.dedent(
         """
         name: John Doe
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)
@@ -67,15 +65,14 @@ def test_build_with_name_only():
     assert result.extensions == {}
 
 
-def test_build_with_url_only():
+def test_build_with_url_only(parse_yaml):
     """Test building Contact with only url field."""
     yaml_content = textwrap.dedent(
         """
         url: https://example.com/contact
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)
@@ -87,15 +84,14 @@ def test_build_with_url_only():
     assert result.email is None
 
 
-def test_build_with_email_only():
+def test_build_with_email_only(parse_yaml):
     """Test building Contact with only email field."""
     yaml_content = textwrap.dedent(
         """
         email: contact@example.com
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)
@@ -107,7 +103,7 @@ def test_build_with_email_only():
     assert result.url is None
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building Contact with specification extensions (x-* fields)."""
     yaml_content = textwrap.dedent(
         """
@@ -118,8 +114,7 @@ def test_build_with_extensions():
         x-available: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)
@@ -139,7 +134,7 @@ def test_build_with_extensions():
     assert ext_dict["x-available"] is True
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -148,8 +143,7 @@ def test_build_preserves_invalid_types():
         email: ['not', 'an', 'email']
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)
@@ -164,11 +158,10 @@ def test_build_preserves_invalid_types():
     assert result.email.value == ["not", "an", "email"]
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Contact from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)
@@ -200,7 +193,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Contact with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -208,8 +201,7 @@ def test_build_with_custom_context():
         email: api@example.com
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = contact.build(root, context=custom_context)
@@ -221,7 +213,7 @@ def test_build_with_custom_context():
     assert result.email.value == "api@example.com"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -230,8 +222,7 @@ def test_source_tracking():
         email: support@example.com
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)
@@ -263,7 +254,7 @@ def test_source_tracking():
     assert hasattr(result.name.value_node.start_mark, "line")
 
 
-def test_mixed_extensions_and_fixed_fields():
+def test_mixed_extensions_and_fixed_fields(parse_yaml):
     """Test that extensions and fixed fields are properly separated."""
     yaml_content = textwrap.dedent(
         """
@@ -274,8 +265,7 @@ def test_mixed_extensions_and_fixed_fields():
         email: john@example.com
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)
@@ -298,7 +288,7 @@ def test_mixed_extensions_and_fixed_fields():
     assert ext_dict["x-employee-id"] == 12345
 
 
-def test_international_email_addresses():
+def test_international_email_addresses(parse_yaml):
     """Test that Contact can handle international email addresses."""
     yaml_content = textwrap.dedent(
         """
@@ -306,8 +296,7 @@ def test_international_email_addresses():
         email: info@münchen.de
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)
@@ -318,7 +307,7 @@ def test_international_email_addresses():
     assert result.email.value == "info@münchen.de"
 
 
-def test_various_url_formats():
+def test_various_url_formats(parse_yaml):
     """Test that Contact preserves various URL formats."""
     test_cases = [
         "https://example.com/contact",
@@ -329,11 +318,9 @@ def test_various_url_formats():
         "https://example.com/path#fragment",
     ]
 
-    yaml_parser = YAML()
-
     for url in test_cases:
         yaml_content = f"url: {url}"
-        root = yaml_parser.compose(yaml_content)
+        root = parse_yaml(yaml_content)
         result = contact.build(root)
 
         assert isinstance(result, contact.Contact)
@@ -341,7 +328,7 @@ def test_various_url_formats():
         assert result.url.value == url
 
 
-def test_null_values():
+def test_null_values(parse_yaml):
     """Test handling of explicit null values."""
     yaml_content = textwrap.dedent(
         """
@@ -350,8 +337,7 @@ def test_null_values():
         email:
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)
@@ -367,7 +353,7 @@ def test_null_values():
     assert result.email.value is None
 
 
-def test_multiline_name():
+def test_multiline_name(parse_yaml):
     """Test that Contact can handle multiline names (though unusual)."""
     yaml_content = textwrap.dedent(
         """
@@ -377,8 +363,7 @@ def test_multiline_name():
         email: support@example.com
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = contact.build(root)
     assert isinstance(result, contact.Contact)

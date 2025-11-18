@@ -13,7 +13,7 @@ from jentic.apitools.openapi.datamodels.low.v31.reference import Reference
 from jentic.apitools.openapi.datamodels.low.v31.schema import Schema
 
 
-def test_build_with_content_only():
+def test_build_with_content_only(parse_yaml):
     """Test building RequestBody with only content field."""
     yaml_content = textwrap.dedent(
         """
@@ -23,8 +23,7 @@ def test_build_with_content_only():
               type: object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -40,7 +39,7 @@ def test_build_with_content_only():
     assert result.extensions == {}
 
 
-def test_build_with_description():
+def test_build_with_description(parse_yaml):
     """Test building RequestBody with description field."""
     yaml_content = textwrap.dedent(
         """
@@ -51,8 +50,7 @@ def test_build_with_description():
               type: object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -61,7 +59,7 @@ def test_build_with_description():
     assert result.description.value == "user to add to the system"
 
 
-def test_build_with_required():
+def test_build_with_required(parse_yaml):
     """Test building RequestBody with required field."""
     yaml_content = textwrap.dedent(
         """
@@ -72,8 +70,7 @@ def test_build_with_required():
               type: object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -82,7 +79,7 @@ def test_build_with_required():
     assert result.required.value is True
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building RequestBody with all fields."""
     yaml_content = textwrap.dedent(
         """
@@ -104,8 +101,7 @@ def test_build_with_all_fields():
         x-internal: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -124,7 +120,7 @@ def test_build_with_all_fields():
     assert ext_dict["x-internal"] is True
 
 
-def test_build_with_multiple_media_types():
+def test_build_with_multiple_media_types(parse_yaml):
     """Test building RequestBody with multiple media types."""
     yaml_content = textwrap.dedent(
         """
@@ -140,8 +136,7 @@ def test_build_with_multiple_media_types():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -158,11 +153,10 @@ def test_build_with_multiple_media_types():
         assert media_type_value.schema is not None
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building RequestBody from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -193,7 +187,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types."""
     yaml_content = textwrap.dedent(
         """
@@ -202,8 +196,7 @@ def test_build_preserves_invalid_types():
         content: invalid-value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -219,7 +212,7 @@ def test_build_preserves_invalid_types():
     assert result.content.value == "invalid-value"
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building RequestBody with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -230,8 +223,7 @@ def test_build_with_custom_context():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = request_body.build(root, context=custom_context)
@@ -241,7 +233,7 @@ def test_build_with_custom_context():
     assert result.description.value == "test request body"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -253,8 +245,7 @@ def test_source_tracking():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -282,7 +273,7 @@ def test_source_tracking():
     assert hasattr(result.description.value_node.start_mark, "line")
 
 
-def test_build_with_null_values():
+def test_build_with_null_values(parse_yaml):
     """Test that build preserves null values."""
     yaml_content = textwrap.dedent(
         """
@@ -291,8 +282,7 @@ def test_build_with_null_values():
         content:
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -307,7 +297,7 @@ def test_build_with_null_values():
     assert result.content.value is None
 
 
-def test_build_with_complex_extensions():
+def test_build_with_complex_extensions(parse_yaml):
     """Test building RequestBody with complex extension objects."""
     yaml_content = textwrap.dedent(
         """
@@ -321,8 +311,7 @@ def test_build_with_complex_extensions():
         x-format: custom
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -340,7 +329,7 @@ def test_build_with_complex_extensions():
     assert ext_dict["x-format"] == "custom"
 
 
-def test_build_real_world_json_request_body():
+def test_build_real_world_json_request_body(parse_yaml):
     """Test a complete real-world application/json RequestBody."""
     yaml_content = textwrap.dedent(
         """
@@ -365,8 +354,7 @@ def test_build_real_world_json_request_body():
                   type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -384,7 +372,7 @@ def test_build_real_world_json_request_body():
     assert isinstance(json_media_type.schema.value, Schema)
 
 
-def test_build_real_world_multipart_request_body():
+def test_build_real_world_multipart_request_body(parse_yaml):
     """Test a complete real-world multipart/form-data RequestBody."""
     yaml_content = textwrap.dedent(
         """
@@ -408,8 +396,7 @@ def test_build_real_world_multipart_request_body():
                 contentType: application/octet-stream
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -422,7 +409,7 @@ def test_build_real_world_multipart_request_body():
     assert multipart_media_type.encoding is not None
 
 
-def test_content_source_tracking():
+def test_content_source_tracking(parse_yaml):
     """Test that content maintains proper source tracking."""
     yaml_content = textwrap.dedent(
         """
@@ -435,8 +422,7 @@ def test_content_source_tracking():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -453,7 +439,7 @@ def test_content_source_tracking():
         assert content_value.root_node is not None
 
 
-def test_build_request_body_or_reference_with_request_body():
+def test_build_request_body_or_reference_with_request_body(parse_yaml):
     """Test build_request_body_or_reference with a RequestBody object."""
     yaml_content = textwrap.dedent(
         """
@@ -464,8 +450,7 @@ def test_build_request_body_or_reference_with_request_body():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     context = Context()
     result = request_body.build_request_body_or_reference(root, context)
@@ -474,15 +459,14 @@ def test_build_request_body_or_reference_with_request_body():
     assert result.description.value == "test request body"
 
 
-def test_build_request_body_or_reference_with_reference():
+def test_build_request_body_or_reference_with_reference(parse_yaml):
     """Test build_request_body_or_reference with a $ref."""
     yaml_content = textwrap.dedent(
         """
         $ref: '#/components/requestBodies/UserRequest'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     context = Context()
     result = request_body.build_request_body_or_reference(root, context)
@@ -502,7 +486,7 @@ def test_build_request_body_or_reference_with_invalid_node():
     assert result.value == "invalid-scalar"
 
 
-def test_build_with_commonmark_description():
+def test_build_with_commonmark_description(parse_yaml):
     """Test building RequestBody with CommonMark description."""
     yaml_content = textwrap.dedent(
         """
@@ -519,8 +503,7 @@ def test_build_with_commonmark_description():
               type: object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -530,7 +513,7 @@ def test_build_with_commonmark_description():
     assert "**user data**" in result.description.value
 
 
-def test_build_with_content_examples():
+def test_build_with_content_examples(parse_yaml):
     """Test building RequestBody with content containing examples."""
     yaml_content = textwrap.dedent(
         """
@@ -549,8 +532,7 @@ def test_build_with_content_examples():
                   email: jane@example.com
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -563,7 +545,7 @@ def test_build_with_content_examples():
     assert len(json_media_type.examples.value) == 2
 
 
-def test_build_with_invalid_content_data():
+def test_build_with_invalid_content_data(parse_yaml):
     """Test that invalid content data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -571,8 +553,7 @@ def test_build_with_invalid_content_data():
           application/json: invalid-string-not-object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)
@@ -588,7 +569,7 @@ def test_build_with_invalid_content_data():
     assert content_value.value == "invalid-string-not-object"
 
 
-def test_build_with_required_false():
+def test_build_with_required_false(parse_yaml):
     """Test building RequestBody with required set to false."""
     yaml_content = textwrap.dedent(
         """
@@ -599,8 +580,7 @@ def test_build_with_required_false():
               type: object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = request_body.build(root)
     assert isinstance(result, request_body.RequestBody)

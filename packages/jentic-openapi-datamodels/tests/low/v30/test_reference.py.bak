@@ -9,14 +9,15 @@ from jentic.apitools.openapi.datamodels.low.sources import FieldSource, ValueSou
 from jentic.apitools.openapi.datamodels.low.v30 import reference
 
 
-def test_build_with_ref_only(parse_yaml):
+def test_build_with_ref_only():
     """Test building Reference with only $ref field."""
     yaml_content = textwrap.dedent(
         """
         $ref: '#/components/schemas/Pet'
         """
     )
-    root = parse_yaml(yaml_content)
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
     result = reference.build(root)
     assert isinstance(result, reference.Reference)
@@ -30,14 +31,15 @@ def test_build_with_ref_only(parse_yaml):
     assert result.ref.value_node is not None
 
 
-def test_build_with_external_ref(parse_yaml):
+def test_build_with_external_ref():
     """Test building Reference with external $ref."""
     yaml_content = textwrap.dedent(
         """
         $ref: 'https://example.com/schemas/Pet.yaml'
         """
     )
-    root = parse_yaml(yaml_content)
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
     result = reference.build(root)
     assert isinstance(result, reference.Reference)
@@ -46,14 +48,15 @@ def test_build_with_external_ref(parse_yaml):
     assert result.ref.value == "https://example.com/schemas/Pet.yaml"
 
 
-def test_build_with_relative_ref(parse_yaml):
+def test_build_with_relative_ref():
     """Test building Reference with relative $ref."""
     yaml_content = textwrap.dedent(
         """
         $ref: './schemas/Pet.yaml#/Pet'
         """
     )
-    root = parse_yaml(yaml_content)
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
     result = reference.build(root)
     assert isinstance(result, reference.Reference)
@@ -62,14 +65,15 @@ def test_build_with_relative_ref(parse_yaml):
     assert result.ref.value == "./schemas/Pet.yaml#/Pet"
 
 
-def test_build_preserves_invalid_types(parse_yaml):
+def test_build_preserves_invalid_types():
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
         $ref: 123
         """
     )
-    root = parse_yaml(yaml_content)
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
     result = reference.build(root)
     assert isinstance(result, reference.Reference)
@@ -99,14 +103,15 @@ def test_build_with_invalid_node_returns_none():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context(parse_yaml):
+def test_build_with_custom_context():
     """Test building Reference with a custom context."""
     yaml_content = textwrap.dedent(
         """
         $ref: '#/components/schemas/CustomType'
         """
     )
-    root = parse_yaml(yaml_content)
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
     custom_context = Context()
     result = reference.build(root, context=custom_context)
@@ -116,14 +121,15 @@ def test_build_with_custom_context(parse_yaml):
     assert result.ref.value == "#/components/schemas/CustomType"
 
 
-def test_source_tracking(parse_yaml):
+def test_source_tracking():
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
         $ref: '#/components/schemas/Pet'
         """
     )
-    root = parse_yaml(yaml_content)
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
     result = reference.build(root)
     assert isinstance(result, reference.Reference)
@@ -138,14 +144,15 @@ def test_source_tracking(parse_yaml):
     assert result.ref.key_node.value == "$ref"
 
 
-def test_build_with_empty_object(parse_yaml):
+def test_build_with_empty_object():
     """Test building Reference with empty object."""
     yaml_content = textwrap.dedent(
         """
         {}
         """
     )
-    root = parse_yaml(yaml_content)
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
     result = reference.build(root)
     assert isinstance(result, reference.Reference)
@@ -154,14 +161,15 @@ def test_build_with_empty_object(parse_yaml):
     assert result.ref is None
 
 
-def test_build_with_null_ref(parse_yaml):
+def test_build_with_null_ref():
     """Test building Reference with null $ref value."""
     yaml_content = textwrap.dedent(
         """
         $ref:
         """
     )
-    root = parse_yaml(yaml_content)
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
     result = reference.build(root)
     assert isinstance(result, reference.Reference)
@@ -170,7 +178,7 @@ def test_build_with_null_ref(parse_yaml):
     assert result.ref.value is None
 
 
-def test_build_with_component_refs(parse_yaml):
+def test_build_with_component_refs():
     """Test building Reference with various component reference patterns."""
     test_cases = [
         "#/components/schemas/Pet",
@@ -184,9 +192,11 @@ def test_build_with_component_refs(parse_yaml):
         "#/components/callbacks/myEvent",
     ]
 
+    yaml_parser = YAML()
+
     for ref_string in test_cases:
         yaml_content = f"$ref: '{ref_string}'"
-        root = parse_yaml(yaml_content)
+        root = yaml_parser.compose(yaml_content)
         result = reference.build(root)
         assert isinstance(result, reference.Reference)
 
@@ -194,14 +204,15 @@ def test_build_with_component_refs(parse_yaml):
         assert result.ref.value == ref_string
 
 
-def test_build_with_url_encoded_ref(parse_yaml):
+def test_build_with_url_encoded_ref():
     """Test building Reference with URL-encoded characters in $ref."""
     yaml_content = textwrap.dedent(
         """
         $ref: '#/components/schemas/My%20Pet'
         """
     )
-    root = parse_yaml(yaml_content)
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
     result = reference.build(root)
     assert isinstance(result, reference.Reference)
@@ -210,7 +221,7 @@ def test_build_with_url_encoded_ref(parse_yaml):
     assert result.ref.value == "#/components/schemas/My%20Pet"
 
 
-def test_build_ignores_non_ref_fields(parse_yaml):
+def test_build_ignores_non_ref_fields():
     """Test that build ignores fields other than $ref (for OpenAPI 3.0)."""
     yaml_content = textwrap.dedent(
         """
@@ -220,7 +231,8 @@ def test_build_ignores_non_ref_fields(parse_yaml):
         x-custom: Also ignored
         """
     )
-    root = parse_yaml(yaml_content)
+    yaml_parser = YAML()
+    root = yaml_parser.compose(yaml_content)
 
     result = reference.build(root)
     assert isinstance(result, reference.Reference)

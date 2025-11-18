@@ -12,7 +12,7 @@ from jentic.apitools.openapi.datamodels.low.sources import KeySource, ValueSourc
 from jentic.apitools.openapi.datamodels.low.v30.xml import XML
 
 
-def test_extract_extension_fields():
+def test_extract_extension_fields(parse_yaml):
     """Test extracting extension fields (x-* fields) from YAML."""
     yaml_content = textwrap.dedent(
         """
@@ -25,8 +25,7 @@ def test_extract_extension_fields():
           - item2
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     extensions = extract_extension_fields(root)
 
@@ -44,7 +43,7 @@ def test_extract_extension_fields():
     assert ext_dict["x-list"] == ["item1", "item2"]
 
 
-def test_extract_extension_fields_with_none():
+def test_extract_extension_fields_with_none(parse_yaml):
     """Test that non-extension fields are not extracted."""
     yaml_content = textwrap.dedent(
         """
@@ -53,8 +52,7 @@ def test_extract_extension_fields_with_none():
         prefix: ex
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     extensions = extract_extension_fields(root)
 
@@ -75,7 +73,7 @@ def test_extract_extension_fields_invalid_node():
     assert extract_extension_fields(sequence_root) == {}
 
 
-def test_extract_unknown_fields():
+def test_extract_unknown_fields(parse_yaml):
     """Test extracting unknown fields (not spec fields, not extensions)."""
     yaml_content = textwrap.dedent(
         """
@@ -86,8 +84,7 @@ def test_extract_unknown_fields():
         x-custom: extension
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     unknown = extract_unknown_fields(root, XML)
 
@@ -111,7 +108,7 @@ def test_extract_unknown_fields():
     assert "namespace" not in unknown_dict
 
 
-def test_extract_unknown_fields_with_none():
+def test_extract_unknown_fields_with_none(parse_yaml):
     """Test that only valid fields and extensions are present."""
     yaml_content = textwrap.dedent(
         """
@@ -120,8 +117,7 @@ def test_extract_unknown_fields_with_none():
         x-custom: extension
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     unknown = extract_unknown_fields(root, XML)
 
@@ -142,7 +138,7 @@ def test_extract_unknown_fields_invalid_node():
     assert extract_unknown_fields(sequence_root, XML) == {}
 
 
-def test_extract_unknown_fields_source_tracking():
+def test_extract_unknown_fields_source_tracking(parse_yaml):
     """Test that unknown fields preserve source location information."""
     yaml_content = textwrap.dedent(
         """
@@ -150,8 +146,7 @@ def test_extract_unknown_fields_source_tracking():
         unknownField: value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     unknown = extract_unknown_fields(root, XML)
 
@@ -172,7 +167,7 @@ def test_extract_unknown_fields_source_tracking():
     assert hasattr(value.value_node.start_mark, "line")
 
 
-def test_extract_extension_fields_source_tracking():
+def test_extract_extension_fields_source_tracking(parse_yaml):
     """Test that extension fields preserve source location information."""
     yaml_content = textwrap.dedent(
         """
@@ -180,8 +175,7 @@ def test_extract_extension_fields_source_tracking():
         x-custom: value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     extensions = extract_extension_fields(root)
 
@@ -202,7 +196,7 @@ def test_extract_extension_fields_source_tracking():
     assert hasattr(value.value_node.start_mark, "line")
 
 
-def test_extract_unknown_fields_with_various_types():
+def test_extract_unknown_fields_with_various_types(parse_yaml):
     """Test that unknown fields preserve all value types."""
     yaml_content = textwrap.dedent(
         """
@@ -214,8 +208,7 @@ def test_extract_unknown_fields_with_various_types():
         objectField: {key: value}
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     unknown = extract_unknown_fields(root, XML)
 

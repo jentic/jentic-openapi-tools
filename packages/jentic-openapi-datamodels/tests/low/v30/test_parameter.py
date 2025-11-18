@@ -13,7 +13,7 @@ from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 from jentic.apitools.openapi.datamodels.low.v30.schema import Schema
 
 
-def test_build_with_required_fields_only():
+def test_build_with_required_fields_only(parse_yaml):
     """Test building Parameter with only required fields (name and in)."""
     yaml_content = textwrap.dedent(
         """
@@ -21,8 +21,7 @@ def test_build_with_required_fields_only():
         in: path
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -33,7 +32,7 @@ def test_build_with_required_fields_only():
     assert result.in_.value == "path"
 
 
-def test_build_with_path_parameter():
+def test_build_with_path_parameter(parse_yaml):
     """Test building a path parameter."""
     yaml_content = textwrap.dedent(
         """
@@ -44,8 +43,7 @@ def test_build_with_path_parameter():
           type: integer
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -60,7 +58,7 @@ def test_build_with_path_parameter():
     assert isinstance(result.schema.value, Schema)
 
 
-def test_build_with_query_parameter():
+def test_build_with_query_parameter(parse_yaml):
     """Test building a query parameter."""
     yaml_content = textwrap.dedent(
         """
@@ -71,8 +69,7 @@ def test_build_with_query_parameter():
           default: 1
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -85,7 +82,7 @@ def test_build_with_query_parameter():
     assert isinstance(result.schema.value, Schema)
 
 
-def test_build_with_header_parameter():
+def test_build_with_header_parameter(parse_yaml):
     """Test building a header parameter."""
     yaml_content = textwrap.dedent(
         """
@@ -96,8 +93,7 @@ def test_build_with_header_parameter():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -110,7 +106,7 @@ def test_build_with_header_parameter():
     assert result.required.value is True
 
 
-def test_build_with_cookie_parameter():
+def test_build_with_cookie_parameter(parse_yaml):
     """Test building a cookie parameter."""
     yaml_content = textwrap.dedent(
         """
@@ -120,8 +116,7 @@ def test_build_with_cookie_parameter():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -132,7 +127,7 @@ def test_build_with_cookie_parameter():
     assert result.in_.value == "cookie"
 
 
-def test_build_with_description():
+def test_build_with_description(parse_yaml):
     """Test building Parameter with description."""
     yaml_content = textwrap.dedent(
         """
@@ -144,8 +139,7 @@ def test_build_with_description():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -154,7 +148,7 @@ def test_build_with_description():
     assert result.description.value == "The unique identifier for a user"
 
 
-def test_build_with_deprecated():
+def test_build_with_deprecated(parse_yaml):
     """Test building Parameter with deprecated flag."""
     yaml_content = textwrap.dedent(
         """
@@ -165,8 +159,7 @@ def test_build_with_deprecated():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -175,7 +168,7 @@ def test_build_with_deprecated():
     assert result.deprecated.value is True
 
 
-def test_build_with_allow_empty_value():
+def test_build_with_allow_empty_value(parse_yaml):
     """Test building Parameter with allowEmptyValue."""
     yaml_content = textwrap.dedent(
         """
@@ -186,8 +179,7 @@ def test_build_with_allow_empty_value():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -196,7 +188,7 @@ def test_build_with_allow_empty_value():
     assert result.allow_empty_value.value is True
 
 
-def test_build_with_style_and_explode():
+def test_build_with_style_and_explode(parse_yaml):
     """Test building Parameter with style and explode."""
     yaml_content = textwrap.dedent(
         """
@@ -210,8 +202,7 @@ def test_build_with_style_and_explode():
             type: integer
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -222,7 +213,7 @@ def test_build_with_style_and_explode():
     assert result.explode.value is True
 
 
-def test_build_with_allow_reserved():
+def test_build_with_allow_reserved(parse_yaml):
     """Test building Parameter with allowReserved."""
     yaml_content = textwrap.dedent(
         """
@@ -233,8 +224,7 @@ def test_build_with_allow_reserved():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -243,7 +233,7 @@ def test_build_with_allow_reserved():
     assert result.allow_reserved.value is True
 
 
-def test_build_with_example():
+def test_build_with_example(parse_yaml):
     """Test building Parameter with example."""
     yaml_content = textwrap.dedent(
         """
@@ -254,8 +244,7 @@ def test_build_with_example():
         example: 12345
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -264,7 +253,7 @@ def test_build_with_example():
     assert result.example.value == 12345
 
 
-def test_build_with_examples():
+def test_build_with_examples(parse_yaml):
     """Test building Parameter with examples."""
     yaml_content = textwrap.dedent(
         """
@@ -279,8 +268,7 @@ def test_build_with_examples():
             value: inactive
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -295,7 +283,7 @@ def test_build_with_examples():
         assert isinstance(example_value, Example)
 
 
-def test_build_with_examples_reference():
+def test_build_with_examples_reference(parse_yaml):
     """Test building Parameter with example references."""
     yaml_content = textwrap.dedent(
         """
@@ -308,8 +296,7 @@ def test_build_with_examples_reference():
             $ref: '#/components/examples/ActiveStatus'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -319,7 +306,7 @@ def test_build_with_examples_reference():
     assert isinstance(result.examples.value[key_active], Reference)
 
 
-def test_build_with_schema_reference():
+def test_build_with_schema_reference(parse_yaml):
     """Test building Parameter with schema reference."""
     yaml_content = textwrap.dedent(
         """
@@ -330,8 +317,7 @@ def test_build_with_schema_reference():
           $ref: '#/components/schemas/UserId'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -342,7 +328,7 @@ def test_build_with_schema_reference():
     assert result.schema.value.ref.value == "#/components/schemas/UserId"
 
 
-def test_build_with_content():
+def test_build_with_content(parse_yaml):
     """Test building Parameter with content field."""
     yaml_content = textwrap.dedent(
         """
@@ -359,8 +345,7 @@ def test_build_with_content():
                   type: number
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -375,7 +360,7 @@ def test_build_with_content():
     assert isinstance(result.content.value[key_json], MediaType)
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Parameter with all possible fields."""
     yaml_content = textwrap.dedent(
         """
@@ -394,8 +379,7 @@ def test_build_with_all_fields():
         x-custom: value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -424,7 +408,7 @@ def test_build_with_all_fields():
     assert len(result.extensions) == 1
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building Parameter with specification extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -437,8 +421,7 @@ def test_build_with_extensions():
         x-rate-limit: 100
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -449,11 +432,10 @@ def test_build_with_extensions():
     assert ext_dict["x-rate-limit"] == 100
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Parameter from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -483,7 +465,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves invalid field values."""
     yaml_content = textwrap.dedent(
         """
@@ -494,8 +476,7 @@ def test_build_preserves_invalid_types():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -509,7 +490,7 @@ def test_build_preserves_invalid_types():
     assert result.required.value == "not-a-boolean"
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Parameter with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -520,8 +501,7 @@ def test_build_with_custom_context():
           type: integer
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = parameter.build(root, context=custom_context)
@@ -531,7 +511,7 @@ def test_build_with_custom_context():
     assert result.name.value == "userId"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -543,8 +523,7 @@ def test_source_tracking():
         x-custom: value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -567,7 +546,7 @@ def test_source_tracking():
     assert hasattr(result.name.value_node.start_mark, "line")
 
 
-def test_build_with_null_values():
+def test_build_with_null_values(parse_yaml):
     """Test that build preserves null values."""
     yaml_content = textwrap.dedent(
         """
@@ -579,8 +558,7 @@ def test_build_with_null_values():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -589,7 +567,7 @@ def test_build_with_null_values():
     assert result.description.value is None
 
 
-def test_build_with_commonmark_description():
+def test_build_with_commonmark_description(parse_yaml):
     """Test building Parameter with CommonMark description."""
     yaml_content = textwrap.dedent(
         """
@@ -604,8 +582,7 @@ def test_build_with_commonmark_description():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -615,7 +592,7 @@ def test_build_with_commonmark_description():
     assert "[documentation]" in result.description.value
 
 
-def test_build_real_world_pagination_parameter():
+def test_build_real_world_pagination_parameter(parse_yaml):
     """Test a complete real-world pagination parameter."""
     yaml_content = textwrap.dedent(
         """
@@ -630,8 +607,7 @@ def test_build_real_world_pagination_parameter():
         example: 2
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -647,7 +623,7 @@ def test_build_real_world_pagination_parameter():
     assert result.example.value == 2
 
 
-def test_build_real_world_array_parameter():
+def test_build_real_world_array_parameter(parse_yaml):
     """Test a real-world array parameter with style and explode."""
     yaml_content = textwrap.dedent(
         """
@@ -667,8 +643,7 @@ def test_build_real_world_array_parameter():
             value: [technology, science]
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -683,7 +658,7 @@ def test_build_real_world_array_parameter():
     assert len(result.examples.value) == 2
 
 
-def test_examples_source_tracking():
+def test_examples_source_tracking(parse_yaml):
     """Test source tracking for examples field."""
     yaml_content = textwrap.dedent(
         """
@@ -696,8 +671,7 @@ def test_examples_source_tracking():
             value: active
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -708,7 +682,7 @@ def test_examples_source_tracking():
         assert key_source.key_node is not None
 
 
-def test_content_source_tracking():
+def test_content_source_tracking(parse_yaml):
     """Test source tracking for content field."""
     yaml_content = textwrap.dedent(
         """
@@ -720,8 +694,7 @@ def test_content_source_tracking():
               type: object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -732,7 +705,7 @@ def test_content_source_tracking():
         assert key_source.key_node is not None
 
 
-def test_build_with_invalid_examples_data():
+def test_build_with_invalid_examples_data(parse_yaml):
     """Test that invalid examples data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -743,8 +716,7 @@ def test_build_with_invalid_examples_data():
         examples: invalid-not-object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -754,7 +726,7 @@ def test_build_with_invalid_examples_data():
     assert result.examples.value == "invalid-not-object"
 
 
-def test_build_with_invalid_content_data():
+def test_build_with_invalid_content_data(parse_yaml):
     """Test that invalid content data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -763,8 +735,7 @@ def test_build_with_invalid_content_data():
         content: invalid-string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build(root)
     assert isinstance(result, parameter.Parameter)
@@ -774,7 +745,7 @@ def test_build_with_invalid_content_data():
     assert result.content.value == "invalid-string"
 
 
-def test_build_parameter_or_reference_with_parameter():
+def test_build_parameter_or_reference_with_parameter(parse_yaml):
     """Test build_parameter_or_reference with a Parameter object."""
     yaml_content = textwrap.dedent(
         """
@@ -785,8 +756,7 @@ def test_build_parameter_or_reference_with_parameter():
           type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build_parameter_or_reference(root, Context())
     assert isinstance(result, parameter.Parameter)
@@ -796,15 +766,14 @@ def test_build_parameter_or_reference_with_parameter():
     assert result.in_.value == "path"
 
 
-def test_build_parameter_or_reference_with_reference():
+def test_build_parameter_or_reference_with_reference(parse_yaml):
     """Test build_parameter_or_reference with a Reference object."""
     yaml_content = textwrap.dedent(
         """
         $ref: '#/components/parameters/UserId'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = parameter.build_parameter_or_reference(root, Context())
     assert isinstance(result, Reference)

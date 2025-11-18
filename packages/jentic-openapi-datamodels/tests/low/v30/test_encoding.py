@@ -12,15 +12,14 @@ from jentic.apitools.openapi.datamodels.low.v30.header import Header
 from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 
 
-def test_build_with_content_type_only():
+def test_build_with_content_type_only(parse_yaml):
     """Test building Encoding with only contentType field."""
     yaml_content = textwrap.dedent(
         """
         contentType: application/xml
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -37,7 +36,7 @@ def test_build_with_content_type_only():
     assert result.extensions == {}
 
 
-def test_build_with_headers():
+def test_build_with_headers(parse_yaml):
     """Test building Encoding with headers field."""
     yaml_content = textwrap.dedent(
         """
@@ -54,8 +53,7 @@ def test_build_with_headers():
               format: date-time
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -80,7 +78,7 @@ def test_build_with_headers():
     assert rate_limit_header.description.value == "Rate limit header"
 
 
-def test_build_with_headers_reference():
+def test_build_with_headers_reference(parse_yaml):
     """Test building Encoding with headers containing $ref."""
     yaml_content = textwrap.dedent(
         """
@@ -94,8 +92,7 @@ def test_build_with_headers_reference():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -116,7 +113,7 @@ def test_build_with_headers_reference():
     assert isinstance(another_header, Header)
 
 
-def test_build_with_style_and_explode():
+def test_build_with_style_and_explode(parse_yaml):
     """Test building Encoding with style and explode fields."""
     yaml_content = textwrap.dedent(
         """
@@ -125,8 +122,7 @@ def test_build_with_style_and_explode():
         explode: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -137,7 +133,7 @@ def test_build_with_style_and_explode():
     assert result.explode.value is True
 
 
-def test_build_with_allow_reserved():
+def test_build_with_allow_reserved(parse_yaml):
     """Test building Encoding with allowReserved field."""
     yaml_content = textwrap.dedent(
         """
@@ -145,8 +141,7 @@ def test_build_with_allow_reserved():
         allowReserved: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -155,7 +150,7 @@ def test_build_with_allow_reserved():
     assert result.allowReserved.value is True
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Encoding with all fields."""
     yaml_content = textwrap.dedent(
         """
@@ -172,8 +167,7 @@ def test_build_with_all_fields():
         x-internal: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -196,11 +190,10 @@ def test_build_with_all_fields():
     assert ext_dict["x-internal"] is True
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Encoding from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -233,7 +226,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types."""
     yaml_content = textwrap.dedent(
         """
@@ -244,8 +237,7 @@ def test_build_preserves_invalid_types():
         headers: not-a-mapping
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -267,7 +259,7 @@ def test_build_preserves_invalid_types():
     assert result.headers.value == "not-a-mapping"
 
 
-def test_build_with_invalid_headers_data():
+def test_build_with_invalid_headers_data(parse_yaml):
     """Test that invalid headers data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -276,8 +268,7 @@ def test_build_with_invalid_headers_data():
           broken: invalid-string-not-object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -293,7 +284,7 @@ def test_build_with_invalid_headers_data():
     assert header_value.value == "invalid-string-not-object"
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Encoding with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -301,8 +292,7 @@ def test_build_with_custom_context():
         style: simple
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = encoding.build(root, context=custom_context)
@@ -312,7 +302,7 @@ def test_build_with_custom_context():
     assert result.contentType.value == "text/plain"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -321,8 +311,7 @@ def test_source_tracking():
         explode: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -351,7 +340,7 @@ def test_source_tracking():
     assert hasattr(result.contentType.value_node.start_mark, "line")
 
 
-def test_build_with_null_values():
+def test_build_with_null_values(parse_yaml):
     """Test that build preserves null values."""
     yaml_content = textwrap.dedent(
         """
@@ -360,8 +349,7 @@ def test_build_with_null_values():
         style:
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -376,7 +364,7 @@ def test_build_with_null_values():
     assert result.style.value is None
 
 
-def test_build_with_complex_extensions():
+def test_build_with_complex_extensions(parse_yaml):
     """Test building Encoding with complex extension objects."""
     yaml_content = textwrap.dedent(
         """
@@ -387,8 +375,7 @@ def test_build_with_complex_extensions():
         x-format: custom
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -406,7 +393,7 @@ def test_build_with_complex_extensions():
     assert ext_dict["x-format"] == "custom"
 
 
-def test_build_real_world_multipart():
+def test_build_real_world_multipart(parse_yaml):
     """Test a complete real-world multipart/form-data Encoding."""
     yaml_content = textwrap.dedent(
         """
@@ -418,8 +405,7 @@ def test_build_real_world_multipart():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -437,7 +423,7 @@ def test_build_real_world_multipart():
     assert header_obj.description.value == "Custom header for this part"
 
 
-def test_build_real_world_url_encoded():
+def test_build_real_world_url_encoded(parse_yaml):
     """Test a complete real-world application/x-www-form-urlencoded Encoding."""
     yaml_content = textwrap.dedent(
         """
@@ -447,8 +433,7 @@ def test_build_real_world_url_encoded():
         allowReserved: false
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -463,7 +448,7 @@ def test_build_real_world_url_encoded():
     assert result.allowReserved.value is False
 
 
-def test_headers_source_tracking():
+def test_headers_source_tracking(parse_yaml):
     """Test that headers maintain proper source tracking."""
     yaml_content = textwrap.dedent(
         """
@@ -479,8 +464,7 @@ def test_headers_source_tracking():
               type: integer
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -499,15 +483,14 @@ def test_headers_source_tracking():
             assert header_value.value_node is not None
 
 
-def test_build_with_binary_content_type():
+def test_build_with_binary_content_type(parse_yaml):
     """Test building Encoding with binary content type."""
     yaml_content = textwrap.dedent(
         """
         contentType: application/octet-stream
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)
@@ -516,7 +499,7 @@ def test_build_with_binary_content_type():
     assert result.contentType.value == "application/octet-stream"
 
 
-def test_build_with_multiple_headers_mixed():
+def test_build_with_multiple_headers_mixed(parse_yaml):
     """Test building Encoding with mix of Header objects and References."""
     yaml_content = textwrap.dedent(
         """
@@ -534,8 +517,7 @@ def test_build_with_multiple_headers_mixed():
               type: integer
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = encoding.build(root)
     assert isinstance(result, encoding.Encoding)

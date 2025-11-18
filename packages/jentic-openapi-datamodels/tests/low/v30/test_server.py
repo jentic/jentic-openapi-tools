@@ -11,15 +11,14 @@ from jentic.apitools.openapi.datamodels.low.v30 import server
 from jentic.apitools.openapi.datamodels.low.v30.server_variable import ServerVariable
 
 
-def test_build_with_url_only():
+def test_build_with_url_only(parse_yaml):
     """Test building Server with only required url field."""
     yaml_content = textwrap.dedent(
         """
         url: https://api.example.com/v1
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -36,7 +35,7 @@ def test_build_with_url_only():
     assert result.extensions == {}
 
 
-def test_build_with_url_and_description():
+def test_build_with_url_and_description(parse_yaml):
     """Test building Server with url and description."""
     yaml_content = textwrap.dedent(
         """
@@ -44,8 +43,7 @@ def test_build_with_url_and_description():
         description: Production API server
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -59,7 +57,7 @@ def test_build_with_url_and_description():
     assert result.variables is None
 
 
-def test_build_with_relative_url():
+def test_build_with_relative_url(parse_yaml):
     """Test building Server with relative URL."""
     yaml_content = textwrap.dedent(
         """
@@ -67,8 +65,7 @@ def test_build_with_relative_url():
         description: Relative URL to API
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -79,7 +76,7 @@ def test_build_with_relative_url():
     assert result.description.value == "Relative URL to API"
 
 
-def test_build_with_url_variables():
+def test_build_with_url_variables(parse_yaml):
     """Test building Server with URL containing variables."""
     yaml_content = textwrap.dedent(
         """
@@ -87,8 +84,7 @@ def test_build_with_url_variables():
         description: API server with environment and version variables
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -99,7 +95,7 @@ def test_build_with_url_variables():
     assert "{version}" in result.url.value
 
 
-def test_build_with_single_variable():
+def test_build_with_single_variable(parse_yaml):
     """Test building Server with a single server variable."""
     yaml_content = textwrap.dedent(
         """
@@ -111,8 +107,7 @@ def test_build_with_single_variable():
             description: The deployment environment
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -138,7 +133,7 @@ def test_build_with_single_variable():
     assert var_value.description.value == "The deployment environment"
 
 
-def test_build_with_multiple_variables():
+def test_build_with_multiple_variables(parse_yaml):
     """Test building Server with multiple server variables."""
     yaml_content = textwrap.dedent(
         """
@@ -159,8 +154,7 @@ def test_build_with_multiple_variables():
               - v2
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -189,7 +183,7 @@ def test_build_with_multiple_variables():
     assert port_var.default.value == "8443"
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Server with all fields including extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -206,8 +200,7 @@ def test_build_with_all_fields():
         x-region: us-east-1
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -226,7 +219,7 @@ def test_build_with_all_fields():
     assert ext_dict["x-region"] == "us-east-1"
 
 
-def test_build_with_commonmark_description():
+def test_build_with_commonmark_description(parse_yaml):
     """Test that Server description can contain CommonMark formatted text."""
     yaml_content = textwrap.dedent(
         """
@@ -241,8 +234,7 @@ def test_build_with_commonmark_description():
           - Monitored 24/7
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -253,11 +245,10 @@ def test_build_with_commonmark_description():
     assert "- High availability" in result.description.value
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Server from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -288,7 +279,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types."""
     yaml_content = textwrap.dedent(
         """
@@ -297,8 +288,7 @@ def test_build_preserves_invalid_types():
         variables: not-a-mapping
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -314,7 +304,7 @@ def test_build_preserves_invalid_types():
     assert result.variables.value == "not-a-mapping"
 
 
-def test_build_with_invalid_variable_data():
+def test_build_with_invalid_variable_data(parse_yaml):
     """Test that invalid variable data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -323,8 +313,7 @@ def test_build_with_invalid_variable_data():
           env: invalid-string-not-object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -340,7 +329,7 @@ def test_build_with_invalid_variable_data():
     assert var_value.value == "invalid-string-not-object"
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Server with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -348,8 +337,7 @@ def test_build_with_custom_context():
         description: Custom context server
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = server.build(root, context=custom_context)
@@ -361,7 +349,7 @@ def test_build_with_custom_context():
     assert result.description.value == "Custom context server"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -372,8 +360,7 @@ def test_source_tracking():
             default: prod
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -402,7 +389,7 @@ def test_source_tracking():
     assert hasattr(result.url.value_node.start_mark, "line")
 
 
-def test_build_with_null_values():
+def test_build_with_null_values(parse_yaml):
     """Test that build preserves null values."""
     yaml_content = textwrap.dedent(
         """
@@ -411,8 +398,7 @@ def test_build_with_null_values():
         variables:
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -425,7 +411,7 @@ def test_build_with_null_values():
     assert result.variables.value is None
 
 
-def test_build_with_complex_extensions():
+def test_build_with_complex_extensions(parse_yaml):
     """Test building Server with complex extension objects."""
     yaml_content = textwrap.dedent(
         """
@@ -438,8 +424,7 @@ def test_build_with_complex_extensions():
           window: 60
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -460,7 +445,7 @@ def test_build_with_complex_extensions():
     assert rate_limit["window"] == 60
 
 
-def test_build_real_world_example():
+def test_build_real_world_example(parse_yaml):
     """Test a complete real-world Server object."""
     yaml_content = textwrap.dedent(
         """
@@ -479,8 +464,7 @@ def test_build_real_world_example():
             default: v2
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
@@ -517,7 +501,7 @@ def test_build_real_world_example():
     assert port_enum_values == ["8443", "443"]
 
 
-def test_variable_source_tracking():
+def test_variable_source_tracking(parse_yaml):
     """Test that variables maintain proper source tracking."""
     yaml_content = textwrap.dedent(
         """
@@ -529,8 +513,7 @@ def test_variable_source_tracking():
             default: us-east-1
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = server.build(root)
     assert isinstance(result, server.Server)
