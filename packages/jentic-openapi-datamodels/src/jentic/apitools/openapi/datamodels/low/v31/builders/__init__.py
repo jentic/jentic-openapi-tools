@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from ..parameter import Parameter  # noqa: F401
     from ..path_item import PathItem  # noqa: F401
     from ..reference import Reference  # noqa: F401
-    from ..schema import Schema  # noqa: F401
+    from ..schema import BooleanJSONSchema, Schema  # noqa: F401
     from ..security_requirement import SecurityRequirement  # noqa: F401
     from ..server import Server  # noqa: F401
 
@@ -230,7 +230,7 @@ def build_model(
                     key_node=key_node,
                     value_node=value_node,
                 )
-            elif field_type_args & {FieldSource["Schema"]}:
+            elif field_type_args & {FieldSource["Schema | BooleanJSONSchema"]}:
                 # Handle Schema | Reference union with lazy import
                 from ..schema import build as build_schema
 

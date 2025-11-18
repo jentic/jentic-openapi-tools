@@ -10,7 +10,7 @@ from .encoding import Encoding
 from .encoding import build as build_encoding
 from .example import Example
 from .reference import Reference
-from .schema import Schema
+from .schema import BooleanJSONSchema, Schema
 
 
 __all__ = ["MediaType", "build"]
@@ -35,7 +35,7 @@ class MediaType:
     """
 
     root_node: yaml.Node
-    schema: FieldSource["Schema"] | None = fixed_field()
+    schema: FieldSource["Schema | BooleanJSONSchema"] | None = fixed_field()
     example: FieldSource[YAMLValue] | None = fixed_field()
     examples: FieldSource[dict[KeySource[str], "Example | Reference"]] | None = fixed_field()
     encoding: FieldSource[dict[KeySource[str], Encoding]] | None = fixed_field()

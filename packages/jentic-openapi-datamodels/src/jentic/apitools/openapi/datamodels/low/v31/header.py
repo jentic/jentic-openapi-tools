@@ -10,7 +10,7 @@ from .builders import build_model
 from .example import Example
 from .reference import Reference
 from .reference import build as build_reference
-from .schema import Schema
+from .schema import BooleanJSONSchema, Schema
 
 
 if TYPE_CHECKING:
@@ -54,7 +54,7 @@ class Header:
     deprecated: FieldSource[bool] | None = fixed_field()
     style: FieldSource[str] | None = fixed_field()
     explode: FieldSource[bool] | None = fixed_field()
-    schema: FieldSource["Schema"] | None = fixed_field()
+    schema: FieldSource["Schema | BooleanJSONSchema"] | None = fixed_field()
     example: FieldSource[YAMLValue] | None = fixed_field()
     examples: FieldSource[dict[KeySource[str], "Example | Reference"]] | None = fixed_field()
     content: FieldSource[dict[KeySource[str], "MediaType"]] | None = fixed_field()

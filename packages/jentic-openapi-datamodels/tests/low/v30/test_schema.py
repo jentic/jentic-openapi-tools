@@ -38,10 +38,10 @@ def test_build_with_primitive_string_schema():
     assert result.type.value == "string"
 
     # Check string validation fields
-    assert result.minLength is not None
-    assert result.minLength.value == 1
-    assert result.maxLength is not None
-    assert result.maxLength.value == 100
+    assert result.min_length is not None
+    assert result.min_length.value == 1
+    assert result.max_length is not None
+    assert result.max_length.value == 100
     assert result.pattern is not None
     assert result.pattern.value == "^[a-zA-Z0-9]+$"
 
@@ -71,8 +71,8 @@ def test_build_with_primitive_number_schema():
     assert result.minimum.value == 0
     assert result.maximum is not None
     assert result.maximum.value == 100
-    assert result.multipleOf is not None
-    assert result.multipleOf.value == 0.5
+    assert result.multiple_of is not None
+    assert result.multiple_of.value == 0.5
 
 
 def test_build_with_integer_schema():
@@ -96,8 +96,8 @@ def test_build_with_integer_schema():
     assert result.type.value == "integer"
     assert result.format is not None
     assert result.format.value == "int32"
-    assert result.exclusiveMaximum is not None
-    assert result.exclusiveMaximum.value is True
+    assert result.exclusive_maximum is not None
+    assert result.exclusive_maximum.value is True
 
 
 def test_build_with_exclusive_minimum():
@@ -125,8 +125,8 @@ def test_build_with_exclusive_minimum():
     assert result.minimum.value == 0
     assert result.maximum is not None
     assert result.maximum.value == 100
-    assert result.exclusiveMinimum is not None
-    assert result.exclusiveMinimum.value is True
+    assert result.exclusive_minimum is not None
+    assert result.exclusive_minimum.value is True
 
 
 def test_build_with_array_schema():
@@ -149,12 +149,12 @@ def test_build_with_array_schema():
 
     assert result.type is not None
     assert result.type.value == "array"
-    assert result.minItems is not None
-    assert result.minItems.value == 1
-    assert result.maxItems is not None
-    assert result.maxItems.value == 10
-    assert result.uniqueItems is not None
-    assert result.uniqueItems.value is True
+    assert result.min_items is not None
+    assert result.min_items.value == 1
+    assert result.max_items is not None
+    assert result.max_items.value == 10
+    assert result.unique_items is not None
+    assert result.unique_items.value is True
 
     # items should now be a Schema object
     assert result.items is not None
@@ -203,10 +203,10 @@ def test_build_with_object_schema():
     assert len(result.properties.value) == 3
 
     # Check minProperties/maxProperties
-    assert result.minProperties is not None
-    assert result.minProperties.value == 1
-    assert result.maxProperties is not None
-    assert result.maxProperties.value == 10
+    assert result.min_properties is not None
+    assert result.min_properties.value == 1
+    assert result.max_properties is not None
+    assert result.max_properties.value == 10
 
 
 def test_build_with_enum():
@@ -252,16 +252,16 @@ def test_build_with_allof():
     assert isinstance(result, schema.Schema)
 
     # allOf should now be list of Schema objects
-    assert result.allOf is not None
-    assert isinstance(result.allOf.value, list)
-    assert len(result.allOf.value) == 2
+    assert result.all_of is not None
+    assert isinstance(result.all_of.value, list)
+    assert len(result.all_of.value) == 2
     # Type narrow to Schema before accessing attributes
-    assert isinstance(result.allOf.value[0], schema.Schema)
-    assert result.allOf.value[0].type is not None
-    assert result.allOf.value[0].type.value == "object"
-    assert isinstance(result.allOf.value[1], schema.Schema)
-    assert result.allOf.value[1].type is not None
-    assert result.allOf.value[1].type.value == "object"
+    assert isinstance(result.all_of.value[0], schema.Schema)
+    assert result.all_of.value[0].type is not None
+    assert result.all_of.value[0].type.value == "object"
+    assert isinstance(result.all_of.value[1], schema.Schema)
+    assert result.all_of.value[1].type is not None
+    assert result.all_of.value[1].type.value == "object"
 
 
 def test_build_with_oneof():
@@ -279,9 +279,9 @@ def test_build_with_oneof():
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
 
-    assert result.oneOf is not None
-    assert isinstance(result.oneOf.value, list)
-    assert len(result.oneOf.value) == 2
+    assert result.one_of is not None
+    assert isinstance(result.one_of.value, list)
+    assert len(result.one_of.value) == 2
 
 
 def test_build_with_anyof():
@@ -301,9 +301,9 @@ def test_build_with_anyof():
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
 
-    assert result.anyOf is not None
-    assert isinstance(result.anyOf.value, list)
-    assert len(result.anyOf.value) == 2
+    assert result.any_of is not None
+    assert isinstance(result.any_of.value, list)
+    assert len(result.any_of.value) == 2
 
 
 def test_build_with_not():
@@ -344,19 +344,19 @@ def test_build_with_allof_references():
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
 
-    assert result.allOf is not None
-    assert isinstance(result.allOf.value, list)
-    assert len(result.allOf.value) == 2
+    assert result.all_of is not None
+    assert isinstance(result.all_of.value, list)
+    assert len(result.all_of.value) == 2
 
     # First element should be a Reference
-    assert isinstance(result.allOf.value[0], Reference)
-    assert result.allOf.value[0].ref is not None
-    assert result.allOf.value[0].ref.value == "#/components/schemas/Base"
+    assert isinstance(result.all_of.value[0], Reference)
+    assert result.all_of.value[0].ref is not None
+    assert result.all_of.value[0].ref.value == "#/components/schemas/Base"
 
     # Second element should be a Schema
-    assert isinstance(result.allOf.value[1], schema.Schema)
-    assert result.allOf.value[1].type is not None
-    assert result.allOf.value[1].type.value == "object"
+    assert isinstance(result.all_of.value[1], schema.Schema)
+    assert result.all_of.value[1].type is not None
+    assert result.all_of.value[1].type.value == "object"
 
 
 def test_build_with_oneof_references():
@@ -378,22 +378,22 @@ def test_build_with_oneof_references():
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
 
-    assert result.oneOf is not None
-    assert isinstance(result.oneOf.value, list)
-    assert len(result.oneOf.value) == 3
+    assert result.one_of is not None
+    assert isinstance(result.one_of.value, list)
+    assert len(result.one_of.value) == 3
 
     # First two elements should be References
-    assert isinstance(result.oneOf.value[0], Reference)
-    assert result.oneOf.value[0].ref is not None
-    assert result.oneOf.value[0].ref.value == "#/components/schemas/Cat"
-    assert isinstance(result.oneOf.value[1], Reference)
-    assert result.oneOf.value[1].ref is not None
-    assert result.oneOf.value[1].ref.value == "#/components/schemas/Dog"
+    assert isinstance(result.one_of.value[0], Reference)
+    assert result.one_of.value[0].ref is not None
+    assert result.one_of.value[0].ref.value == "#/components/schemas/Cat"
+    assert isinstance(result.one_of.value[1], Reference)
+    assert result.one_of.value[1].ref is not None
+    assert result.one_of.value[1].ref.value == "#/components/schemas/Dog"
 
     # Third element should be a Schema
-    assert isinstance(result.oneOf.value[2], schema.Schema)
-    assert result.oneOf.value[2].type is not None
-    assert result.oneOf.value[2].type.value == "object"
+    assert isinstance(result.one_of.value[2], schema.Schema)
+    assert result.one_of.value[2].type is not None
+    assert result.one_of.value[2].type.value == "object"
 
 
 def test_build_with_anyof_references():
@@ -411,17 +411,17 @@ def test_build_with_anyof_references():
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
 
-    assert result.anyOf is not None
-    assert isinstance(result.anyOf.value, list)
-    assert len(result.anyOf.value) == 2
+    assert result.any_of is not None
+    assert isinstance(result.any_of.value, list)
+    assert len(result.any_of.value) == 2
 
     # Both elements should be References
-    assert isinstance(result.anyOf.value[0], Reference)
-    assert result.anyOf.value[0].ref is not None
-    assert result.anyOf.value[0].ref.value == "#/components/schemas/StringFormat"
-    assert isinstance(result.anyOf.value[1], Reference)
-    assert result.anyOf.value[1].ref is not None
-    assert result.anyOf.value[1].ref.value == "#/components/schemas/NumberFormat"
+    assert isinstance(result.any_of.value[0], Reference)
+    assert result.any_of.value[0].ref is not None
+    assert result.any_of.value[0].ref.value == "#/components/schemas/StringFormat"
+    assert isinstance(result.any_of.value[1], Reference)
+    assert result.any_of.value[1].ref is not None
+    assert result.any_of.value[1].ref.value == "#/components/schemas/NumberFormat"
 
 
 def test_build_with_not_reference():
@@ -500,10 +500,10 @@ def test_build_with_additional_properties_reference():
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
 
-    assert result.additionalProperties is not None
-    assert isinstance(result.additionalProperties.value, Reference)
-    assert result.additionalProperties.value.ref is not None
-    assert result.additionalProperties.value.ref.value == "#/components/schemas/StringValue"
+    assert result.additional_properties is not None
+    assert isinstance(result.additional_properties.value, Reference)
+    assert result.additional_properties.value.ref is not None
+    assert result.additional_properties.value.ref.value == "#/components/schemas/StringValue"
 
 
 def test_build_with_additional_properties_boolean():
@@ -520,8 +520,8 @@ def test_build_with_additional_properties_boolean():
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
 
-    assert result.additionalProperties is not None
-    assert result.additionalProperties.value is False
+    assert result.additional_properties is not None
+    assert result.additional_properties.value is False
 
 
 def test_build_with_additional_properties_schema():
@@ -539,10 +539,10 @@ def test_build_with_additional_properties_schema():
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
 
-    assert result.additionalProperties is not None
-    assert isinstance(result.additionalProperties.value, schema.Schema)
-    assert result.additionalProperties.value.type is not None
-    assert result.additionalProperties.value.type.value == "string"
+    assert result.additional_properties is not None
+    assert isinstance(result.additional_properties.value, schema.Schema)
+    assert result.additional_properties.value.type is not None
+    assert result.additional_properties.value.type.value == "string"
 
 
 def test_build_with_nullable():
@@ -655,10 +655,10 @@ def test_build_with_external_docs():
     result = schema.build(root)
     assert isinstance(result, schema.Schema)
 
-    assert result.externalDocs is not None
-    assert isinstance(result.externalDocs.value, ExternalDocumentation)
-    assert result.externalDocs.value.url is not None
-    assert result.externalDocs.value.url.value == "https://example.com/docs/user"
+    assert result.external_docs is not None
+    assert isinstance(result.external_docs.value, ExternalDocumentation)
+    assert result.external_docs.value.url is not None
+    assert result.external_docs.value.url.value == "https://example.com/docs/user"
 
 
 def test_build_with_example():
@@ -827,8 +827,8 @@ def test_build_preserves_invalid_types():
     # Should preserve the actual values, not convert them
     assert result.type is not None
     assert result.type.value == 12345
-    assert result.minLength is not None
-    assert result.minLength.value == "not-a-number"
+    assert result.min_length is not None
+    assert result.min_length.value == "not-a-number"
     assert result.enum is not None
     assert result.enum.value == "not-an-array"
 

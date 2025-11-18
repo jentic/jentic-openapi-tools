@@ -15,7 +15,7 @@ from .path_item import PathItem
 from .reference import Reference
 from .request_body import RequestBody, build_request_body_or_reference
 from .response import Response, build_response_or_reference
-from .schema import Schema
+from .schema import BooleanJSONSchema, Schema
 from .schema import build as build_schema
 from .security_scheme import SecurityScheme, build_security_scheme_or_reference
 
@@ -51,7 +51,7 @@ class Components:
     """
 
     root_node: yaml.Node
-    schemas: FieldSource[dict[KeySource[str], Schema]] | None = fixed_field()
+    schemas: FieldSource[dict[KeySource[str], Schema | BooleanJSONSchema]] | None = fixed_field()
     responses: FieldSource[dict[KeySource[str], Response | Reference]] | None = fixed_field()
     parameters: FieldSource[dict[KeySource[str], Parameter | Reference]] | None = fixed_field()
     examples: FieldSource[dict[KeySource[str], Example | Reference]] | None = fixed_field()

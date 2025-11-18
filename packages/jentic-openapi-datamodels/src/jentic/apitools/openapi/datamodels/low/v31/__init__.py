@@ -29,7 +29,7 @@ from .reference import Reference
 from .request_body import RequestBody
 from .response import Response
 from .responses import Responses
-from .schema import NestedSchema, Schema
+from .schema import BooleanJSONSchema, Schema
 from .security_requirement import SecurityRequirement
 from .security_scheme import SecurityScheme
 from .server import Server
@@ -56,7 +56,6 @@ __all__ = [
     "License",
     "Link",
     "MediaType",
-    "NestedSchema",
     "OAuthFlow",
     "OAuthFlows",
     "Operation",
@@ -68,6 +67,7 @@ __all__ = [
     "Response",
     "Responses",
     "Schema",
+    "BooleanJSONSchema",
     "SecurityRequirement",
     "SecurityScheme",
     "Server",

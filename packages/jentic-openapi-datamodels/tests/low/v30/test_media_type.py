@@ -592,8 +592,8 @@ def test_build_with_complex_schema():
 
     assert result.schema is not None
     assert isinstance(result.schema.value, Schema)
-    assert result.schema.value.oneOf is not None
-    assert len(result.schema.value.oneOf.value) == 2
+    assert result.schema.value.one_of is not None
+    assert len(result.schema.value.one_of.value) == 2
 
 
 def test_build_with_array_example():
