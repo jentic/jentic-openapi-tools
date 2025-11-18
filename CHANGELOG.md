@@ -2,6 +2,119 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.19 (2025-11-18)
+
+### Bug Fixes
+
+- **datamodels**: Fix unnecessary nesting of sources
+  ([#130](https://github.com/jentic/jentic-openapi-tools/pull/130),
+  [`529520e`](https://github.com/jentic/jentic-openapi-tools/commit/529520ee2a2d55e4ebdb16333c7ad265a1262903))
+
+### Chores
+
+- **deps**: Address js-yaml prototype pollution vulnerability
+  ([#142](https://github.com/jentic/jentic-openapi-tools/pull/142),
+  [`c2359eb`](https://github.com/jentic/jentic-openapi-tools/commit/c2359ebff9ee2ef7683d5fc7b0b116dca29390ce))
+
+### Documentation
+
+- **datamodels**: Update README to focus on OpenAPI30 main use case
+  ([#150](https://github.com/jentic/jentic-openapi-tools/pull/150),
+  [`836d9e5`](https://github.com/jentic/jentic-openapi-tools/commit/836d9e55d602aa119c91c9440e342a2d8692cab0))
+
+### Features
+
+- **dataclasses**: Create public API for low.v30 datamodels
+  ([#147](https://github.com/jentic/jentic-openapi-tools/pull/147),
+  [`b7a01bc`](https://github.com/jentic/jentic-openapi-tools/commit/b7a01bc15798c3e293579257aa97a5b7f1700981))
+
+- **datamodels**: Add low model for Callback spec object
+  ([#138](https://github.com/jentic/jentic-openapi-tools/pull/138),
+  [`229e35b`](https://github.com/jentic/jentic-openapi-tools/commit/229e35b114c9a79eb7a6cfb592920438e6565340))
+
+- **datamodels**: Add low model for Components spec object
+  ([#144](https://github.com/jentic/jentic-openapi-tools/pull/144),
+  [`d4d34ce`](https://github.com/jentic/jentic-openapi-tools/commit/d4d34cef1e1e88e64bcaac4ee12724e4e0f4d788))
+
+- **datamodels**: Add low model for Encoding spec object
+  ([#132](https://github.com/jentic/jentic-openapi-tools/pull/132),
+  [`ba51293`](https://github.com/jentic/jentic-openapi-tools/commit/ba5129350689613424a8892cb0e4169413b46270))
+
+- **datamodels**: Add low model for Example spec object
+  ([#128](https://github.com/jentic/jentic-openapi-tools/pull/128),
+  [`aff596b`](https://github.com/jentic/jentic-openapi-tools/commit/aff596b4011f35517a561511a705f73b6d81eab4))
+
+- **datamodels**: Add low model for Header spec object
+  ([#131](https://github.com/jentic/jentic-openapi-tools/pull/131),
+  [`e060054`](https://github.com/jentic/jentic-openapi-tools/commit/e06005491a27aa19cc000c4cd866e1b138b64d31))
+
+- **datamodels**: Add low model for Link spec object
+  ([#129](https://github.com/jentic/jentic-openapi-tools/pull/129),
+  [`b51f971`](https://github.com/jentic/jentic-openapi-tools/commit/b51f97183d4e63fc2b1e389520974d0cf0fe4e70))
+
+- **datamodels**: Add low model for Media Type spec object
+  ([#133](https://github.com/jentic/jentic-openapi-tools/pull/133),
+  [`37a4235`](https://github.com/jentic/jentic-openapi-tools/commit/37a42352de31050b9a3b21867af0257523274227))
+
+- **datamodels**: Add low model for OpenAPI 3.0.x spec object
+  ([#146](https://github.com/jentic/jentic-openapi-tools/pull/146),
+  [`f9a15dc`](https://github.com/jentic/jentic-openapi-tools/commit/f9a15dc773d5e68615e3646df8531dd11d2c4284))
+
+- **datamodels**: Add low model for Operation spec object
+  ([#139](https://github.com/jentic/jentic-openapi-tools/pull/139),
+  [`759dd3f`](https://github.com/jentic/jentic-openapi-tools/commit/759dd3fe6f02d9e710a01da817815cf5469b126d))
+
+- **datamodels**: Add low model for Parameter spec object
+  ([#137](https://github.com/jentic/jentic-openapi-tools/pull/137),
+  [`bb5463e`](https://github.com/jentic/jentic-openapi-tools/commit/bb5463e1d338613d4ab72f5dbbd7646a2adcff74))
+
+- **datamodels**: Add low model for Path Item spec object
+  ([#140](https://github.com/jentic/jentic-openapi-tools/pull/140),
+  [`54de341`](https://github.com/jentic/jentic-openapi-tools/commit/54de34112bebb63a630bad64da7f80e4499b8dbf))
+
+- **datamodels**: Add low model for Paths spec object
+  ([#143](https://github.com/jentic/jentic-openapi-tools/pull/143),
+  [`e149667`](https://github.com/jentic/jentic-openapi-tools/commit/e149667a74f530d20f17836d0ecf4625ae1214da))
+
+- **datamodels**: Add low model for Request Body spec object
+  ([#135](https://github.com/jentic/jentic-openapi-tools/pull/135),
+  [`de24443`](https://github.com/jentic/jentic-openapi-tools/commit/de244431379cf91b4eeb9d30b9996ba227639edb))
+
+- **datamodels**: Add low model for Response spec object
+  ([#134](https://github.com/jentic/jentic-openapi-tools/pull/134),
+  [`70591f8`](https://github.com/jentic/jentic-openapi-tools/commit/70591f8146ee70bc96e55b75f311e36aab8fc2f5))
+
+- **datamodels**: Add low model for Responses spec object
+  ([#136](https://github.com/jentic/jentic-openapi-tools/pull/136),
+  [`c009423`](https://github.com/jentic/jentic-openapi-tools/commit/c009423d20cb62e48dc2c38e930f42952a68521d))
+
+- **datamodels**: Add low model for Server spec object
+  ([#126](https://github.com/jentic/jentic-openapi-tools/pull/126),
+  [`3781989`](https://github.com/jentic/jentic-openapi-tools/commit/3781989dfef61cfbc3dbaf51573ce57ec619236e))
+
+- **datamodels**: Add OpenAPI 3.1.x datamodel
+  ([#151](https://github.com/jentic/jentic-openapi-tools/pull/151),
+  [`900eea1`](https://github.com/jentic/jentic-openapi-tools/commit/900eea1960fd67d1a459d93fedb1b9451fe69b30))
+
+### Refactoring
+
+- **datamodels**: Apply DRY principle
+  ([#141](https://github.com/jentic/jentic-openapi-tools/pull/141),
+  [`403a6d3`](https://github.com/jentic/jentic-openapi-tools/commit/403a6d37611fe8f8c8686cc550487760bc28f3c9))
+
+- **datamodels**: Make model builder v30 specific
+  ([#149](https://github.com/jentic/jentic-openapi-tools/pull/149),
+  [`4c34a5c`](https://github.com/jentic/jentic-openapi-tools/commit/4c34a5c22e4033c8651fa3af37438cae28763e44))
+
+- **datamodels**: Simplify building models
+  ([#127](https://github.com/jentic/jentic-openapi-tools/pull/127),
+  [`34cfd56`](https://github.com/jentic/jentic-openapi-tools/commit/34cfd565f5f9144b79b9070eb79429ebb1b2272f))
+
+- **datamodels**: Use relative imports
+  ([#148](https://github.com/jentic/jentic-openapi-tools/pull/148),
+  [`8c66f0f`](https://github.com/jentic/jentic-openapi-tools/commit/8c66f0f1287b41280b8ed4ed5d6203d8f9a73003))
+
+
 ## v1.0.0-alpha.18 (2025-11-13)
 
 ### Bug Fixes
