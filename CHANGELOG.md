@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.20 (2025-11-18)
+
+### Features
+
+- **parser**: Add ruamel-ast parser backend
+  ([#152](https://github.com/jentic/jentic-openapi-tools/pull/152),
+  [`8e82ce3`](https://github.com/jentic/jentic-openapi-tools/commit/8e82ce3139a79c300bf445312c0c64263cbd57d8))
+
+
 ## v1.0.0-alpha.19 (2025-11-18)
 
 ### Bug Fixes
