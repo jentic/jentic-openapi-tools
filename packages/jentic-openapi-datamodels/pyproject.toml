@@ -11,11 +11,19 @@ dependencies = [
     "ruamel-yaml~=0.18.15"
 ]
 
+[dependency-groups]
+dev = [
+    "jentic-openapi-parser",
+]
+
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
 
 [tool.uv]
 package = true
+
+[tool.uv.sources]
+jentic-openapi-parser = { workspace = true }
 
 [tool.uv.build-backend]
 namespace = true

@@ -9,7 +9,7 @@ from jentic.apitools.openapi.datamodels.low.sources import FieldSource, ValueSou
 from jentic.apitools.openapi.datamodels.low.v30 import discriminator
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Discriminator with all specification fields."""
     yaml_content = textwrap.dedent(
         """
@@ -20,8 +20,7 @@ def test_build_with_all_fields():
           bird: '#/components/schemas/Bird'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = discriminator.build(root)
     assert isinstance(result, discriminator.Discriminator)
@@ -45,15 +44,14 @@ def test_build_with_all_fields():
     assert mapping_dict["bird"] == "#/components/schemas/Bird"
 
 
-def test_build_with_required_field_only():
+def test_build_with_required_field_only(parse_yaml):
     """Test building Discriminator with only required propertyName field."""
     yaml_content = textwrap.dedent(
         """
         propertyName: objectType
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = discriminator.build(root)
     assert isinstance(result, discriminator.Discriminator)
@@ -66,7 +64,7 @@ def test_build_with_required_field_only():
     assert result.mapping is None
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -74,8 +72,7 @@ def test_build_preserves_invalid_types():
         mapping: not-a-dict
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = discriminator.build(root)
     assert isinstance(result, discriminator.Discriminator)
@@ -88,7 +85,7 @@ def test_build_preserves_invalid_types():
     assert result.mapping.value == "not-a-dict"
 
 
-def test_build_with_empty_mapping():
+def test_build_with_empty_mapping(parse_yaml):
     """Test building Discriminator with empty mapping object."""
     yaml_content = textwrap.dedent(
         """
@@ -96,8 +93,7 @@ def test_build_with_empty_mapping():
         mapping: {}
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = discriminator.build(root)
     assert isinstance(result, discriminator.Discriminator)
@@ -127,7 +123,7 @@ def test_build_with_invalid_node_returns_none():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Discriminator with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -137,8 +133,7 @@ def test_build_with_custom_context():
           option2: Schema2
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = discriminator.build(root, context=custom_context)
@@ -153,7 +148,7 @@ def test_build_with_custom_context():
     assert mapping_dict["option1"] == "Schema1"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -163,8 +158,7 @@ def test_source_tracking():
           cat: Cat
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = discriminator.build(root)
     assert isinstance(result, discriminator.Discriminator)
@@ -186,7 +180,7 @@ def test_source_tracking():
     assert hasattr(result.property_name.value_node.start_mark, "line")
 
 
-def test_mapping_with_component_references():
+def test_mapping_with_component_references(parse_yaml):
     """Test discriminator mapping with schema component references."""
     yaml_content = textwrap.dedent(
         """
@@ -197,8 +191,7 @@ def test_mapping_with_component_references():
           lizard: '#/components/schemas/Lizard'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = discriminator.build(root)
     assert isinstance(result, discriminator.Discriminator)
@@ -219,7 +212,7 @@ def test_mapping_with_component_references():
     assert mapping_dict["lizard"] == "#/components/schemas/Lizard"
 
 
-def test_mapping_with_simple_names():
+def test_mapping_with_simple_names(parse_yaml):
     """Test discriminator mapping with simple schema names."""
     yaml_content = textwrap.dedent(
         """
@@ -230,8 +223,7 @@ def test_mapping_with_simple_names():
           guest: GuestUser
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = discriminator.build(root)
     assert isinstance(result, discriminator.Discriminator)

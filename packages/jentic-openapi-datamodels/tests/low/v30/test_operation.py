@@ -17,7 +17,7 @@ from jentic.apitools.openapi.datamodels.low.v30.security_requirement import Secu
 from jentic.apitools.openapi.datamodels.low.v30.server import Server
 
 
-def test_build_with_minimal_fields():
+def test_build_with_minimal_fields(parse_yaml):
     """Test building Operation with only required field (responses)."""
     yaml_content = textwrap.dedent(
         """
@@ -26,8 +26,7 @@ def test_build_with_minimal_fields():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -36,7 +35,7 @@ def test_build_with_minimal_fields():
     assert isinstance(result.responses.value, Responses)
 
 
-def test_build_with_summary_and_description():
+def test_build_with_summary_and_description(parse_yaml):
     """Test building Operation with summary and description."""
     yaml_content = textwrap.dedent(
         """
@@ -47,8 +46,7 @@ def test_build_with_summary_and_description():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -59,7 +57,7 @@ def test_build_with_summary_and_description():
     assert result.description.value == "Returns a list of all users in the system"
 
 
-def test_build_with_operation_id():
+def test_build_with_operation_id(parse_yaml):
     """Test building Operation with operationId."""
     yaml_content = textwrap.dedent(
         """
@@ -69,8 +67,7 @@ def test_build_with_operation_id():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -79,7 +76,7 @@ def test_build_with_operation_id():
     assert result.operation_id.value == "listUsers"
 
 
-def test_build_with_tags():
+def test_build_with_tags(parse_yaml):
     """Test building Operation with tags."""
     yaml_content = textwrap.dedent(
         """
@@ -91,8 +88,7 @@ def test_build_with_tags():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -103,7 +99,7 @@ def test_build_with_tags():
     assert tag_values == ["users", "admin"]
 
 
-def test_build_with_external_docs():
+def test_build_with_external_docs(parse_yaml):
     """Test building Operation with externalDocs."""
     yaml_content = textwrap.dedent(
         """
@@ -115,8 +111,7 @@ def test_build_with_external_docs():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -125,7 +120,7 @@ def test_build_with_external_docs():
     assert isinstance(result.external_docs.value, ExternalDocumentation)
 
 
-def test_build_with_parameters():
+def test_build_with_parameters(parse_yaml):
     """Test building Operation with parameters."""
     yaml_content = textwrap.dedent(
         """
@@ -144,8 +139,7 @@ def test_build_with_parameters():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -155,7 +149,7 @@ def test_build_with_parameters():
     assert all(isinstance(p, Parameter) for p in result.parameters.value)
 
 
-def test_build_with_parameter_references():
+def test_build_with_parameter_references(parse_yaml):
     """Test building Operation with parameter references."""
     yaml_content = textwrap.dedent(
         """
@@ -170,8 +164,7 @@ def test_build_with_parameter_references():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -182,7 +175,7 @@ def test_build_with_parameter_references():
     assert isinstance(result.parameters.value[1], Parameter)
 
 
-def test_build_with_request_body():
+def test_build_with_request_body(parse_yaml):
     """Test building Operation with requestBody."""
     yaml_content = textwrap.dedent(
         """
@@ -197,8 +190,7 @@ def test_build_with_request_body():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -207,7 +199,7 @@ def test_build_with_request_body():
     assert isinstance(result.request_body.value, RequestBody)
 
 
-def test_build_with_request_body_reference():
+def test_build_with_request_body_reference(parse_yaml):
     """Test building Operation with requestBody as reference."""
     yaml_content = textwrap.dedent(
         """
@@ -218,8 +210,7 @@ def test_build_with_request_body_reference():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -228,7 +219,7 @@ def test_build_with_request_body_reference():
     assert isinstance(result.request_body.value, Reference)
 
 
-def test_build_with_callbacks():
+def test_build_with_callbacks(parse_yaml):
     """Test building Operation with callbacks."""
     yaml_content = textwrap.dedent(
         """
@@ -244,8 +235,7 @@ def test_build_with_callbacks():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -257,7 +247,7 @@ def test_build_with_callbacks():
     assert isinstance(result.callbacks.value[next(iter(result.callbacks.value.keys()))], Callback)
 
 
-def test_build_with_callback_references():
+def test_build_with_callback_references(parse_yaml):
     """Test building Operation with callback references."""
     yaml_content = textwrap.dedent(
         """
@@ -269,8 +259,7 @@ def test_build_with_callback_references():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -280,7 +269,7 @@ def test_build_with_callback_references():
     assert isinstance(result.callbacks.value[next(iter(result.callbacks.value.keys()))], Reference)
 
 
-def test_build_with_deprecated():
+def test_build_with_deprecated(parse_yaml):
     """Test building Operation with deprecated flag."""
     yaml_content = textwrap.dedent(
         """
@@ -290,8 +279,7 @@ def test_build_with_deprecated():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -300,7 +288,7 @@ def test_build_with_deprecated():
     assert result.deprecated.value is True
 
 
-def test_build_with_security():
+def test_build_with_security(parse_yaml):
     """Test building Operation with security requirements."""
     yaml_content = textwrap.dedent(
         """
@@ -314,8 +302,7 @@ def test_build_with_security():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -325,7 +312,7 @@ def test_build_with_security():
     assert all(isinstance(s, SecurityRequirement) for s in result.security.value)
 
 
-def test_build_with_servers():
+def test_build_with_servers(parse_yaml):
     """Test building Operation with servers."""
     yaml_content = textwrap.dedent(
         """
@@ -339,8 +326,7 @@ def test_build_with_servers():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -350,7 +336,7 @@ def test_build_with_servers():
     assert all(isinstance(s, Server) for s in result.servers.value)
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building Operation with specification extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -361,8 +347,7 @@ def test_build_with_extensions():
             description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -373,7 +358,7 @@ def test_build_with_extensions():
     assert ext_dict["x-rate-limit"] == 100
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Operation with all possible fields."""
     yaml_content = textwrap.dedent(
         """
@@ -415,8 +400,7 @@ def test_build_with_all_fields():
         x-code-samples: []
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -436,11 +420,10 @@ def test_build_with_all_fields():
     assert len(result.extensions) == 1
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Operation from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -469,7 +452,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Operation with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -479,8 +462,7 @@ def test_build_with_custom_context():
             description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = operation.build(root, context=custom_context)
@@ -490,7 +472,7 @@ def test_build_with_custom_context():
     assert result.operation_id.value == "testOp"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -504,8 +486,7 @@ def test_source_tracking():
         x-custom: value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -528,7 +509,7 @@ def test_source_tracking():
     assert hasattr(result.summary.value_node.start_mark, "line")
 
 
-def test_build_with_invalid_tags_data():
+def test_build_with_invalid_tags_data(parse_yaml):
     """Test that invalid tags data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -538,8 +519,7 @@ def test_build_with_invalid_tags_data():
             description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -549,7 +529,7 @@ def test_build_with_invalid_tags_data():
     assert result.tags.value == "not-an-array"
 
 
-def test_build_with_invalid_parameters_data():
+def test_build_with_invalid_parameters_data(parse_yaml):
     """Test that invalid parameters data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -559,8 +539,7 @@ def test_build_with_invalid_parameters_data():
             description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -570,7 +549,7 @@ def test_build_with_invalid_parameters_data():
     assert result.parameters.value == "not-an-array"
 
 
-def test_build_with_null_values():
+def test_build_with_null_values(parse_yaml):
     """Test that build preserves null values."""
     yaml_content = textwrap.dedent(
         """
@@ -581,8 +560,7 @@ def test_build_with_null_values():
             description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -593,7 +571,7 @@ def test_build_with_null_values():
     assert result.description.value is None
 
 
-def test_build_real_world_get_operation():
+def test_build_real_world_get_operation(parse_yaml):
     """Test a complete real-world GET operation."""
     yaml_content = textwrap.dedent(
         """
@@ -625,8 +603,7 @@ def test_build_real_world_get_operation():
           - api_key: []
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)
@@ -640,7 +617,7 @@ def test_build_real_world_get_operation():
     assert result.security is not None
 
 
-def test_build_real_world_post_operation():
+def test_build_real_world_post_operation(parse_yaml):
     """Test a complete real-world POST operation."""
     yaml_content = textwrap.dedent(
         """
@@ -679,8 +656,7 @@ def test_build_real_world_post_operation():
                     description: webhook received
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = operation.build(root)
     assert isinstance(result, operation.Operation)

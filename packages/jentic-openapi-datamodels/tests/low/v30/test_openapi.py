@@ -21,7 +21,7 @@ from jentic.apitools.openapi.datamodels.low.v30.server import Server
 from jentic.apitools.openapi.datamodels.low.v30.tag import Tag
 
 
-def test_build_minimal_openapi():
+def test_build_minimal_openapi(parse_yaml):
     """Test building OpenAPI with only required fields."""
     yaml_content = textwrap.dedent(
         """
@@ -32,8 +32,7 @@ def test_build_minimal_openapi():
         paths: {}
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -47,7 +46,7 @@ def test_build_minimal_openapi():
     assert isinstance(result.paths.value, Paths)
 
 
-def test_build_with_servers():
+def test_build_with_servers(parse_yaml):
     """Test building OpenAPI with servers field."""
     yaml_content = textwrap.dedent(
         """
@@ -63,8 +62,7 @@ def test_build_with_servers():
         paths: {}
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -75,7 +73,7 @@ def test_build_with_servers():
         assert isinstance(server, Server)
 
 
-def test_build_with_components():
+def test_build_with_components(parse_yaml):
     """Test building OpenAPI with components field."""
     yaml_content = textwrap.dedent(
         """
@@ -93,8 +91,7 @@ def test_build_with_components():
                   type: integer
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -103,7 +100,7 @@ def test_build_with_components():
     assert isinstance(result.components.value, Components)
 
 
-def test_build_with_security():
+def test_build_with_security(parse_yaml):
     """Test building OpenAPI with security field."""
     yaml_content = textwrap.dedent(
         """
@@ -119,8 +116,7 @@ def test_build_with_security():
               - write
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -131,7 +127,7 @@ def test_build_with_security():
         assert isinstance(security_req, SecurityRequirement)
 
 
-def test_build_with_tags():
+def test_build_with_tags(parse_yaml):
     """Test building OpenAPI with tags field."""
     yaml_content = textwrap.dedent(
         """
@@ -147,8 +143,7 @@ def test_build_with_tags():
             description: Pet operations
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -159,7 +154,7 @@ def test_build_with_tags():
         assert isinstance(tag, Tag)
 
 
-def test_build_with_external_docs():
+def test_build_with_external_docs(parse_yaml):
     """Test building OpenAPI with externalDocs field."""
     yaml_content = textwrap.dedent(
         """
@@ -173,8 +168,7 @@ def test_build_with_external_docs():
           url: https://example.com/docs
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -183,7 +177,7 @@ def test_build_with_external_docs():
     assert isinstance(result.external_docs.value, ExternalDocumentation)
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building OpenAPI with all fields."""
     yaml_content = textwrap.dedent(
         """
@@ -212,8 +206,7 @@ def test_build_with_all_fields():
           url: https://example.com/docs
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -229,7 +222,7 @@ def test_build_with_all_fields():
     assert result.external_docs is not None
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building OpenAPI with specification extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -242,8 +235,7 @@ def test_build_with_extensions():
         x-rate-limit: 1000
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -265,7 +257,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value == "invalid scalar value"
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building OpenAPI with custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -276,15 +268,14 @@ def test_build_with_custom_context():
         paths: {}
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = openapi.build(root, context=custom_context)
     assert isinstance(result, OpenAPI30)
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source nodes are properly tracked."""
     yaml_content = textwrap.dedent(
         """
@@ -295,8 +286,7 @@ def test_source_tracking():
         paths: {}
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -318,7 +308,7 @@ def test_source_tracking():
     assert result.paths.value_node is not None
 
 
-def test_build_with_invalid_field_types():
+def test_build_with_invalid_field_types(parse_yaml):
     """Test building OpenAPI with invalid field types."""
     yaml_content = textwrap.dedent(
         """
@@ -332,8 +322,7 @@ def test_build_with_invalid_field_types():
         tags: invalid_scalar
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -349,7 +338,7 @@ def test_build_with_invalid_field_types():
     assert result.tags.value == "invalid_scalar"
 
 
-def test_build_real_world_openapi():
+def test_build_real_world_openapi(parse_yaml):
     """Test building OpenAPI with realistic document structure."""
     yaml_content = textwrap.dedent(
         """
@@ -418,8 +407,7 @@ def test_build_real_world_openapi():
           url: http://petstore.example.com
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -457,7 +445,7 @@ def test_build_real_world_openapi():
     assert isinstance(result.external_docs.value, ExternalDocumentation)
 
 
-def test_build_different_openapi_versions():
+def test_build_different_openapi_versions(parse_yaml):
     """Test building OpenAPI with different version strings."""
     for version in ["3.0.0", "3.0.1", "3.0.2", "3.0.3", "3.0.4"]:
         yaml_content = textwrap.dedent(
@@ -478,7 +466,7 @@ def test_build_different_openapi_versions():
         assert result.openapi.value == version
 
 
-def test_build_preserves_field_order():
+def test_build_preserves_field_order(parse_yaml):
     """Test that field order is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -495,8 +483,7 @@ def test_build_preserves_field_order():
               type: object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)
@@ -509,7 +496,7 @@ def test_build_preserves_field_order():
     assert result.components is not None
 
 
-def test_build_with_empty_paths():
+def test_build_with_empty_paths(parse_yaml):
     """Test building OpenAPI with empty paths object."""
     yaml_content = textwrap.dedent(
         """
@@ -520,8 +507,7 @@ def test_build_with_empty_paths():
         paths: {}
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = openapi.build(root)
     assert isinstance(result, OpenAPI30)

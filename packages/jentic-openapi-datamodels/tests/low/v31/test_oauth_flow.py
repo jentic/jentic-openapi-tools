@@ -9,7 +9,7 @@ from jentic.apitools.openapi.datamodels.low.sources import FieldSource, ValueSou
 from jentic.apitools.openapi.datamodels.low.v31 import oauth_flow
 
 
-def test_build_with_authorization_code_flow():
+def test_build_with_authorization_code_flow(parse_yaml):
     """Test building OAuthFlow with authorizationCode flow fields."""
     yaml_content = textwrap.dedent(
         """
@@ -20,8 +20,7 @@ def test_build_with_authorization_code_flow():
           write:pets: Modify pets in your account
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = oauth_flow.build(root)
     assert isinstance(result, oauth_flow.OAuthFlow)
@@ -48,7 +47,7 @@ def test_build_with_authorization_code_flow():
     assert scopes_dict["write:pets"] == "Modify pets in your account"
 
 
-def test_build_with_implicit_flow():
+def test_build_with_implicit_flow(parse_yaml):
     """Test building OAuthFlow with implicit flow fields."""
     yaml_content = textwrap.dedent(
         """
@@ -58,8 +57,7 @@ def test_build_with_implicit_flow():
           profile: Access profile information
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = oauth_flow.build(root)
     assert isinstance(result, oauth_flow.OAuthFlow)
@@ -70,7 +68,7 @@ def test_build_with_implicit_flow():
     assert result.scopes is not None
 
 
-def test_build_with_password_flow():
+def test_build_with_password_flow(parse_yaml):
     """Test building OAuthFlow with password flow fields."""
     yaml_content = textwrap.dedent(
         """
@@ -80,8 +78,7 @@ def test_build_with_password_flow():
           write: Write access
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = oauth_flow.build(root)
     assert isinstance(result, oauth_flow.OAuthFlow)
@@ -92,7 +89,7 @@ def test_build_with_password_flow():
     assert result.scopes is not None
 
 
-def test_build_with_client_credentials_flow():
+def test_build_with_client_credentials_flow(parse_yaml):
     """Test building OAuthFlow with clientCredentials flow fields."""
     yaml_content = textwrap.dedent(
         """
@@ -101,8 +98,7 @@ def test_build_with_client_credentials_flow():
           admin: Admin access
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = oauth_flow.build(root)
     assert isinstance(result, oauth_flow.OAuthFlow)
@@ -112,7 +108,7 @@ def test_build_with_client_credentials_flow():
     assert result.scopes is not None
 
 
-def test_build_with_refresh_url():
+def test_build_with_refresh_url(parse_yaml):
     """Test building OAuthFlow with refreshUrl field."""
     yaml_content = textwrap.dedent(
         """
@@ -122,8 +118,7 @@ def test_build_with_refresh_url():
           read: Read access
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = oauth_flow.build(root)
     assert isinstance(result, oauth_flow.OAuthFlow)
@@ -134,7 +129,7 @@ def test_build_with_refresh_url():
     assert result.refresh_url.value == "https://example.com/oauth/refresh"
 
 
-def test_build_with_empty_scopes():
+def test_build_with_empty_scopes(parse_yaml):
     """Test building OAuthFlow with empty scopes."""
     yaml_content = textwrap.dedent(
         """
@@ -142,8 +137,7 @@ def test_build_with_empty_scopes():
         scopes: {}
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = oauth_flow.build(root)
     assert isinstance(result, oauth_flow.OAuthFlow)
@@ -153,7 +147,7 @@ def test_build_with_empty_scopes():
     assert result.scopes.value == {}
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building OAuthFlow with specification extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -164,8 +158,7 @@ def test_build_with_extensions():
         x-token-expiry: 3600
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = oauth_flow.build(root)
     assert isinstance(result, oauth_flow.OAuthFlow)
@@ -179,7 +172,7 @@ def test_build_with_extensions():
     assert extensions["x-token-expiry"] == 3600
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -189,8 +182,7 @@ def test_build_preserves_invalid_types():
         scopes: not-a-mapping
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = oauth_flow.build(root)
     assert isinstance(result, oauth_flow.OAuthFlow)
@@ -226,7 +218,7 @@ def test_build_with_invalid_node_returns_none():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building OAuthFlow with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -235,8 +227,7 @@ def test_build_with_custom_context():
           custom: Custom scope
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = oauth_flow.build(root, context=custom_context)
@@ -246,7 +237,7 @@ def test_build_with_custom_context():
     assert result.token_url.value == "https://custom.example.com/token"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -257,8 +248,7 @@ def test_source_tracking():
           write: Write access
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = oauth_flow.build(root)
     assert isinstance(result, oauth_flow.OAuthFlow)
@@ -283,7 +273,7 @@ def test_source_tracking():
         assert value.value_node is not None
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building OAuthFlow with all possible fields."""
     yaml_content = textwrap.dedent(
         """
@@ -297,8 +287,7 @@ def test_build_with_all_fields():
         x-internal-id: flow-123
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = oauth_flow.build(root)
     assert isinstance(result, oauth_flow.OAuthFlow)
@@ -321,7 +310,7 @@ def test_build_with_all_fields():
     assert extensions["x-internal-id"] == "flow-123"
 
 
-def test_complex_scope_descriptions():
+def test_complex_scope_descriptions(parse_yaml):
     """Test OAuthFlow with complex multi-line scope descriptions."""
     yaml_content = textwrap.dedent(
         """
@@ -332,8 +321,7 @@ def test_complex_scope_descriptions():
           custom:scope:pattern: Custom scope with colons
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = oauth_flow.build(root)
     assert isinstance(result, oauth_flow.OAuthFlow)

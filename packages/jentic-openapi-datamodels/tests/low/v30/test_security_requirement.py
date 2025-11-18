@@ -9,15 +9,14 @@ from jentic.apitools.openapi.datamodels.low.sources import ValueSource
 from jentic.apitools.openapi.datamodels.low.v30 import security_requirement
 
 
-def test_build_with_single_scheme_empty_scopes():
+def test_build_with_single_scheme_empty_scopes(parse_yaml):
     """Test building SecurityRequirement with a single scheme and empty scopes."""
     yaml_content = textwrap.dedent(
         """
         api_key: []
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
@@ -36,7 +35,7 @@ def test_build_with_single_scheme_empty_scopes():
     assert len(scopes) == 0
 
 
-def test_build_with_oauth2_scopes():
+def test_build_with_oauth2_scopes(parse_yaml):
     """Test building SecurityRequirement with OAuth2 scopes."""
     yaml_content = textwrap.dedent(
         """
@@ -45,8 +44,7 @@ def test_build_with_oauth2_scopes():
           - read:pets
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
@@ -70,7 +68,7 @@ def test_build_with_oauth2_scopes():
     assert scopes == ["write:pets", "read:pets"]
 
 
-def test_build_with_multiple_schemes():
+def test_build_with_multiple_schemes(parse_yaml):
     """Test building SecurityRequirement with multiple security schemes."""
     yaml_content = textwrap.dedent(
         """
@@ -80,8 +78,7 @@ def test_build_with_multiple_schemes():
         api_key: []
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
@@ -100,15 +97,14 @@ def test_build_with_multiple_schemes():
     assert requirements["api_key"] == []
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building SecurityRequirement with empty object (optional security)."""
     yaml_content = textwrap.dedent(
         """
         {}
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
@@ -116,7 +112,7 @@ def test_build_with_empty_object():
     assert result.requirements is None
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -124,8 +120,7 @@ def test_build_preserves_invalid_types():
         oauth2: 123
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
@@ -161,7 +156,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building SecurityRequirement with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -170,8 +165,7 @@ def test_build_with_custom_context():
           - scope2
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = security_requirement.build(root, context=custom_context)
@@ -187,7 +181,7 @@ def test_build_with_custom_context():
     assert requirements["custom_auth"] == ["scope1", "scope2"]
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -196,8 +190,7 @@ def test_source_tracking():
           - read:pets
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
@@ -222,7 +215,7 @@ def test_source_tracking():
             assert scope.value_node is not None
 
 
-def test_complex_oauth_scopes():
+def test_complex_oauth_scopes(parse_yaml):
     """Test SecurityRequirement with complex OAuth scope patterns."""
     yaml_content = textwrap.dedent(
         """
@@ -232,8 +225,7 @@ def test_complex_oauth_scopes():
           - openid
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
@@ -250,7 +242,7 @@ def test_complex_oauth_scopes():
     assert "openid" in requirements["google_oauth"]
 
 
-def test_multiple_requirements_different_types():
+def test_multiple_requirements_different_types(parse_yaml):
     """Test SecurityRequirement with mixed auth types."""
     yaml_content = textwrap.dedent(
         """
@@ -262,8 +254,7 @@ def test_multiple_requirements_different_types():
         basic_auth: []
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)

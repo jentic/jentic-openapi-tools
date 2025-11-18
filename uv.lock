@@ -283,8 +283,16 @@ dependencies = [
     { name = "ruamel-yaml" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "jentic-openapi-parser" },
+]
+
 [package.metadata]
 requires-dist = [{ name = "ruamel-yaml", specifier = "~=0.18.15" }]
+
+[package.metadata.requires-dev]
+dev = [{ name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" }]
 
 [[package]]
 name = "jentic-openapi-parser"

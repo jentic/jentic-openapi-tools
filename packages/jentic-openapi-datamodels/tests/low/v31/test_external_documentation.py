@@ -9,7 +9,7 @@ from jentic.apitools.openapi.datamodels.low.sources import FieldSource, KeySourc
 from jentic.apitools.openapi.datamodels.low.v31 import external_documentation
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building ExternalDocumentation with all specification fields."""
     yaml_content = textwrap.dedent(
         """
@@ -17,8 +17,7 @@ def test_build_with_all_fields():
         url: https://example.com/docs
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = external_documentation.build(root)
     assert isinstance(result, external_documentation.ExternalDocumentation)
@@ -37,15 +36,14 @@ def test_build_with_all_fields():
     assert result.url.value_node is not None
 
 
-def test_build_with_minimal_fields():
+def test_build_with_minimal_fields(parse_yaml):
     """Test building ExternalDocumentation with only required field (url)."""
     yaml_content = textwrap.dedent(
         """
         url: https://example.com/docs
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = external_documentation.build(root)
     assert isinstance(result, external_documentation.ExternalDocumentation)
@@ -60,7 +58,7 @@ def test_build_with_minimal_fields():
     assert result.extensions == {}
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building ExternalDocumentation with specification extensions (x-* fields)."""
     yaml_content = textwrap.dedent(
         """
@@ -71,8 +69,7 @@ def test_build_with_extensions():
         x-priority: 10
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = external_documentation.build(root)
     assert isinstance(result, external_documentation.ExternalDocumentation)
@@ -92,7 +89,7 @@ def test_build_with_extensions():
     assert ext_dict["x-priority"] == 10
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -100,8 +97,7 @@ def test_build_preserves_invalid_types():
         description: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = external_documentation.build(root)
     assert isinstance(result, external_documentation.ExternalDocumentation)
@@ -114,11 +110,10 @@ def test_build_preserves_invalid_types():
     assert result.description.value is True
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building ExternalDocumentation from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = external_documentation.build(root)
     assert isinstance(result, external_documentation.ExternalDocumentation)
@@ -149,7 +144,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building ExternalDocumentation with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -157,8 +152,7 @@ def test_build_with_custom_context():
         description: Documentation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = external_documentation.build(root, context=custom_context)
@@ -170,7 +164,7 @@ def test_build_with_custom_context():
     assert result.description.value == "Documentation"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -178,8 +172,7 @@ def test_source_tracking():
         description: More information
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = external_documentation.build(root)
     assert isinstance(result, external_documentation.ExternalDocumentation)
@@ -201,7 +194,7 @@ def test_source_tracking():
     assert hasattr(result.url.value_node.start_mark, "line")
 
 
-def test_mixed_extensions_and_fixed_fields():
+def test_mixed_extensions_and_fixed_fields(parse_yaml):
     """Test that extensions and fixed fields are properly separated."""
     yaml_content = textwrap.dedent(
         """
@@ -211,8 +204,7 @@ def test_mixed_extensions_and_fixed_fields():
         x-another: 123
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = external_documentation.build(root)
     assert isinstance(result, external_documentation.ExternalDocumentation)
@@ -233,7 +225,7 @@ def test_mixed_extensions_and_fixed_fields():
     assert ext_dict["x-another"] == 123
 
 
-def test_commonmark_description():
+def test_commonmark_description(parse_yaml):
     """Test that description field can contain CommonMark formatted text."""
     yaml_content = textwrap.dedent(
         """
@@ -247,8 +239,7 @@ def test_commonmark_description():
           - Item 2
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = external_documentation.build(root)
     assert isinstance(result, external_documentation.ExternalDocumentation)

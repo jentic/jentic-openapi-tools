@@ -20,7 +20,7 @@ from jentic.apitools.openapi.datamodels.low.v31.schema import Schema
 from jentic.apitools.openapi.datamodels.low.v31.security_scheme import SecurityScheme
 
 
-def test_build_with_schemas():
+def test_build_with_schemas(parse_yaml):
     """Test building Components with schemas field."""
     yaml_content = textwrap.dedent(
         """
@@ -39,8 +39,7 @@ def test_build_with_schemas():
                 type: integer
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -55,7 +54,7 @@ def test_build_with_schemas():
         assert isinstance(schema_obj, Schema)
 
 
-def test_build_with_responses():
+def test_build_with_responses(parse_yaml):
     """Test building Components with responses field."""
     yaml_content = textwrap.dedent(
         """
@@ -66,8 +65,7 @@ def test_build_with_responses():
             description: Unauthorized access
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -81,7 +79,7 @@ def test_build_with_responses():
         assert isinstance(response_obj, Response)
 
 
-def test_build_with_parameters():
+def test_build_with_parameters(parse_yaml):
     """Test building Components with parameters field."""
     yaml_content = textwrap.dedent(
         """
@@ -100,8 +98,7 @@ def test_build_with_parameters():
               type: integer
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -115,7 +112,7 @@ def test_build_with_parameters():
         assert isinstance(param_obj, Parameter)
 
 
-def test_build_with_examples():
+def test_build_with_examples(parse_yaml):
     """Test building Components with examples field."""
     yaml_content = textwrap.dedent(
         """
@@ -132,8 +129,7 @@ def test_build_with_examples():
               name: Widget
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -147,7 +143,7 @@ def test_build_with_examples():
         assert isinstance(example_obj, Example)
 
 
-def test_build_with_request_bodies():
+def test_build_with_request_bodies(parse_yaml):
     """Test building Components with requestBodies field."""
     yaml_content = textwrap.dedent(
         """
@@ -167,8 +163,7 @@ def test_build_with_request_bodies():
                   type: object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -182,7 +177,7 @@ def test_build_with_request_bodies():
         assert isinstance(rb_obj, RequestBody)
 
 
-def test_build_with_headers():
+def test_build_with_headers(parse_yaml):
     """Test building Components with headers field."""
     yaml_content = textwrap.dedent(
         """
@@ -197,8 +192,7 @@ def test_build_with_headers():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -212,7 +206,7 @@ def test_build_with_headers():
         assert isinstance(header_obj, Header)
 
 
-def test_build_with_security_schemes():
+def test_build_with_security_schemes(parse_yaml):
     """Test building Components with securitySchemes field."""
     yaml_content = textwrap.dedent(
         """
@@ -231,8 +225,7 @@ def test_build_with_security_schemes():
                   write: Write access
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -246,7 +239,7 @@ def test_build_with_security_schemes():
         assert isinstance(ss_obj, SecurityScheme)
 
 
-def test_build_with_links():
+def test_build_with_links(parse_yaml):
     """Test building Components with links field."""
     yaml_content = textwrap.dedent(
         """
@@ -259,8 +252,7 @@ def test_build_with_links():
             operationRef: '#/paths/~1users~1{id}~1orders/get'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -274,7 +266,7 @@ def test_build_with_links():
         assert isinstance(link_obj, Link)
 
 
-def test_build_with_callbacks():
+def test_build_with_callbacks(parse_yaml):
     """Test building Components with callbacks field."""
     yaml_content = textwrap.dedent(
         """
@@ -292,8 +284,7 @@ def test_build_with_callbacks():
                     description: Success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -307,7 +298,7 @@ def test_build_with_callbacks():
         assert isinstance(callback_obj, Callback)
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Components with all component types."""
     yaml_content = textwrap.dedent(
         """
@@ -354,8 +345,7 @@ def test_build_with_all_fields():
                     description: Success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -372,7 +362,7 @@ def test_build_with_all_fields():
     assert result.callbacks is not None
 
 
-def test_build_with_references():
+def test_build_with_references(parse_yaml):
     """Test building Components with references."""
     yaml_content = textwrap.dedent(
         """
@@ -386,8 +376,7 @@ def test_build_with_references():
             $ref: '#/components/responses/NotFound'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -413,7 +402,7 @@ def test_build_with_references():
     assert isinstance(response_obj, Reference)
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building Components with specification extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -424,8 +413,7 @@ def test_build_with_extensions():
         x-version: 1.0
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -436,11 +424,10 @@ def test_build_with_extensions():
     assert ext_dict["x-version"] == 1.0
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Components from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -469,7 +456,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value == "invalid scalar value"
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Components with custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -478,8 +465,7 @@ def test_build_with_custom_context():
             type: object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = components.build(root, context=custom_context)
@@ -487,7 +473,7 @@ def test_build_with_custom_context():
     assert result.schemas is not None
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source nodes are properly tracked."""
     yaml_content = textwrap.dedent(
         """
@@ -496,8 +482,7 @@ def test_source_tracking():
             type: object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -515,7 +500,7 @@ def test_source_tracking():
         assert key_source.key_node is not None
 
 
-def test_build_with_invalid_field_types():
+def test_build_with_invalid_field_types(parse_yaml):
     """Test building Components with invalid field types (non-mappings)."""
     yaml_content = textwrap.dedent(
         """
@@ -524,8 +509,7 @@ def test_build_with_invalid_field_types():
           - array_instead_of_map
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -538,7 +522,7 @@ def test_build_with_invalid_field_types():
     assert isinstance(result.responses.value, list)
 
 
-def test_build_real_world_components():
+def test_build_real_world_components(parse_yaml):
     """Test building Components with realistic OpenAPI structure."""
     yaml_content = textwrap.dedent(
         """
@@ -592,8 +576,7 @@ def test_build_real_world_components():
             bearerFormat: JWT
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -619,7 +602,7 @@ def test_build_real_world_components():
     assert ss_keys == {"bearerAuth"}
 
 
-def test_build_preserves_order():
+def test_build_preserves_order(parse_yaml):
     """Test that component order is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -632,8 +615,7 @@ def test_build_preserves_order():
             type: object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -643,7 +625,7 @@ def test_build_preserves_order():
     assert schema_keys == ["Alpha", "Beta", "Gamma"]
 
 
-def test_build_with_path_items():
+def test_build_with_path_items(parse_yaml):
     """Test building Components with pathItems field (new in OpenAPI 3.1)."""
     yaml_content = textwrap.dedent(
         """
@@ -662,8 +644,7 @@ def test_build_with_path_items():
                   description: Created
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -677,7 +658,7 @@ def test_build_with_path_items():
         assert isinstance(path_item_obj, PathItem)
 
 
-def test_build_with_mixed_components_including_path_items():
+def test_build_with_mixed_components_including_path_items(parse_yaml):
     """Test building Components with multiple fields including pathItems."""
     yaml_content = textwrap.dedent(
         """
@@ -696,8 +677,7 @@ def test_build_with_mixed_components_including_path_items():
             description: Not found
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -716,15 +696,14 @@ def test_build_with_mixed_components_including_path_items():
     assert response_keys == {"NotFound"}
 
 
-def test_build_with_path_items_empty_object():
+def test_build_with_path_items_empty_object(parse_yaml):
     """Test building Components with empty pathItems object."""
     yaml_content = textwrap.dedent(
         """
         pathItems: {}
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -733,7 +712,7 @@ def test_build_with_path_items_empty_object():
     assert len(result.path_items.value) == 0
 
 
-def test_build_with_path_items_preserves_order():
+def test_build_with_path_items_preserves_order(parse_yaml):
     """Test that pathItems preserve order."""
     yaml_content = textwrap.dedent(
         """
@@ -755,8 +734,7 @@ def test_build_with_path_items_preserves_order():
                   description: OK
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)
@@ -766,15 +744,14 @@ def test_build_with_path_items_preserves_order():
     assert path_item_keys == ["/alpha", "/beta", "/gamma"]
 
 
-def test_build_with_path_items_invalid_type():
+def test_build_with_path_items_invalid_type(parse_yaml):
     """Test building Components with pathItems as invalid type (preserves data)."""
     yaml_content = textwrap.dedent(
         """
         pathItems: "not a mapping"
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = components.build(root)
     assert isinstance(result, components.Components)

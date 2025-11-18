@@ -10,7 +10,7 @@ from jentic.apitools.openapi.datamodels.low.v31 import paths
 from jentic.apitools.openapi.datamodels.low.v31.path_item import PathItem
 
 
-def test_build_with_single_path():
+def test_build_with_single_path(parse_yaml):
     """Test building Paths with single path."""
     yaml_content = textwrap.dedent(
         """
@@ -22,8 +22,7 @@ def test_build_with_single_path():
                 description: Success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -37,7 +36,7 @@ def test_build_with_single_path():
     assert "/users" in path_keys
 
 
-def test_build_with_multiple_paths():
+def test_build_with_multiple_paths(parse_yaml):
     """Test building Paths with multiple path entries."""
     yaml_content = textwrap.dedent(
         """
@@ -61,8 +60,7 @@ def test_build_with_multiple_paths():
                 description: Success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -72,7 +70,7 @@ def test_build_with_multiple_paths():
     assert path_keys == {"/users", "/users/{id}", "/products"}
 
 
-def test_build_with_path_parameters():
+def test_build_with_path_parameters(parse_yaml):
     """Test building Paths with path parameters (templating)."""
     yaml_content = textwrap.dedent(
         """
@@ -95,8 +93,7 @@ def test_build_with_path_parameters():
                 description: Success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -106,7 +103,7 @@ def test_build_with_path_parameters():
     assert "/users/{userId}/posts/{postId}" in path_keys
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building Paths with specification extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -120,8 +117,7 @@ def test_build_with_extensions():
         x-rate-limit: 1000
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -133,7 +129,7 @@ def test_build_with_extensions():
     assert ext_dict["x-rate-limit"] == 1000
 
 
-def test_build_with_all_http_methods():
+def test_build_with_all_http_methods(parse_yaml):
     """Test building Paths with multiple HTTP methods on same path."""
     yaml_content = textwrap.dedent(
         """
@@ -160,8 +156,7 @@ def test_build_with_all_http_methods():
                 description: No content
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -171,11 +166,10 @@ def test_build_with_all_http_methods():
     assert isinstance(path_item, PathItem)
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Paths from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -195,7 +189,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value == "invalid scalar value"
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Paths with custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -206,8 +200,7 @@ def test_build_with_custom_context():
                 description: Success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = paths.build(root, context=custom_context)
@@ -215,7 +208,7 @@ def test_build_with_custom_context():
     assert len(result.paths) == 1
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source nodes are properly tracked."""
     yaml_content = textwrap.dedent(
         """
@@ -226,8 +219,7 @@ def test_source_tracking():
                 description: Success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -241,7 +233,7 @@ def test_source_tracking():
         assert key_source.key_node is not None
 
 
-def test_build_with_nested_paths():
+def test_build_with_nested_paths(parse_yaml):
     """Test building Paths with nested path hierarchy."""
     yaml_content = textwrap.dedent(
         """
@@ -265,8 +257,7 @@ def test_build_with_nested_paths():
                 description: Success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -276,7 +267,7 @@ def test_build_with_nested_paths():
     assert path_keys == {"/api", "/api/v1", "/api/v1/users"}
 
 
-def test_build_with_path_having_parameters_object():
+def test_build_with_path_having_parameters_object(parse_yaml):
     """Test building Paths with path having common parameters."""
     yaml_content = textwrap.dedent(
         """
@@ -299,8 +290,7 @@ def test_build_with_path_having_parameters_object():
                 description: Success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -310,7 +300,7 @@ def test_build_with_path_having_parameters_object():
     assert isinstance(path_item, PathItem)
 
 
-def test_build_real_world_rest_api():
+def test_build_real_world_rest_api(parse_yaml):
     """Test building Paths with realistic REST API structure."""
     yaml_content = textwrap.dedent(
         """
@@ -346,8 +336,7 @@ def test_build_real_world_rest_api():
         x-api-id: pet-store-api
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -360,7 +349,7 @@ def test_build_real_world_rest_api():
     assert ext_dict["x-api-id"] == "pet-store-api"
 
 
-def test_build_preserves_order():
+def test_build_preserves_order(parse_yaml):
     """Test that path order is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -381,8 +370,7 @@ def test_build_preserves_order():
                 description: Success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -391,7 +379,7 @@ def test_build_preserves_order():
     assert path_keys == ["/alpha", "/beta", "/gamma"]
 
 
-def test_build_requires_forward_slash_prefix():
+def test_build_requires_forward_slash_prefix(parse_yaml):
     """Test that path keys must begin with forward slash (/)."""
     yaml_content = textwrap.dedent(
         """
@@ -413,8 +401,7 @@ def test_build_requires_forward_slash_prefix():
         x-custom-extension: value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -433,7 +420,7 @@ def test_build_requires_forward_slash_prefix():
     assert ext_dict["x-custom-extension"] == "value"
 
 
-def test_build_with_only_invalid_paths():
+def test_build_with_only_invalid_paths(parse_yaml):
     """Test that Paths with only invalid path keys (no /) results in empty paths."""
     yaml_content = textwrap.dedent(
         """
@@ -449,8 +436,7 @@ def test_build_with_only_invalid_paths():
                 description: Created
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)
@@ -460,7 +446,7 @@ def test_build_with_only_invalid_paths():
     assert result.extensions == {}
 
 
-def test_build_with_numeric_keys():
+def test_build_with_numeric_keys(parse_yaml):
     """Test that numeric keys are ignored (don't cause errors)."""
     yaml_content = textwrap.dedent(
         """
@@ -481,8 +467,7 @@ def test_build_with_numeric_keys():
                 description: Success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = paths.build(root)
     assert isinstance(result, paths.Paths)

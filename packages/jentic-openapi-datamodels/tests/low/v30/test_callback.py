@@ -10,7 +10,7 @@ from jentic.apitools.openapi.datamodels.low.v30 import callback
 from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 
 
-def test_build_with_single_expression():
+def test_build_with_single_expression(parse_yaml):
     """Test building Callback with single expression."""
     yaml_content = textwrap.dedent(
         """
@@ -23,8 +23,7 @@ def test_build_with_single_expression():
                 description: callback processed
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -38,7 +37,7 @@ def test_build_with_single_expression():
     assert "{$request.body#/callbackUrl}" in expression_keys
 
 
-def test_build_with_multiple_expressions():
+def test_build_with_multiple_expressions(parse_yaml):
     """Test building Callback with multiple expressions."""
     yaml_content = textwrap.dedent(
         """
@@ -54,8 +53,7 @@ def test_build_with_multiple_expressions():
                 description: webhook processed
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -65,7 +63,7 @@ def test_build_with_multiple_expressions():
     assert expression_keys == {"{$request.body#/callbackUrl}", "{$request.body#/webhookUrl}"}
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building Callback with specification extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -78,8 +76,7 @@ def test_build_with_extensions():
         x-callback-retries: 3
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -91,7 +88,7 @@ def test_build_with_extensions():
     assert ext_dict["x-callback-retries"] == 3
 
 
-def test_build_with_url_expression():
+def test_build_with_url_expression(parse_yaml):
     """Test building Callback with URL expression."""
     yaml_content = textwrap.dedent(
         """
@@ -107,8 +104,7 @@ def test_build_with_url_expression():
                 description: success
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -118,7 +114,7 @@ def test_build_with_url_expression():
     assert "https://example.com/callback" in expression_keys
 
 
-def test_build_with_complex_expression():
+def test_build_with_complex_expression(parse_yaml):
     """Test building Callback with complex runtime expression."""
     yaml_content = textwrap.dedent(
         """
@@ -134,8 +130,7 @@ def test_build_with_complex_expression():
                 description: callback received
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -146,11 +141,10 @@ def test_build_with_complex_expression():
     assert "{$request.query.callback}" in expression_keys
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Callback from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -162,6 +156,7 @@ def test_build_with_empty_object():
 
 def test_build_with_invalid_node_returns_value_source():
     """Test that build returns ValueSource for non-mapping nodes."""
+    # Use raw YAML() for testing invalid node types (non-mappings)
     yaml_parser = YAML()
 
     # Scalar node
@@ -179,7 +174,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Callback with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -190,8 +185,7 @@ def test_build_with_custom_context():
                 description: callback processed
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = callback.build(root, context=custom_context)
@@ -200,7 +194,7 @@ def test_build_with_custom_context():
     assert len(result.path_items) == 1
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -212,8 +206,7 @@ def test_source_tracking():
         x-custom: value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -242,7 +235,7 @@ def test_source_tracking():
     assert hasattr(first_key.key_node.start_mark, "line")
 
 
-def test_build_preserves_path_item_structure():
+def test_build_preserves_path_item_structure(parse_yaml):
     """Test that path item structure is properly built as PathItem object."""
     yaml_content = textwrap.dedent(
         """
@@ -265,8 +258,7 @@ def test_build_preserves_path_item_structure():
                 description: invalid callback data
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -287,7 +279,7 @@ def test_build_preserves_path_item_structure():
     assert path_item.post.value.responses is not None
 
 
-def test_build_real_world_webhook_callback():
+def test_build_real_world_webhook_callback(parse_yaml):
     """Test a complete real-world webhook callback."""
     yaml_content = textwrap.dedent(
         """
@@ -315,8 +307,7 @@ def test_build_real_world_webhook_callback():
         x-webhook-secret-header: X-Webhook-Signature
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -329,7 +320,7 @@ def test_build_real_world_webhook_callback():
     assert ext_dict["x-webhook-secret-header"] == "X-Webhook-Signature"
 
 
-def test_build_with_multiple_http_methods():
+def test_build_with_multiple_http_methods(parse_yaml):
     """Test callback with multiple HTTP methods in path item."""
     yaml_content = textwrap.dedent(
         """
@@ -344,8 +335,7 @@ def test_build_with_multiple_http_methods():
                 description: PUT callback processed
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -362,7 +352,7 @@ def test_build_with_multiple_http_methods():
     assert path_item.put is not None
 
 
-def test_build_with_expression_using_response():
+def test_build_with_expression_using_response(parse_yaml):
     """Test callback expression referencing response data."""
     yaml_content = textwrap.dedent(
         """
@@ -373,8 +363,7 @@ def test_build_with_expression_using_response():
                 description: callback received
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -383,7 +372,7 @@ def test_build_with_expression_using_response():
     assert "{$response.body#/callbackUrl}" in expression_keys
 
 
-def test_build_preserves_order():
+def test_build_preserves_order(parse_yaml):
     """Test that expression order is preserved during parsing."""
     yaml_content = textwrap.dedent(
         """
@@ -404,8 +393,7 @@ def test_build_preserves_order():
                 description: callback 3
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -419,7 +407,7 @@ def test_build_preserves_order():
     ]
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Callback with expressions and extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -438,8 +426,7 @@ def test_build_with_all_fields():
         x-async: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build(root)
     assert isinstance(result, callback.Callback)
@@ -456,7 +443,7 @@ def test_build_with_all_fields():
     assert ext_dict["x-async"] is True
 
 
-def test_build_callback_or_reference_with_callback():
+def test_build_callback_or_reference_with_callback(parse_yaml):
     """Test build_callback_or_reference with a Callback object."""
     yaml_content = textwrap.dedent(
         """
@@ -467,23 +454,21 @@ def test_build_callback_or_reference_with_callback():
                 description: callback processed
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build_callback_or_reference(root, Context())
     assert isinstance(result, callback.Callback)
     assert len(result.path_items) == 1
 
 
-def test_build_callback_or_reference_with_reference():
+def test_build_callback_or_reference_with_reference(parse_yaml):
     """Test build_callback_or_reference with a Reference object."""
     yaml_content = textwrap.dedent(
         """
         $ref: '#/components/callbacks/WebhookCallback'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = callback.build_callback_or_reference(root, Context())
     assert isinstance(result, Reference)
@@ -493,6 +478,7 @@ def test_build_callback_or_reference_with_reference():
 
 def test_build_callback_or_reference_with_invalid_data():
     """Test build_callback_or_reference with invalid data."""
+    # Use raw YAML() for testing invalid node types (non-mappings)
     yaml_parser = YAML()
 
     # Scalar node

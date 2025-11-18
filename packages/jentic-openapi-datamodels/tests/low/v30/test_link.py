@@ -10,15 +10,14 @@ from jentic.apitools.openapi.datamodels.low.v30 import link
 from jentic.apitools.openapi.datamodels.low.v30.server import Server
 
 
-def test_build_with_operation_ref_only():
+def test_build_with_operation_ref_only(parse_yaml):
     """Test building Link with only operationRef field."""
     yaml_content = textwrap.dedent(
         """
         operationRef: '#/paths/~12.0~1repositories~1{username}/get'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -36,15 +35,14 @@ def test_build_with_operation_ref_only():
     assert result.extensions == {}
 
 
-def test_build_with_operation_id_only():
+def test_build_with_operation_id_only(parse_yaml):
     """Test building Link with only operationId field."""
     yaml_content = textwrap.dedent(
         """
         operationId: getUserById
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -56,7 +54,7 @@ def test_build_with_operation_id_only():
     assert result.parameters is None
 
 
-def test_build_with_parameters():
+def test_build_with_parameters(parse_yaml):
     """Test building Link with parameters map."""
     yaml_content = textwrap.dedent(
         """
@@ -66,8 +64,7 @@ def test_build_with_parameters():
           format: json
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -85,7 +82,7 @@ def test_build_with_parameters():
     assert params["format"] == "json"
 
 
-def test_build_with_request_body():
+def test_build_with_request_body(parse_yaml):
     """Test building Link with requestBody field."""
     yaml_content = textwrap.dedent(
         """
@@ -95,8 +92,7 @@ def test_build_with_request_body():
           email: $response.body#/email
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -107,7 +103,7 @@ def test_build_with_request_body():
     assert result.request_body.value["email"] == "$response.body#/email"
 
 
-def test_build_with_description():
+def test_build_with_description(parse_yaml):
     """Test building Link with description field."""
     yaml_content = textwrap.dedent(
         """
@@ -115,8 +111,7 @@ def test_build_with_description():
         description: Get the user details by their ID
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -125,7 +120,7 @@ def test_build_with_description():
     assert result.description.value == "Get the user details by their ID"
 
 
-def test_build_with_server():
+def test_build_with_server(parse_yaml):
     """Test building Link with nested Server object."""
     yaml_content = textwrap.dedent(
         """
@@ -135,8 +130,7 @@ def test_build_with_server():
           description: Version 2 API server
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -149,7 +143,7 @@ def test_build_with_server():
     assert result.server.value.description.value == "Version 2 API server"
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Link with all fields including extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -163,8 +157,7 @@ def test_build_with_all_fields():
         x-internal-id: link-001
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -185,7 +178,7 @@ def test_build_with_all_fields():
     assert ext_dict["x-internal-id"] == "link-001"
 
 
-def test_build_with_commonmark_description():
+def test_build_with_commonmark_description(parse_yaml):
     """Test that Link description can contain CommonMark formatted text."""
     yaml_content = textwrap.dedent(
         """
@@ -199,8 +192,7 @@ def test_build_with_commonmark_description():
           - Preferences
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -211,11 +203,10 @@ def test_build_with_commonmark_description():
     assert "- Personal information" in result.description.value
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Link from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -249,7 +240,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types."""
     yaml_content = textwrap.dedent(
         """
@@ -259,8 +250,7 @@ def test_build_preserves_invalid_types():
         description: 999
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -279,7 +269,7 @@ def test_build_preserves_invalid_types():
     assert result.description.value == 999
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Link with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -287,8 +277,7 @@ def test_build_with_custom_context():
         description: Custom context link
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = link.build(root, context=custom_context)
@@ -300,7 +289,7 @@ def test_build_with_custom_context():
     assert result.description.value == "Custom context link"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -310,8 +299,7 @@ def test_source_tracking():
           userId: $response.body#/id
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -339,7 +327,7 @@ def test_source_tracking():
     assert hasattr(result.operation_id.value_node.start_mark, "line")
 
 
-def test_build_with_runtime_expressions():
+def test_build_with_runtime_expressions(parse_yaml):
     """Test building Link with runtime expressions in parameters."""
     yaml_content = textwrap.dedent(
         """
@@ -350,8 +338,7 @@ def test_build_with_runtime_expressions():
           token: $request.header.authorization
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -363,7 +350,7 @@ def test_build_with_runtime_expressions():
     assert params["token"] == "$request.header.authorization"
 
 
-def test_build_real_world_example():
+def test_build_real_world_example(parse_yaml):
     """Test a complete real-world Link object."""
     yaml_content = textwrap.dedent(
         """
@@ -373,8 +360,7 @@ def test_build_real_world_example():
           username: $response.body#/username
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -390,7 +376,7 @@ def test_build_real_world_example():
     assert params["username"] == "$response.body#/username"
 
 
-def test_build_with_invalid_server():
+def test_build_with_invalid_server(parse_yaml):
     """Test that invalid server data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -398,8 +384,7 @@ def test_build_with_invalid_server():
         server: invalid-string-not-object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)
@@ -409,7 +394,7 @@ def test_build_with_invalid_server():
     assert result.server.value == "invalid-string-not-object"
 
 
-def test_parameters_source_tracking():
+def test_parameters_source_tracking(parse_yaml):
     """Test that parameters maintain proper source tracking."""
     yaml_content = textwrap.dedent(
         """
@@ -419,8 +404,7 @@ def test_parameters_source_tracking():
           include: profile
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = link.build(root)
     assert isinstance(result, link.Link)

@@ -12,7 +12,7 @@ from jentic.apitools.openapi.datamodels.low.v30.external_documentation import (
 )
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Tag with all specification fields."""
     yaml_content = textwrap.dedent(
         """
@@ -23,8 +23,7 @@ def test_build_with_all_fields():
           description: Find more info here
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = tag.build(root)
     assert isinstance(result, tag.Tag)
@@ -50,15 +49,14 @@ def test_build_with_all_fields():
     assert result.external_docs.value.description.value == "Find more info here"
 
 
-def test_build_with_minimal_fields():
+def test_build_with_minimal_fields(parse_yaml):
     """Test building Tag with only required field (name)."""
     yaml_content = textwrap.dedent(
         """
         name: pet
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = tag.build(root)
     assert isinstance(result, tag.Tag)
@@ -74,7 +72,7 @@ def test_build_with_minimal_fields():
     assert result.extensions == {}
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building Tag with specification extensions (x-* fields)."""
     yaml_content = textwrap.dedent(
         """
@@ -85,8 +83,7 @@ def test_build_with_extensions():
         x-order: 1
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = tag.build(root)
     assert isinstance(result, tag.Tag)
@@ -106,7 +103,7 @@ def test_build_with_extensions():
     assert ext_dict["x-order"] == 1
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -115,8 +112,7 @@ def test_build_preserves_invalid_types():
         externalDocs: not-an-object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = tag.build(root)
     assert isinstance(result, tag.Tag)
@@ -134,11 +130,10 @@ def test_build_preserves_invalid_types():
     assert result.external_docs.value == "not-an-object"
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Tag from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = tag.build(root)
     assert isinstance(result, tag.Tag)
@@ -170,7 +165,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Tag with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -178,8 +173,7 @@ def test_build_with_custom_context():
         description: Pet operations
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = tag.build(root, context=custom_context)
@@ -191,7 +185,7 @@ def test_build_with_custom_context():
     assert result.description.value == "Pet operations"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -199,8 +193,7 @@ def test_source_tracking():
         description: Everything about your Pets
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = tag.build(root)
     assert isinstance(result, tag.Tag)
@@ -222,7 +215,7 @@ def test_source_tracking():
     assert hasattr(result.name.value_node.start_mark, "line")
 
 
-def test_mixed_extensions_and_fixed_fields():
+def test_mixed_extensions_and_fixed_fields(parse_yaml):
     """Test that extensions and fixed fields are properly separated."""
     yaml_content = textwrap.dedent(
         """
@@ -234,8 +227,7 @@ def test_mixed_extensions_and_fixed_fields():
           url: https://example.com
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = tag.build(root)
     assert isinstance(result, tag.Tag)
@@ -258,7 +250,7 @@ def test_mixed_extensions_and_fixed_fields():
     assert ext_dict["x-another"] == 123
 
 
-def test_commonmark_description():
+def test_commonmark_description(parse_yaml):
     """Test that description field can contain CommonMark formatted text."""
     yaml_content = textwrap.dedent(
         """
@@ -274,8 +266,7 @@ def test_commonmark_description():
           - Delete pet
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = tag.build(root)
     assert isinstance(result, tag.Tag)
@@ -287,7 +278,7 @@ def test_commonmark_description():
     assert "- Create pet" in result.description.value
 
 
-def test_external_docs_with_extensions():
+def test_external_docs_with_extensions(parse_yaml):
     """Test that externalDocs can have its own extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -299,8 +290,7 @@ def test_external_docs_with_extensions():
           x-version: "1.0"
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = tag.build(root)
     assert isinstance(result, tag.Tag)

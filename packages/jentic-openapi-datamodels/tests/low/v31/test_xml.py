@@ -9,7 +9,7 @@ from jentic.apitools.openapi.datamodels.low.sources import FieldSource, KeySourc
 from jentic.apitools.openapi.datamodels.low.v31 import xml
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building XML with all specification fields."""
     yaml_content = textwrap.dedent(
         """
@@ -20,8 +20,7 @@ def test_build_with_all_fields():
         wrapped: false
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -47,15 +46,14 @@ def test_build_with_all_fields():
     assert result.wrapped.value is False
 
 
-def test_build_with_minimal_fields():
+def test_build_with_minimal_fields(parse_yaml):
     """Test building XML with only required fields."""
     yaml_content = textwrap.dedent(
         """
         name: id
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -73,7 +71,7 @@ def test_build_with_minimal_fields():
     assert result.extensions == {}
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building XML with specification extensions (x-* fields)."""
     yaml_content = textwrap.dedent(
         """
@@ -85,8 +83,7 @@ def test_build_with_extensions():
           - item2
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -106,7 +103,7 @@ def test_build_with_extensions():
     assert ext_dict["x-array"] == ["item1", "item2"]
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -116,8 +113,7 @@ def test_build_preserves_invalid_types():
         wrapped: 42
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -134,11 +130,10 @@ def test_build_preserves_invalid_types():
     assert result.wrapped.value == 42
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building XML from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -172,7 +167,7 @@ def test_build_with_invalid_node_returns_none():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building XML with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -180,8 +175,7 @@ def test_build_with_custom_context():
         namespace: https://example.com/schema
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = xml.build(root, context=custom_context)
@@ -193,7 +187,7 @@ def test_build_with_custom_context():
     assert result.namespace.value == "https://example.com/schema"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -201,8 +195,7 @@ def test_source_tracking():
         namespace: https://example.com/schema
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)
@@ -224,7 +217,7 @@ def test_source_tracking():
     assert hasattr(result.name.value_node.start_mark, "line")
 
 
-def test_mixed_extensions_and_fixed_fields():
+def test_mixed_extensions_and_fixed_fields(parse_yaml):
     """Test that extensions and fixed fields are properly separated."""
     yaml_content = textwrap.dedent(
         """
@@ -235,8 +228,7 @@ def test_mixed_extensions_and_fixed_fields():
         prefix: ex
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = xml.build(root)
     assert isinstance(result, xml.XML)

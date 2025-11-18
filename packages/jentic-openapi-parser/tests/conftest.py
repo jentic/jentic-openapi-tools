@@ -50,6 +50,12 @@ def parser_ruamel_roundtrip() -> OpenAPIParser:
 
 
 @pytest.fixture
+def parser_ruamel_ast() -> OpenAPIParser:
+    """An OpenAPIParser instance with ruamel-ast backend."""
+    return OpenAPIParser("ruamel-ast")
+
+
+@pytest.fixture
 def simple_openapi_path(openapi_fixtures_dir: Path) -> Path:
     """Path to a simple OpenAPI document fixture."""
     return openapi_fixtures_dir / "simple_openapi.json"

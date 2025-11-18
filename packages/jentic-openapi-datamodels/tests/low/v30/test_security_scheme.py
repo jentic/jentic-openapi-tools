@@ -10,7 +10,7 @@ from jentic.apitools.openapi.datamodels.low.v30 import security_scheme
 from jentic.apitools.openapi.datamodels.low.v30.oauth_flows import OAuthFlows
 
 
-def test_build_with_api_key_in_header():
+def test_build_with_api_key_in_header(parse_yaml):
     """Test building SecurityScheme with apiKey type in header."""
     yaml_content = textwrap.dedent(
         """
@@ -20,8 +20,7 @@ def test_build_with_api_key_in_header():
         description: API key authentication
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -44,7 +43,7 @@ def test_build_with_api_key_in_header():
     assert result.openid_connect_url is None
 
 
-def test_build_with_api_key_in_query():
+def test_build_with_api_key_in_query(parse_yaml):
     """Test building SecurityScheme with apiKey type in query parameter."""
     yaml_content = textwrap.dedent(
         """
@@ -53,8 +52,7 @@ def test_build_with_api_key_in_query():
         in: query
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -67,7 +65,7 @@ def test_build_with_api_key_in_query():
     assert result.in_.value == "query"
 
 
-def test_build_with_api_key_in_cookie():
+def test_build_with_api_key_in_cookie(parse_yaml):
     """Test building SecurityScheme with apiKey type in cookie."""
     yaml_content = textwrap.dedent(
         """
@@ -76,8 +74,7 @@ def test_build_with_api_key_in_cookie():
         in: cookie
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -90,7 +87,7 @@ def test_build_with_api_key_in_cookie():
     assert result.in_.value == "cookie"
 
 
-def test_build_with_http_basic():
+def test_build_with_http_basic(parse_yaml):
     """Test building SecurityScheme with HTTP Basic authentication."""
     yaml_content = textwrap.dedent(
         """
@@ -99,8 +96,7 @@ def test_build_with_http_basic():
         description: HTTP Basic Authentication
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -120,7 +116,7 @@ def test_build_with_http_basic():
     assert result.openid_connect_url is None
 
 
-def test_build_with_http_bearer():
+def test_build_with_http_bearer(parse_yaml):
     """Test building SecurityScheme with HTTP Bearer token authentication."""
     yaml_content = textwrap.dedent(
         """
@@ -130,8 +126,7 @@ def test_build_with_http_bearer():
         description: Bearer token authentication with JWT
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -146,7 +141,7 @@ def test_build_with_http_bearer():
     assert result.description.value == "Bearer token authentication with JWT"
 
 
-def test_build_with_oauth2():
+def test_build_with_oauth2(parse_yaml):
     """Test building SecurityScheme with OAuth2."""
     yaml_content = textwrap.dedent(
         """
@@ -166,8 +161,7 @@ def test_build_with_oauth2():
               write:pets: Modify pets in your account
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -190,7 +184,7 @@ def test_build_with_oauth2():
     assert result.openid_connect_url is None
 
 
-def test_build_with_openid_connect():
+def test_build_with_openid_connect(parse_yaml):
     """Test building SecurityScheme with OpenID Connect."""
     yaml_content = textwrap.dedent(
         """
@@ -199,8 +193,7 @@ def test_build_with_openid_connect():
         description: OpenID Connect authentication
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -219,7 +212,7 @@ def test_build_with_openid_connect():
     assert result.flows is None
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building SecurityScheme with specification extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -229,8 +222,7 @@ def test_build_with_extensions():
         x-token-lifetime: 3600
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -244,7 +236,7 @@ def test_build_with_extensions():
     assert extensions["x-token-lifetime"] == 3600
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types (low-level model principle)."""
     yaml_content = textwrap.dedent(
         """
@@ -255,8 +247,7 @@ def test_build_preserves_invalid_types():
         flows: not-a-mapping
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -294,7 +285,7 @@ def test_build_with_invalid_node_returns_none():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building SecurityScheme with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -303,8 +294,7 @@ def test_build_with_custom_context():
         in: header
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = security_scheme.build(root, context=custom_context)
@@ -316,7 +306,7 @@ def test_build_with_custom_context():
     assert result.name.value == "custom_key"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -325,8 +315,7 @@ def test_source_tracking():
         bearerFormat: JWT
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -348,7 +337,7 @@ def test_source_tracking():
     assert result.scheme.key_node.value == "scheme"
 
 
-def test_build_with_null_flows():
+def test_build_with_null_flows(parse_yaml):
     """Test building SecurityScheme with null flows value."""
     yaml_content = textwrap.dedent(
         """
@@ -356,8 +345,7 @@ def test_build_with_null_flows():
         flows:
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -368,7 +356,7 @@ def test_build_with_null_flows():
     assert result.flows.value is None
 
 
-def test_build_with_valid_oauth2_flows():
+def test_build_with_valid_oauth2_flows(parse_yaml):
     """Test building SecurityScheme with complete OAuth2 flows."""
     yaml_content = textwrap.dedent(
         """
@@ -393,8 +381,7 @@ def test_build_with_valid_oauth2_flows():
               full: Full access
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -412,7 +399,7 @@ def test_build_with_valid_oauth2_flows():
     assert flows.authorization_code is not None
 
 
-def test_build_with_markdown_description():
+def test_build_with_markdown_description(parse_yaml):
     """Test building SecurityScheme with CommonMark description."""
     yaml_content = textwrap.dedent(
         """
@@ -428,8 +415,7 @@ def test_build_with_markdown_description():
           ```
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -439,15 +425,14 @@ def test_build_with_markdown_description():
     assert "Authorization: Bearer <token>" in result.description.value
 
 
-def test_build_with_minimal_fields():
+def test_build_with_minimal_fields(parse_yaml):
     """Test building SecurityScheme with only required type field."""
     yaml_content = textwrap.dedent(
         """
         type: http
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -458,15 +443,14 @@ def test_build_with_minimal_fields():
     assert result.scheme is None
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building SecurityScheme with empty object."""
     yaml_content = textwrap.dedent(
         """
         {}
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = security_scheme.build(root)
     assert isinstance(result, security_scheme.SecurityScheme)
@@ -482,33 +466,32 @@ def test_build_with_empty_object():
     assert result.openid_connect_url is None
 
 
-def test_build_with_all_security_types():
+def test_build_with_all_security_types(parse_yaml):
     """Test that we can build all four security scheme types correctly."""
     # API Key
     api_key_yaml = "type: apiKey\nname: api_key\nin: header"
-    yaml_parser = YAML()
-    api_key_result = security_scheme.build(yaml_parser.compose(api_key_yaml))
+    api_key_result = security_scheme.build(parse_yaml(api_key_yaml))
     assert isinstance(api_key_result, security_scheme.SecurityScheme)
     assert api_key_result.type is not None
     assert api_key_result.type.value == "apiKey"
 
     # HTTP
     http_yaml = "type: http\nscheme: basic"
-    http_result = security_scheme.build(yaml_parser.compose(http_yaml))
+    http_result = security_scheme.build(parse_yaml(http_yaml))
     assert isinstance(http_result, security_scheme.SecurityScheme)
     assert http_result.type is not None
     assert http_result.type.value == "http"
 
     # OAuth2
     oauth2_yaml = "type: oauth2\nflows:\n  implicit:\n    authorizationUrl: https://example.com\n    scopes: {}"
-    oauth2_result = security_scheme.build(yaml_parser.compose(oauth2_yaml))
+    oauth2_result = security_scheme.build(parse_yaml(oauth2_yaml))
     assert isinstance(oauth2_result, security_scheme.SecurityScheme)
     assert oauth2_result.type is not None
     assert oauth2_result.type.value == "oauth2"
 
     # OpenID Connect
     oidc_yaml = "type: openIdConnect\nopenIdConnectUrl: https://example.com/.well-known/openid-configuration"
-    oidc_result = security_scheme.build(yaml_parser.compose(oidc_yaml))
+    oidc_result = security_scheme.build(parse_yaml(oidc_yaml))
     assert isinstance(oidc_result, security_scheme.SecurityScheme)
     assert oidc_result.type is not None
     assert oidc_result.type.value == "openIdConnect"

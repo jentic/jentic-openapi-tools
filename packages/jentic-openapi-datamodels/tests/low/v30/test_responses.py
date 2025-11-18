@@ -11,7 +11,7 @@ from jentic.apitools.openapi.datamodels.low.v30.reference import Reference
 from jentic.apitools.openapi.datamodels.low.v30.response import Response
 
 
-def test_build_with_single_response():
+def test_build_with_single_response(parse_yaml):
     """Test building Responses with single status code."""
     yaml_content = textwrap.dedent(
         """
@@ -19,8 +19,7 @@ def test_build_with_single_response():
           description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -35,7 +34,7 @@ def test_build_with_single_response():
     assert "200" in response_keys
 
 
-def test_build_with_multiple_responses():
+def test_build_with_multiple_responses(parse_yaml):
     """Test building Responses with multiple status codes."""
     yaml_content = textwrap.dedent(
         """
@@ -47,8 +46,7 @@ def test_build_with_multiple_responses():
           description: server error
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -62,7 +60,7 @@ def test_build_with_multiple_responses():
         assert isinstance(response_value, Response)
 
 
-def test_build_with_default_response():
+def test_build_with_default_response(parse_yaml):
     """Test building Responses with default response."""
     yaml_content = textwrap.dedent(
         """
@@ -72,8 +70,7 @@ def test_build_with_default_response():
           description: unexpected error
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -87,7 +84,7 @@ def test_build_with_default_response():
     assert len(result.responses) == 1
 
 
-def test_build_with_default_only():
+def test_build_with_default_only(parse_yaml):
     """Test building Responses with only default response."""
     yaml_content = textwrap.dedent(
         """
@@ -95,8 +92,7 @@ def test_build_with_default_only():
           description: default response
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -106,7 +102,7 @@ def test_build_with_default_only():
     assert len(result.responses) == 0
 
 
-def test_build_with_patterned_status_codes():
+def test_build_with_patterned_status_codes(parse_yaml):
     """Test building Responses with patterned status codes like 2XX, 4XX."""
     yaml_content = textwrap.dedent(
         """
@@ -118,8 +114,7 @@ def test_build_with_patterned_status_codes():
           description: server error
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -129,7 +124,7 @@ def test_build_with_patterned_status_codes():
     assert response_keys == {"2XX", "4XX", "5XX"}
 
 
-def test_build_with_extensions():
+def test_build_with_extensions(parse_yaml):
     """Test building Responses with specification extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -139,8 +134,7 @@ def test_build_with_extensions():
         x-internal: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -151,7 +145,7 @@ def test_build_with_extensions():
     assert ext_dict["x-internal"] is True
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Responses with all field types."""
     yaml_content = textwrap.dedent(
         """
@@ -165,8 +159,7 @@ def test_build_with_all_fields():
         x-metrics: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -176,7 +169,7 @@ def test_build_with_all_fields():
     assert len(result.extensions) == 2
 
 
-def test_build_with_response_references():
+def test_build_with_response_references(parse_yaml):
     """Test building Responses with $ref references."""
     yaml_content = textwrap.dedent(
         """
@@ -186,8 +179,7 @@ def test_build_with_response_references():
           $ref: '#/components/responses/NotFound'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -200,7 +192,7 @@ def test_build_with_response_references():
         assert response_value.ref is not None
 
 
-def test_build_with_default_reference():
+def test_build_with_default_reference(parse_yaml):
     """Test building Responses with default as a reference."""
     yaml_content = textwrap.dedent(
         """
@@ -210,8 +202,7 @@ def test_build_with_default_reference():
           $ref: '#/components/responses/DefaultError'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -222,7 +213,7 @@ def test_build_with_default_reference():
     assert result.default.value.ref.value == "#/components/responses/DefaultError"
 
 
-def test_build_with_mixed_responses_and_references():
+def test_build_with_mixed_responses_and_references(parse_yaml):
     """Test building Responses with mix of Response objects and References."""
     yaml_content = textwrap.dedent(
         """
@@ -238,8 +229,7 @@ def test_build_with_mixed_responses_and_references():
           $ref: '#/components/responses/ServerError'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -258,11 +248,10 @@ def test_build_with_mixed_responses_and_references():
     assert isinstance(result.responses[key_500], Reference)
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Responses from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -292,7 +281,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Responses with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -302,8 +291,7 @@ def test_build_with_custom_context():
           description: error
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = responses.build(root, context=custom_context)
@@ -313,7 +301,7 @@ def test_build_with_custom_context():
     assert len(result.responses) == 1
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -324,8 +312,7 @@ def test_source_tracking():
         x-custom: value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -353,15 +340,14 @@ def test_source_tracking():
     assert hasattr(result.default.value_node.start_mark, "line")
 
 
-def test_build_with_invalid_response_data():
+def test_build_with_invalid_response_data(parse_yaml):
     """Test that invalid response data is preserved."""
     yaml_content = textwrap.dedent(
         """
         '200': invalid-string-not-object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -376,7 +362,7 @@ def test_build_with_invalid_response_data():
     assert response_value.value == "invalid-string-not-object"
 
 
-def test_build_with_null_default():
+def test_build_with_null_default(parse_yaml):
     """Test that build preserves null default value."""
     yaml_content = textwrap.dedent(
         """
@@ -385,8 +371,7 @@ def test_build_with_null_default():
         default:
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -395,7 +380,7 @@ def test_build_with_null_default():
     assert result.default.value is None
 
 
-def test_build_real_world_rest_api_responses():
+def test_build_real_world_rest_api_responses(parse_yaml):
     """Test a complete real-world REST API responses object."""
     yaml_content = textwrap.dedent(
         """
@@ -426,8 +411,7 @@ def test_build_real_world_rest_api_responses():
                     type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -446,7 +430,7 @@ def test_build_real_world_rest_api_responses():
     assert response_200.content is not None
 
 
-def test_build_with_http_status_code_ranges():
+def test_build_with_http_status_code_ranges(parse_yaml):
     """Test building Responses with various HTTP status code formats."""
     yaml_content = textwrap.dedent(
         """
@@ -464,8 +448,7 @@ def test_build_with_http_status_code_ranges():
           description: Default response
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -476,7 +459,7 @@ def test_build_with_http_status_code_ranges():
     assert result.default is not None
 
 
-def test_responses_with_complex_content():
+def test_responses_with_complex_content(parse_yaml):
     """Test Responses with complex content including headers and links."""
     yaml_content = textwrap.dedent(
         """
@@ -497,8 +480,7 @@ def test_responses_with_complex_content():
                 userId: $response.body#/id
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -513,7 +495,7 @@ def test_responses_with_complex_content():
     assert response_200.links is not None
 
 
-def test_build_with_numeric_status_codes():
+def test_build_with_numeric_status_codes(parse_yaml):
     """Test that numeric status codes (without quotes) are handled."""
     yaml_content = textwrap.dedent(
         """
@@ -523,8 +505,7 @@ def test_build_with_numeric_status_codes():
           description: not found
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -536,7 +517,7 @@ def test_build_with_numeric_status_codes():
     assert "404" in response_keys or 404 in response_keys
 
 
-def test_responses_preserves_order():
+def test_responses_preserves_order(parse_yaml):
     """Test that response order is preserved during parsing."""
     yaml_content = textwrap.dedent(
         """
@@ -552,8 +533,7 @@ def test_responses_preserves_order():
           description: Server Error
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -563,7 +543,7 @@ def test_responses_preserves_order():
     assert response_keys_list == ["200", "201", "400", "404", "500"]
 
 
-def test_build_with_invalid_status_codes_ignored():
+def test_build_with_invalid_status_codes_ignored(parse_yaml):
     """Test that invalid status codes are ignored."""
     yaml_content = textwrap.dedent(
         """
@@ -581,8 +561,7 @@ def test_build_with_invalid_status_codes_ignored():
           description: valid duplicate
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -596,7 +575,7 @@ def test_build_with_invalid_status_codes_ignored():
     assert "999" not in response_keys
 
 
-def test_build_with_invalid_wildcard_patterns_ignored():
+def test_build_with_invalid_wildcard_patterns_ignored(parse_yaml):
     """Test that invalid wildcard patterns are ignored."""
     yaml_content = textwrap.dedent(
         """
@@ -614,8 +593,7 @@ def test_build_with_invalid_wildcard_patterns_ignored():
           description: invalid - too many digits
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -630,7 +608,7 @@ def test_build_with_invalid_wildcard_patterns_ignored():
     assert "12XX" not in response_keys
 
 
-def test_build_with_boundary_status_codes():
+def test_build_with_boundary_status_codes(parse_yaml):
     """Test boundary values for status codes (100 and 599)."""
     yaml_content = textwrap.dedent(
         """
@@ -640,8 +618,7 @@ def test_build_with_boundary_status_codes():
           description: maximum valid
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)
@@ -652,7 +629,7 @@ def test_build_with_boundary_status_codes():
     assert len(result.responses) == 2
 
 
-def test_build_with_mixed_valid_and_invalid_keys():
+def test_build_with_mixed_valid_and_invalid_keys(parse_yaml):
     """Test that valid responses are kept while invalid keys are ignored."""
     yaml_content = textwrap.dedent(
         """
@@ -670,8 +647,7 @@ def test_build_with_mixed_valid_and_invalid_keys():
           value: extension field
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = responses.build(root)
     assert isinstance(result, responses.Responses)

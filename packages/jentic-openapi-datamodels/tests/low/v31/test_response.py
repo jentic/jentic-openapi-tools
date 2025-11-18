@@ -15,15 +15,14 @@ from jentic.apitools.openapi.datamodels.low.v31.reference import Reference
 from jentic.apitools.openapi.datamodels.low.v31.schema import Schema
 
 
-def test_build_with_description_only():
+def test_build_with_description_only(parse_yaml):
     """Test building Response with only description field."""
     yaml_content = textwrap.dedent(
         """
         description: successful operation
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -39,7 +38,7 @@ def test_build_with_description_only():
     assert result.extensions == {}
 
 
-def test_build_with_headers():
+def test_build_with_headers(parse_yaml):
     """Test building Response with headers field."""
     yaml_content = textwrap.dedent(
         """
@@ -56,8 +55,7 @@ def test_build_with_headers():
               format: date-time
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -82,7 +80,7 @@ def test_build_with_headers():
     assert rate_limit_header.description.value == "Rate limit header"
 
 
-def test_build_with_headers_reference():
+def test_build_with_headers_reference(parse_yaml):
     """Test building Response with headers containing $ref."""
     yaml_content = textwrap.dedent(
         """
@@ -96,8 +94,7 @@ def test_build_with_headers_reference():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -118,7 +115,7 @@ def test_build_with_headers_reference():
     assert isinstance(another_header, Header)
 
 
-def test_build_with_content():
+def test_build_with_content(parse_yaml):
     """Test building Response with content field."""
     yaml_content = textwrap.dedent(
         """
@@ -137,8 +134,7 @@ def test_build_with_content():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -159,7 +155,7 @@ def test_build_with_content():
     assert isinstance(json_media_type.schema.value, Schema)
 
 
-def test_build_with_links():
+def test_build_with_links(parse_yaml):
     """Test building Response with links field."""
     yaml_content = textwrap.dedent(
         """
@@ -176,8 +172,7 @@ def test_build_with_links():
               userId: '$response.body#/id'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -198,7 +193,7 @@ def test_build_with_links():
     assert user_link.operation_id.value == "getUser"
 
 
-def test_build_with_links_reference():
+def test_build_with_links_reference(parse_yaml):
     """Test building Response with links containing $ref."""
     yaml_content = textwrap.dedent(
         """
@@ -210,8 +205,7 @@ def test_build_with_links_reference():
             operationId: getAddress
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -232,7 +226,7 @@ def test_build_with_links_reference():
     assert isinstance(address_link, Link)
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Response with all fields."""
     yaml_content = textwrap.dedent(
         """
@@ -253,8 +247,7 @@ def test_build_with_all_fields():
         x-internal: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -275,11 +268,10 @@ def test_build_with_all_fields():
     assert ext_dict["x-internal"] is True
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Response from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -311,7 +303,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types."""
     yaml_content = textwrap.dedent(
         """
@@ -321,8 +313,7 @@ def test_build_preserves_invalid_types():
         links: 999
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -341,7 +332,7 @@ def test_build_preserves_invalid_types():
     assert result.links.value == 999
 
 
-def test_build_with_invalid_headers_data():
+def test_build_with_invalid_headers_data(parse_yaml):
     """Test that invalid headers data is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -350,8 +341,7 @@ def test_build_with_invalid_headers_data():
           broken: invalid-string-not-object
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -367,7 +357,7 @@ def test_build_with_invalid_headers_data():
     assert header_value.value == "invalid-string-not-object"
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Response with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -378,8 +368,7 @@ def test_build_with_custom_context():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = response.build(root, context=custom_context)
@@ -389,7 +378,7 @@ def test_build_with_custom_context():
     assert result.description.value == "successful operation"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -400,8 +389,7 @@ def test_source_tracking():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -424,7 +412,7 @@ def test_source_tracking():
     assert hasattr(result.description.value_node.start_mark, "line")
 
 
-def test_build_with_null_values():
+def test_build_with_null_values(parse_yaml):
     """Test that build preserves null values."""
     yaml_content = textwrap.dedent(
         """
@@ -433,8 +421,7 @@ def test_build_with_null_values():
         content:
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -449,7 +436,7 @@ def test_build_with_null_values():
     assert result.content.value is None
 
 
-def test_build_with_complex_extensions():
+def test_build_with_complex_extensions(parse_yaml):
     """Test building Response with complex extension objects."""
     yaml_content = textwrap.dedent(
         """
@@ -460,8 +447,7 @@ def test_build_with_complex_extensions():
         x-format: custom
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -479,7 +465,7 @@ def test_build_with_complex_extensions():
     assert ext_dict["x-format"] == "custom"
 
 
-def test_build_real_world_success_response():
+def test_build_real_world_success_response(parse_yaml):
     """Test a complete real-world 200 success Response."""
     yaml_content = textwrap.dedent(
         """
@@ -503,8 +489,7 @@ def test_build_real_world_success_response():
                     type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -523,7 +508,7 @@ def test_build_real_world_success_response():
     assert json_media_type.schema is not None
 
 
-def test_build_real_world_error_response():
+def test_build_real_world_error_response(parse_yaml):
     """Test a complete real-world 4xx error Response."""
     yaml_content = textwrap.dedent(
         """
@@ -542,8 +527,7 @@ def test_build_real_world_error_response():
               message: Bad Request
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -559,7 +543,7 @@ def test_build_real_world_error_response():
     assert json_media_type.example is not None
 
 
-def test_headers_source_tracking():
+def test_headers_source_tracking(parse_yaml):
     """Test that headers maintain proper source tracking."""
     yaml_content = textwrap.dedent(
         """
@@ -575,8 +559,7 @@ def test_headers_source_tracking():
               type: integer
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -593,7 +576,7 @@ def test_headers_source_tracking():
             assert header_value.root_node is not None
 
 
-def test_content_source_tracking():
+def test_content_source_tracking(parse_yaml):
     """Test that content maintains proper source tracking."""
     yaml_content = textwrap.dedent(
         """
@@ -607,8 +590,7 @@ def test_content_source_tracking():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -625,7 +607,7 @@ def test_content_source_tracking():
         assert content_value.root_node is not None
 
 
-def test_links_source_tracking():
+def test_links_source_tracking(parse_yaml):
     """Test that links maintain proper source tracking."""
     yaml_content = textwrap.dedent(
         """
@@ -637,8 +619,7 @@ def test_links_source_tracking():
             operationId: getAddress
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -655,7 +636,7 @@ def test_links_source_tracking():
             assert link_value.root_node is not None
 
 
-def test_build_response_or_reference_with_response():
+def test_build_response_or_reference_with_response(parse_yaml):
     """Test build_response_or_reference with a Response object."""
     yaml_content = textwrap.dedent(
         """
@@ -666,8 +647,7 @@ def test_build_response_or_reference_with_response():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     context = Context()
     result = response.build_response_or_reference(root, context)
@@ -676,15 +656,14 @@ def test_build_response_or_reference_with_response():
     assert result.description.value == "successful operation"
 
 
-def test_build_response_or_reference_with_reference():
+def test_build_response_or_reference_with_reference(parse_yaml):
     """Test build_response_or_reference with a $ref."""
     yaml_content = textwrap.dedent(
         """
         $ref: '#/components/responses/NotFound'
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     context = Context()
     result = response.build_response_or_reference(root, context)
@@ -704,7 +683,7 @@ def test_build_response_or_reference_with_invalid_node():
     assert result.value == "invalid-scalar"
 
 
-def test_build_with_commonmark_description():
+def test_build_with_commonmark_description(parse_yaml):
     """Test building Response with CommonMark description."""
     yaml_content = textwrap.dedent(
         """
@@ -717,8 +696,7 @@ def test_build_with_commonmark_description():
           - Item 2
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)
@@ -728,7 +706,7 @@ def test_build_with_commonmark_description():
     assert "**request**" in result.description.value
 
 
-def test_build_with_multiple_content_types():
+def test_build_with_multiple_content_types(parse_yaml):
     """Test building Response with multiple content types."""
     yaml_content = textwrap.dedent(
         """
@@ -748,8 +726,7 @@ def test_build_with_multiple_content_types():
               type: string
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = response.build(root)
     assert isinstance(result, response.Response)

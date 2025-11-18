@@ -10,7 +10,7 @@ from jentic.apitools.openapi.datamodels.low.sources import FieldSource, ValueSou
 from jentic.apitools.openapi.datamodels.low.v31 import example
 
 
-def test_build_with_value_only():
+def test_build_with_value_only(parse_yaml):
     """Test building Example with only value field."""
     yaml_content = textwrap.dedent(
         """
@@ -19,8 +19,7 @@ def test_build_with_value_only():
           name: John Doe
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -38,15 +37,14 @@ def test_build_with_value_only():
     assert result.extensions == {}
 
 
-def test_build_with_external_value_only():
+def test_build_with_external_value_only(parse_yaml):
     """Test building Example with only externalValue field."""
     yaml_content = textwrap.dedent(
         """
         externalValue: https://example.com/examples/user.json
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -59,7 +57,7 @@ def test_build_with_external_value_only():
     assert result.value is None
 
 
-def test_build_with_summary_and_description():
+def test_build_with_summary_and_description(parse_yaml):
     """Test building Example with summary and description."""
     yaml_content = textwrap.dedent(
         """
@@ -70,8 +68,7 @@ def test_build_with_summary_and_description():
           name: Alice
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -83,7 +80,7 @@ def test_build_with_summary_and_description():
     assert isinstance(result.value, FieldSource)
 
 
-def test_build_with_string_value():
+def test_build_with_string_value(parse_yaml):
     """Test building Example with a simple string value."""
     yaml_content = textwrap.dedent(
         """
@@ -91,8 +88,7 @@ def test_build_with_string_value():
         value: "Hello, World!"
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -101,7 +97,7 @@ def test_build_with_string_value():
     assert result.value.value == "Hello, World!"
 
 
-def test_build_with_number_value():
+def test_build_with_number_value(parse_yaml):
     """Test building Example with numeric values."""
     yaml_content = textwrap.dedent(
         """
@@ -109,8 +105,7 @@ def test_build_with_number_value():
         value: 42
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -119,7 +114,7 @@ def test_build_with_number_value():
     assert result.value.value == 42
 
 
-def test_build_with_boolean_value():
+def test_build_with_boolean_value(parse_yaml):
     """Test building Example with boolean value."""
     yaml_content = textwrap.dedent(
         """
@@ -127,8 +122,7 @@ def test_build_with_boolean_value():
         value: true
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -137,7 +131,7 @@ def test_build_with_boolean_value():
     assert result.value.value is True
 
 
-def test_build_with_array_value():
+def test_build_with_array_value(parse_yaml):
     """Test building Example with array value."""
     yaml_content = textwrap.dedent(
         """
@@ -149,8 +143,7 @@ def test_build_with_array_value():
             name: Bob
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -162,7 +155,7 @@ def test_build_with_array_value():
     assert result.value.value[1]["name"] == "Bob"
 
 
-def test_build_with_null_value():
+def test_build_with_null_value(parse_yaml):
     """Test building Example with null value."""
     yaml_content = textwrap.dedent(
         """
@@ -170,8 +163,7 @@ def test_build_with_null_value():
         value:
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -180,7 +172,7 @@ def test_build_with_null_value():
     assert result.value.value is None
 
 
-def test_build_with_all_fields():
+def test_build_with_all_fields(parse_yaml):
     """Test building Example with all fields including extensions."""
     yaml_content = textwrap.dedent(
         """
@@ -193,8 +185,7 @@ def test_build_with_all_fields():
         x-category: successful-response
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -212,7 +203,7 @@ def test_build_with_all_fields():
     assert ext_dict["x-category"] == "successful-response"
 
 
-def test_build_with_commonmark_description():
+def test_build_with_commonmark_description(parse_yaml):
     """Test that Example description can contain CommonMark formatted text."""
     yaml_content = textwrap.dedent(
         """
@@ -227,8 +218,7 @@ def test_build_with_commonmark_description():
         value: test
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -239,11 +229,10 @@ def test_build_with_commonmark_description():
     assert "- Bullet points" in result.description.value
 
 
-def test_build_with_empty_object():
+def test_build_with_empty_object(parse_yaml):
     """Test building Example from empty YAML object."""
     yaml_content = "{}"
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -275,7 +264,7 @@ def test_build_with_invalid_node_returns_value_source():
     assert result.value_node == sequence_root
 
 
-def test_build_preserves_invalid_types():
+def test_build_preserves_invalid_types(parse_yaml):
     """Test that build preserves values even with 'wrong' types."""
     yaml_content = textwrap.dedent(
         """
@@ -285,8 +274,7 @@ def test_build_preserves_invalid_types():
         externalValue: 999
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -305,7 +293,7 @@ def test_build_preserves_invalid_types():
     assert result.external_value.value == 999
 
 
-def test_build_with_custom_context():
+def test_build_with_custom_context(parse_yaml):
     """Test building Example with a custom context."""
     yaml_content = textwrap.dedent(
         """
@@ -313,8 +301,7 @@ def test_build_with_custom_context():
         value: test-value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     custom_context = Context()
     result = example.build(root, context=custom_context)
@@ -326,7 +313,7 @@ def test_build_with_custom_context():
     assert result.value.value == "test-value"
 
 
-def test_source_tracking():
+def test_source_tracking(parse_yaml):
     """Test that source location information is preserved."""
     yaml_content = textwrap.dedent(
         """
@@ -336,8 +323,7 @@ def test_source_tracking():
           key: value
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -365,7 +351,7 @@ def test_source_tracking():
     assert hasattr(result.summary.value_node.start_mark, "line")
 
 
-def test_build_with_complex_nested_value():
+def test_build_with_complex_nested_value(parse_yaml):
     """Test building Example with deeply nested value structure."""
     yaml_content = textwrap.dedent(
         """
@@ -386,8 +372,7 @@ def test_build_with_complex_nested_value():
               theme: dark
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
@@ -401,7 +386,7 @@ def test_build_with_complex_nested_value():
     assert value_obj["user"]["preferences"]["theme"] == "dark"
 
 
-def test_build_real_world_json_example():
+def test_build_real_world_json_example(parse_yaml):
     """Test a real-world JSON response example."""
     yaml_content = textwrap.dedent(
         """
@@ -419,8 +404,7 @@ def test_build_real_world_json_example():
             login_count: 47
         """
     )
-    yaml_parser = YAML()
-    root = yaml_parser.compose(yaml_content)
+    root = parse_yaml(yaml_content)
 
     result = example.build(root)
     assert isinstance(result, example.Example)
