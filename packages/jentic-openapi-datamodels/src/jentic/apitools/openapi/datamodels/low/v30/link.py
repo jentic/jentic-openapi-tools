@@ -5,7 +5,7 @@ from ruamel import yaml
 from ..context import Context
 from ..fields import fixed_field
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
-from .model_builder import build_field_source, build_model
+from .builders import build_field_source, build_model
 from .reference import Reference
 from .reference import build as build_reference
 from .server import Server

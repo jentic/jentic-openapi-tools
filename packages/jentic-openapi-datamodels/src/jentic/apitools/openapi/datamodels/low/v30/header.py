@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from ruamel import yaml
@@ -6,11 +6,11 @@ from ruamel import yaml
 from ..context import Context
 from ..fields import fixed_field
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .builders import build_model
 from .example import Example
-from .model_builder import build_model
 from .reference import Reference
 from .reference import build as build_reference
-from .schema import Schema, build_schema_or_reference
+from .schema import Schema
 
 
 if TYPE_CHECKING:
@@ -54,7 +54,7 @@ class Header:
     deprecated: FieldSource[bool] | None = fixed_field()
     style: FieldSource[str] | None = fixed_field()
     explode: FieldSource[bool] | None = fixed_field()
-    schema: FieldSource[Schema | Reference] | None = fixed_field()
+    schema: FieldSource["Schema | Reference"] | None = fixed_field()
     example: FieldSource[YAMLValue] | None = fixed_field()
     examples: FieldSource[dict[KeySource[str], "Example | Reference"]] | None = fixed_field()
     content: FieldSource[dict[KeySource[str], "MediaType"]] | None = fixed_field()
@@ -90,32 +90,7 @@ def build(
         header = build(root)
         assert header.description.value == 'The number of allowed requests in the current period'
     """
-    context = context or Context()
-
-    # Use build_model for initial construction
-    header = build_model(root, Header, context=context)
-
-    # If build_model returned ValueSource (invalid node), return it immediately
-    if not isinstance(header, Header):
-        return header
-
-    # Manually handle nested complex fields
-    replacements = {}
-    for key_node, value_node in root.value:
-        key = context.yaml_constructor.construct_yaml_str(key_node)
-
-        if key == "schema":
-            # Handle schema field - can be Schema or Reference
-            schema_or_reference = build_schema_or_reference(value_node, context)
-            replacements["schema"] = FieldSource(
-                value=schema_or_reference, key_node=key_node, value_node=value_node
-            )
-
-    # Apply all replacements at once
-    if replacements:
-        header = replace(header, **replacements)
-
-    return header
+    return build_model(root, Header, context=context)
 
 
 def build_header_or_reference(

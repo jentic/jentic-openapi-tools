@@ -6,8 +6,8 @@ from ruamel import yaml
 from ..context import Context
 from ..fields import fixed_field
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .builders import build_model
 from .external_documentation import ExternalDocumentation
-from .model_builder import build_field_source, build_model
 
 
 if TYPE_CHECKING:
@@ -126,29 +126,6 @@ def build(
             replacements["responses"] = FieldSource(
                 value=responses_obj, key_node=key_node, value_node=value_node
             )
-        elif key == "callbacks":
-            # Handle callbacks field - map of Callback or Reference objects
-            # Lazy import to avoid circular dependency
-            from .callback import build_callback_or_reference
-
-            if isinstance(value_node, yaml.MappingNode):
-                callbacks_dict: dict[
-                    KeySource[str], Callback | Reference | ValueSource[YAMLInvalidValue]
-                ] = {}
-                for callback_key_node, callback_value_node in value_node.value:
-                    callback_key = context.yaml_constructor.construct_yaml_str(callback_key_node)
-                    callback_or_reference = build_callback_or_reference(
-                        callback_value_node, context
-                    )
-                    callbacks_dict[KeySource(value=callback_key, key_node=callback_key_node)] = (
-                        callback_or_reference
-                    )
-                replacements["callbacks"] = FieldSource(
-                    value=callbacks_dict, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a mapping - preserve as-is for validation
-                replacements["callbacks"] = build_field_source(key_node, value_node, context)
 
     # Apply all replacements at once
     if replacements:

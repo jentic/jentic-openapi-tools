@@ -5,8 +5,8 @@ from ruamel import yaml
 from ..context import Context
 from ..fields import fixed_field
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .builders import build_model
 from .header import Header
-from .model_builder import build_model
 from .reference import Reference
 
 
@@ -78,13 +78,4 @@ def build(
         encoding = build(root)
         assert encoding.contentType.value == 'application/xml'
     """
-    context = context or Context()
-
-    # Use build_model for initial construction
-    encoding = build_model(root, Encoding, context=context)
-
-    # If build_model returned ValueSource (invalid node), return it immediately
-    if not isinstance(encoding, Encoding):
-        return encoding
-
-    return encoding
+    return build_model(root, Encoding, context=context)

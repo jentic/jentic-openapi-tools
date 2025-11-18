@@ -1,14 +1,14 @@
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 
 from ruamel import yaml
 
 from ..context import Context
 from ..fields import fixed_field
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .builders import build_model
 from .header import Header
-from .link import Link, build_link_or_reference
+from .link import Link
 from .media_type import MediaType
-from .model_builder import build_field_source, build_model
 from .reference import Reference
 from .reference import build as build_reference
 
@@ -39,7 +39,7 @@ class Response:
     description: FieldSource[str] | None = fixed_field()
     headers: FieldSource[dict[KeySource[str], "Header | Reference"]] | None = fixed_field()
     content: FieldSource[dict[KeySource[str], "MediaType"]] | None = fixed_field()
-    links: FieldSource[dict[KeySource[str], Link | Reference]] | None = fixed_field()
+    links: FieldSource[dict[KeySource[str], "Link | Reference"]] | None = fixed_field()
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
@@ -74,45 +74,7 @@ def build(
         response = build(root)
         assert response.description.value == 'successful operation'
     """
-    context = context or Context()
-
-    # Use build_model for initial construction
-    response = build_model(root, Response, context=context)
-
-    # If build_model returned ValueSource (invalid node), return it immediately
-    if not isinstance(response, Response):
-        return response
-
-    # Manually handle nested complex fields
-    replacements = {}
-    for key_node, value_node in root.value:
-        key = context.yaml_constructor.construct_yaml_str(key_node)
-
-        if key == "links":
-            # Handle links field - map of Link or Reference objects
-            if isinstance(value_node, yaml.MappingNode):
-                links_dict: dict[
-                    KeySource[str], Link | Reference | ValueSource[YAMLInvalidValue]
-                ] = {}
-                for link_key_node, link_value_node in value_node.value:
-                    link_key = context.yaml_constructor.construct_yaml_str(link_key_node)
-                    # Build Link or Reference - child builder handles invalid nodes
-                    link_or_reference = build_link_or_reference(link_value_node, context)
-                    links_dict[KeySource(value=link_key, key_node=link_key_node)] = (
-                        link_or_reference
-                    )
-                replacements["links"] = FieldSource(
-                    value=links_dict, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a mapping - preserve as-is for validation
-                replacements["links"] = build_field_source(key_node, value_node, context)
-
-    # Apply all replacements at once
-    if replacements:
-        response = replace(response, **replacements)
-
-    return response
+    return build_model(root, Response, context=context)
 
 
 def build_response_or_reference(

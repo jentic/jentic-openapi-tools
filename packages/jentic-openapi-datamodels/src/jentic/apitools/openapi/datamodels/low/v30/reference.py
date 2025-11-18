@@ -5,7 +5,7 @@ from ruamel import yaml
 from ..context import Context
 from ..fields import fixed_field
 from ..sources import FieldSource, ValueSource, YAMLInvalidValue
-from .model_builder import build_model
+from .builders import build_model
 
 
 __all__ = ["Reference", "build"]
@@ -16,7 +16,7 @@ class Reference:
     """
     Reference Object representation for OpenAPI 3.0.
 
-    A simple object to allow referencing other components in the OpenAPI document,
+    A simple object to allow referencing other components in the OpenAPI Description,
     internally and externally.
 
     Note: In OpenAPI 3.0, Reference Objects only have the $ref field.

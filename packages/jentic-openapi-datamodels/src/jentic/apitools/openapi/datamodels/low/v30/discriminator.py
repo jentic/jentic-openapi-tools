@@ -5,7 +5,7 @@ from ruamel import yaml
 from ..context import Context
 from ..fields import fixed_field
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue
-from .model_builder import build_model
+from .builders import build_model
 
 
 __all__ = ["Discriminator", "build"]

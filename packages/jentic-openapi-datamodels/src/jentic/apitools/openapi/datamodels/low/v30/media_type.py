@@ -5,12 +5,12 @@ from ruamel import yaml
 from ..context import Context
 from ..fields import fixed_field
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .builders import build_field_source, build_model
 from .encoding import Encoding
 from .encoding import build as build_encoding
 from .example import Example
-from .model_builder import build_field_source, build_model
 from .reference import Reference
-from .schema import Schema, build_schema_or_reference
+from .schema import Schema
 
 
 __all__ = ["MediaType", "build"]
@@ -35,7 +35,7 @@ class MediaType:
     """
 
     root_node: yaml.Node
-    schema: FieldSource[Schema | Reference] | None = fixed_field()
+    schema: FieldSource["Schema | Reference"] | None = fixed_field()
     example: FieldSource[YAMLValue] | None = fixed_field()
     examples: FieldSource[dict[KeySource[str], "Example | Reference"]] | None = fixed_field()
     encoding: FieldSource[dict[KeySource[str], Encoding]] | None = fixed_field()
@@ -83,17 +83,10 @@ def build(
         return media_type
 
     # Manually handle nested complex fields
-    replacements = {}
     for key_node, value_node in root.value:
         key = context.yaml_constructor.construct_yaml_str(key_node)
 
-        if key == "schema":
-            # Handle schema field - can be Schema or Reference
-            schema_or_reference = build_schema_or_reference(value_node, context)
-            replacements["schema"] = FieldSource(
-                value=schema_or_reference, key_node=key_node, value_node=value_node
-            )
-        elif key == "encoding":
+        if key == "encoding":
             # Handle encoding field - map of Encoding objects
             if isinstance(value_node, yaml.MappingNode):
                 encoding_dict: dict[KeySource[str], Encoding | ValueSource[YAMLInvalidValue]] = {}
@@ -104,15 +97,14 @@ def build(
                     encoding_dict[KeySource(value=encoding_key, key_node=encoding_key_node)] = (
                         encoding_obj
                     )
-                replacements["encoding"] = FieldSource(
+                encoding = FieldSource(
                     value=encoding_dict, key_node=key_node, value_node=value_node
                 )
+                media_type = replace(media_type, encoding=encoding)
             else:
                 # Not a mapping - preserve as-is for validation
-                replacements["encoding"] = build_field_source(key_node, value_node, context)
-
-    # Apply all replacements at once
-    if replacements:
-        media_type = replace(media_type, **replacements)
+                encoding = build_field_source(key_node, value_node, context)
+                media_type = replace(media_type, encoding=encoding)
+            break
 
     return media_type

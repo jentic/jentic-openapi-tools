@@ -7,11 +7,11 @@ from ..context import Context
 from ..extractors import extract_extension_fields
 from ..fields import fixed_field, fixed_fields
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
+from .builders import build_field_source
 from .discriminator import Discriminator
 from .discriminator import build as build_discriminator
 from .external_documentation import ExternalDocumentation
 from .external_documentation import build as build_external_documentation
-from .model_builder import build_field_source
 from .reference import Reference
 from .reference import build as build_reference
 from .xml import XML
@@ -43,31 +43,31 @@ class Schema:
 
         # JSON Schema Core validation keywords
         title: A title for the schema
-        multipleOf: A numeric instance is valid only if division by this value results in an integer
+        multiple_of: A numeric instance is valid only if division by this value results in an integer
         maximum: Upper limit for a numeric instance
-        exclusiveMaximum: If true, the value must be strictly less than maximum
+        exclusive_maximum: If true, the value must be strictly less than maximum
         minimum: Lower limit for a numeric instance
-        exclusiveMinimum: If true, the value must be strictly greater than minimum
-        maxLength: Maximum length of a string instance
-        minLength: Minimum length of a string instance
+        exclusive_minimum: If true, the value must be strictly greater than minimum
+        max_length: Maximum length of a string instance
+        min_length: Minimum length of a string instance
         pattern: A string instance is valid if the regular expression matches the instance successfully
-        maxItems: Maximum number of items in an array instance
-        minItems: Minimum number of items in an array instance
-        uniqueItems: If true, array items must be unique
-        maxProperties: Maximum number of properties in an object instance
-        minProperties: Minimum number of properties in an object instance
+        max_items: Maximum number of items in an array instance
+        min_items: Minimum number of items in an array instance
+        unique_items: If true, array items must be unique
+        max_properties: Maximum number of properties in an object instance
+        min_properties: Minimum number of properties in an object instance
         required: List of required property names
         enum: Fixed set of allowed values
 
         # JSON Schema Type and Structure
         type: Value type (string, number, integer, boolean, array, object)
-        allOf: Must be valid against all of the subschemas
-        oneOf: Must be valid against exactly one of the subschemas
-        anyOf: Must be valid against any of the subschemas
+        all_of: Must be valid against all of the subschemas
+        one_of: Must be valid against exactly one of the subschemas
+        any_of: Must be valid against any of the subschemas
         not_: Must not be valid against the given schema
         items: Schema for array items (or array of schemas for tuple validation)
         properties: Property name to schema mappings
-        additionalProperties: Schema for properties not defined in properties, or boolean to allow/disallow
+        additional_properties: Schema for properties not defined in properties, or boolean to allow/disallow
 
         # JSON Schema Metadata
         description: A short description. CommonMark syntax MAY be used for rich text representation.
@@ -77,10 +77,10 @@ class Schema:
         # OpenAPI-specific extensions
         nullable: Allows sending a null value
         discriminator: Adds support for polymorphism
-        readOnly: Relevant only for Schema "properties" definitions - sent in response but not in request
-        writeOnly: Relevant only for Schema "properties" definitions - sent in request but not in response
+        read_only: Relevant only for Schema "properties" definitions - sent in response but not in request
+        write_only: Relevant only for Schema "properties" definitions - sent in request but not in response
         xml: Additional metadata for XML representations
-        externalDocs: Additional external documentation
+        external_docs: Additional external documentation
         example: Example of the media type
         deprecated: Specifies that the schema is deprecated
 
@@ -91,31 +91,37 @@ class Schema:
 
     # JSON Schema Core validation keywords
     title: FieldSource[str] | None = fixed_field()
-    multipleOf: FieldSource[int | float] | None = fixed_field()
+    multiple_of: FieldSource[int | float] | None = fixed_field(metadata={"yaml_name": "multipleOf"})
     maximum: FieldSource[int | float] | None = fixed_field()
-    exclusiveMaximum: FieldSource[bool] | None = fixed_field()
+    exclusive_maximum: FieldSource[bool] | None = fixed_field(
+        metadata={"yaml_name": "exclusiveMaximum"}
+    )
     minimum: FieldSource[int | float] | None = fixed_field()
-    exclusiveMinimum: FieldSource[bool] | None = fixed_field()
-    maxLength: FieldSource[int] | None = fixed_field()
-    minLength: FieldSource[int] | None = fixed_field()
+    exclusive_minimum: FieldSource[bool] | None = fixed_field(
+        metadata={"yaml_name": "exclusiveMinimum"}
+    )
+    max_length: FieldSource[int] | None = fixed_field(metadata={"yaml_name": "maxLength"})
+    min_length: FieldSource[int] | None = fixed_field(metadata={"yaml_name": "minLength"})
     pattern: FieldSource[str] | None = fixed_field()
-    maxItems: FieldSource[int] | None = fixed_field()
-    minItems: FieldSource[int] | None = fixed_field()
-    uniqueItems: FieldSource[bool] | None = fixed_field()
-    maxProperties: FieldSource[int] | None = fixed_field()
-    minProperties: FieldSource[int] | None = fixed_field()
+    max_items: FieldSource[int] | None = fixed_field(metadata={"yaml_name": "maxItems"})
+    min_items: FieldSource[int] | None = fixed_field(metadata={"yaml_name": "minItems"})
+    unique_items: FieldSource[bool] | None = fixed_field(metadata={"yaml_name": "uniqueItems"})
+    max_properties: FieldSource[int] | None = fixed_field(metadata={"yaml_name": "maxProperties"})
+    min_properties: FieldSource[int] | None = fixed_field(metadata={"yaml_name": "minProperties"})
     required: FieldSource[list[ValueSource[str]]] | None = fixed_field()
     enum: FieldSource[list[ValueSource[YAMLValue]]] | None = fixed_field()
 
     # JSON Schema Type and Structure (nested schemas)
     type: FieldSource[str] | None = fixed_field()
-    allOf: FieldSource[list[NestedSchema]] | None = fixed_field()
-    oneOf: FieldSource[list[NestedSchema]] | None = fixed_field()
-    anyOf: FieldSource[list[NestedSchema]] | None = fixed_field()
+    all_of: FieldSource[list[NestedSchema]] | None = fixed_field(metadata={"yaml_name": "allOf"})
+    one_of: FieldSource[list[NestedSchema]] | None = fixed_field(metadata={"yaml_name": "oneOf"})
+    any_of: FieldSource[list[NestedSchema]] | None = fixed_field(metadata={"yaml_name": "anyOf"})
     not_: FieldSource[NestedSchema] | None = fixed_field(metadata={"yaml_name": "not"})
     items: FieldSource[NestedSchema] | None = fixed_field()
     properties: FieldSource[dict[KeySource[str], NestedSchema]] | None = fixed_field()
-    additionalProperties: FieldSource["bool | NestedSchema"] | None = fixed_field()
+    additional_properties: FieldSource["bool | NestedSchema"] | None = fixed_field(
+        metadata={"yaml_name": "additionalProperties"}
+    )
 
     # JSON Schema Metadata
     description: FieldSource[str] | None = fixed_field()
@@ -125,10 +131,12 @@ class Schema:
     # OpenAPI-specific extensions
     nullable: FieldSource[bool] | None = fixed_field()
     discriminator: FieldSource[Discriminator] | None = fixed_field()
-    readOnly: FieldSource[bool] | None = fixed_field()
-    writeOnly: FieldSource[bool] | None = fixed_field()
+    read_only: FieldSource[bool] | None = fixed_field(metadata={"yaml_name": "readOnly"})
+    write_only: FieldSource[bool] | None = fixed_field(metadata={"yaml_name": "writeOnly"})
     xml: FieldSource[XML] | None = fixed_field()
-    externalDocs: FieldSource[ExternalDocumentation] | None = fixed_field()
+    external_docs: FieldSource[ExternalDocumentation] | None = fixed_field(
+        metadata={"yaml_name": "externalDocs"}
+    )
     example: FieldSource[YAMLValue] | None = fixed_field()
     deprecated: FieldSource[bool] | None = fixed_field()
 
@@ -144,8 +152,8 @@ def build(
     Preserves all source data as-is, regardless of type. This is a low-level/plumbing
     model that provides complete source fidelity for inspection and validation.
 
-    Note: Schema is self-referential (can contain other Schema objects in allOf, oneOf, anyOf, not,
-    items, properties, additionalProperties). The builder handles nested Schema objects by preserving
+    Note: Schema is self-referential (can contain other Schema objects in all_of, one_of, any_of, not_,
+    items, properties, additional_properties). The builder handles nested Schema objects by preserving
     them as raw YAML values, letting validation layers interpret them.
 
     Args:
@@ -163,7 +171,7 @@ def build(
         root = yaml.compose("type: string\\nminLength: 1\\nmaxLength: 100")
         schema = build(root)
         assert schema.type.value == 'string'
-        assert schema.minLength.value == 1
+        assert schema.min_length.value == 1
     """
     context = context or Context()
 
