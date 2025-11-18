@@ -83,7 +83,6 @@ def build(
         return media_type
 
     # Manually handle nested complex fields
-    replacements = {}
     for key_node, value_node in root.value:
         key = context.yaml_constructor.construct_yaml_str(key_node)
 
@@ -98,16 +97,14 @@ def build(
                     encoding_dict[KeySource(value=encoding_key, key_node=encoding_key_node)] = (
                         encoding_obj
                     )
-                replacements["encoding"] = FieldSource(
+                encoding = FieldSource(
                     value=encoding_dict, key_node=key_node, value_node=value_node
                 )
+                media_type = replace(media_type, encoding=encoding)
             else:
                 # Not a mapping - preserve as-is for validation
-                replacements["encoding"] = build_field_source(key_node, value_node, context)
+                encoding = build_field_source(key_node, value_node, context)
+                media_type = replace(media_type, encoding=encoding)
             break
-
-    # Apply all replacements at once
-    if replacements:
-        media_type = replace(media_type, **replacements)
 
     return media_type

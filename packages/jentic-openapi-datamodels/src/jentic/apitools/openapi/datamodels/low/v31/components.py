@@ -8,8 +8,8 @@ from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAM
 from .builders import build_field_source, build_model
 from .callback import Callback
 from .example import Example, build_example_or_reference
-from .header import Header, build_header_or_reference
-from .link import Link, build_link_or_reference
+from .header import Header
+from .link import Link
 from .parameter import Parameter, build_parameter_or_reference
 from .path_item import PathItem
 from .reference import Reference
@@ -58,11 +58,11 @@ class Components:
     request_bodies: FieldSource[dict[KeySource[str], RequestBody | Reference]] | None = fixed_field(
         metadata={"yaml_name": "requestBodies"}
     )
-    headers: FieldSource[dict[KeySource[str], Header | Reference]] | None = fixed_field()
+    headers: FieldSource[dict[KeySource[str], "Header | Reference"]] | None = fixed_field()
     security_schemes: FieldSource[dict[KeySource[str], SecurityScheme | Reference]] | None = (
         fixed_field(metadata={"yaml_name": "securitySchemes"})
     )
-    links: FieldSource[dict[KeySource[str], Link | Reference]] | None = fixed_field()
+    links: FieldSource[dict[KeySource[str], "Link | Reference"]] | None = fixed_field()
     callbacks: FieldSource[dict[KeySource[str], "Callback | Reference"]] | None = fixed_field()
     path_items: FieldSource[dict[KeySource[str], "PathItem"]] | None = fixed_field(
         metadata={"yaml_name": "pathItems"}
@@ -212,23 +212,6 @@ def build(
                 # Not a mapping - preserve as-is for validation
                 replacements["request_bodies"] = build_field_source(key_node, value_node, context)
 
-        elif key == "headers":
-            # Handle headers field - map of Header or Reference objects
-            if isinstance(value_node, yaml.MappingNode):
-                headers_dict = {}
-                for header_key_node, header_value_node in value_node.value:
-                    header_key = context.yaml_constructor.construct_yaml_str(header_key_node)
-                    header_or_reference = build_header_or_reference(header_value_node, context)
-                    headers_dict[KeySource(value=header_key, key_node=header_key_node)] = (
-                        header_or_reference
-                    )
-                replacements["headers"] = FieldSource(
-                    value=headers_dict, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a mapping - preserve as-is for validation
-                replacements["headers"] = build_field_source(key_node, value_node, context)
-
         elif key == "securitySchemes":
             # Handle securitySchemes field - map of SecurityScheme or Reference objects
             if isinstance(value_node, yaml.MappingNode):
@@ -249,23 +232,6 @@ def build(
             else:
                 # Not a mapping - preserve as-is for validation
                 replacements["security_schemes"] = build_field_source(key_node, value_node, context)
-
-        elif key == "links":
-            # Handle links field - map of Link or Reference objects
-            if isinstance(value_node, yaml.MappingNode):
-                links_dict = {}
-                for link_key_node, link_value_node in value_node.value:
-                    link_key = context.yaml_constructor.construct_yaml_str(link_key_node)
-                    link_or_reference = build_link_or_reference(link_value_node, context)
-                    links_dict[KeySource(value=link_key, key_node=link_key_node)] = (
-                        link_or_reference
-                    )
-                replacements["links"] = FieldSource(
-                    value=links_dict, key_node=key_node, value_node=value_node
-                )
-            else:
-                # Not a mapping - preserve as-is for validation
-                replacements["links"] = build_field_source(key_node, value_node, context)
 
     # Apply all replacements at once
     if replacements:

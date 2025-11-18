@@ -5,7 +5,6 @@ from ruamel import yaml
 from ..context import Context
 from ..fields import fixed_field
 from ..sources import FieldSource, ValueSource, YAMLInvalidValue
-from ..v30.reference import Reference as Reference30
 from .builders import build_model
 
 
@@ -13,7 +12,7 @@ __all__ = ["Reference", "build"]
 
 
 @dataclass(frozen=True, slots=True)
-class Reference(Reference30):
+class Reference:
     """
     Reference Object representation for OpenAPI 3.1.
 
@@ -26,6 +25,8 @@ class Reference(Reference30):
         description: A description which by default SHOULD override that of the referenced component. CommonMark syntax MAY be used for rich text representation. If the referenced object-type does not allow a description field, then this field has no effect.
     """
 
+    root_node: yaml.Node
+    ref: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$ref"})
     summary: FieldSource[str] | None = fixed_field()
     description: FieldSource[str] | None = fixed_field()
 

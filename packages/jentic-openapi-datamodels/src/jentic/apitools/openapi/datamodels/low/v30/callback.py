@@ -89,12 +89,12 @@ def build(
     path_items: dict[KeySource[str], PathItem | ValueSource[YAMLInvalidValue]] = {}
 
     for key_node, value_node in root.value:
-        key = context.yaml_constructor.construct_yaml_str(key_node)
+        expression = context.yaml_constructor.construct_yaml_str(key_node)
 
-        if key not in extension_properties:
+        if expression not in extension_properties:
             # Expression field (any key that's not an extension) - build as Path Item
             path_item_obj = build_path_item(value_node, context)
-            path_items[KeySource(value=key, key_node=key_node)] = path_item_obj
+            path_items[KeySource(value=expression, key_node=key_node)] = path_item_obj
 
     # Create and return the Callback object with collected data
     return Callback(

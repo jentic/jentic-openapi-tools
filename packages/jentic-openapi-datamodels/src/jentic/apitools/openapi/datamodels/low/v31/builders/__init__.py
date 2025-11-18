@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from ..example import Example  # noqa: F401
     from ..external_documentation import ExternalDocumentation  # noqa: F401
     from ..header import Header  # noqa: F401
+    from ..link import Link  # noqa: F401
     from ..media_type import MediaType  # noqa: F401
     from ..parameter import Parameter  # noqa: F401
     from ..path_item import PathItem  # noqa: F401
@@ -268,6 +269,42 @@ def build_model(
                         )
                     field_values[field_name] = FieldSource(
                         value=callbacks_dict, key_node=key_node, value_node=value_node
+                    )
+                else:
+                    # Not a mapping - preserve as-is for validation
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
+            elif field_type_args & {FieldSource[dict[KeySource[str], "Header | Reference"]]}:
+                # Handle dict[KeySource[str], Header | Reference] with lazy import
+                from ..header import build_header_or_reference
+
+                if isinstance(value_node, yaml.MappingNode):
+                    headers_dict = {}
+                    for map_key_node, map_value_node in value_node.value:
+                        map_key = context.yaml_constructor.construct_yaml_str(map_key_node)
+                        header_or_reference = build_header_or_reference(map_value_node, context)
+                        headers_dict[KeySource(value=map_key, key_node=map_key_node)] = (
+                            header_or_reference
+                        )
+                    field_values[field_name] = FieldSource(
+                        value=headers_dict, key_node=key_node, value_node=value_node
+                    )
+                else:
+                    # Not a mapping - preserve as-is for validation
+                    field_values[field_name] = build_field_source(key_node, value_node, context)
+            elif field_type_args & {FieldSource[dict[KeySource[str], "Link | Reference"]]}:
+                # Handle dict[KeySource[str], Link | Reference] with lazy import
+                from ..link import build_link_or_reference
+
+                if isinstance(value_node, yaml.MappingNode):
+                    links_dict = {}
+                    for map_key_node, map_value_node in value_node.value:
+                        map_key = context.yaml_constructor.construct_yaml_str(map_key_node)
+                        link_or_reference = build_link_or_reference(map_value_node, context)
+                        links_dict[KeySource(value=map_key, key_node=map_key_node)] = (
+                            link_or_reference
+                        )
+                    field_values[field_name] = FieldSource(
+                        value=links_dict, key_node=key_node, value_node=value_node
                     )
                 else:
                     # Not a mapping - preserve as-is for validation
