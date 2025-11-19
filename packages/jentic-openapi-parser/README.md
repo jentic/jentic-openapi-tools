@@ -6,7 +6,8 @@ A Python library for parsing OpenAPI documents using pluggable parser backends. 
 
 - **Pluggable Backend Architecture**: Support for multiple parsing strategies via entry points
 - **Multiple Input Formats**: Parse OpenAPI documents from file URIs or text strings (JSON/YAML)
-- **Multiple Parser Backends**: Choose from PyYAML, ruamel.yaml (safe/roundtrip/AST modes)
+- **Multiple Parser Backends**: Choose from PyYAML, ruamel.yaml (safe/roundtrip/AST modes), or typed datamodels
+- **Low-Level Datamodels**: Parse directly to typed `OpenAPI30`/`OpenAPI31` objects with source tracking
 - **Enhanced JSON Serialization**: Built-in support for datetime, UUID, Path, Decimal, Enum, and attrs classes
 - **Type Safety**: Full type hints with overloaded methods for precise return types
 - **Extensible Design**: Easy integration of third-party parser backends
@@ -161,7 +162,7 @@ class OpenAPIParser:
 
 **Parameters:**
 - `backend`: Parser backend to use. Can be:
-  - `str`: Name of a backend registered via entry points (e.g., "pyyaml", "ruamel-safe", "ruamel-roundtrip", "ruamel-ast")
+  - `str`: Name of a backend registered via entry points (e.g., "pyyaml", "ruamel-safe", "ruamel-roundtrip", "ruamel-ast", "datamodel-low")
   - `BaseParserBackend`: Instance of a parser backend
   - `Type[BaseParserBackend]`: Class of a parser backend (will be instantiated)
   - Defaults to `"pyyaml"` if `None`
@@ -307,6 +308,56 @@ from ruamel.yaml import MappingNode  # Alternative import
 - Implementing precise error reporting with line/column numbers
 - AST-based transformations and analysis
 - Integration with validation tools that need exact source positions
+
+### datamodel-low
+Low-level OpenAPI datamodel parser that automatically detects the OpenAPI version (3.0.x or 3.1.x) and returns the appropriate typed datamodel with complete source tracking.
+
+**Accepts:** `text` (JSON/YAML strings), `uri` (file paths/URLs)
+
+**Returns:** `OpenAPI30` or `OpenAPI31` datamodel (from `jentic-openapi-datamodels`)
+
+```python
+from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.datamodels.low.v30.openapi import OpenAPI30
+from jentic.apitools.openapi.datamodels.low.v31.openapi import OpenAPI31
+
+parser = OpenAPIParser("datamodel-low")
+
+# Parse OpenAPI 3.0.x document
+doc = parser.parse("file:///path/to/openapi-3.0.yaml")
+assert isinstance(doc, OpenAPI30)
+print(doc.openapi.value)  # "3.0.4"
+print(doc.info.value.title.value)  # Access with source tracking
+
+# Parse OpenAPI 3.1.x document
+doc = parser.parse("file:///path/to/openapi-3.1.yaml")
+assert isinstance(doc, OpenAPI31)
+print(doc.openapi.value)  # "3.1.2"
+
+# Access fields with source information
+print(f"Title at line {doc.info.key_node.start_mark.line}")
+```
+
+**Features:**
+- **Automatic Version Detection**: Parses `openapi` field and routes to correct builder
+- **Typed Datamodels**: Returns strongly-typed `OpenAPI30` or `OpenAPI31` objects
+- **Complete Source Tracking**: Every field preserves YAML node information
+- **Version Suffix Support**: Handles versions like "3.0.4-rc1" or "3.1.2-beta"
+- **Error Handling**: Clear errors for unsupported versions (2.0, 3.2+)
+
+**Supported Versions:**
+- OpenAPI 3.0.x → returns `OpenAPI30`
+- OpenAPI 3.1.x → returns `OpenAPI31`
+
+**Unsupported (raises ValueError):**
+- OpenAPI 2.0 (Swagger)
+- OpenAPI 3.2.x and above
+
+**Use Cases:**
+- Type-safe OpenAPI document manipulation
+- Building validation tools with precise error messages
+- Code generation from OpenAPI specifications
+- AST transformations with version-aware logic
 
 ## Testing
 

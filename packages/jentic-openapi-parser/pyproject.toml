@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 dependencies = [
     "attrs~=25.4.0",
     "jentic-openapi-common~=1.0.0-alpha.20",
+    "jentic-openapi-datamodels~=1.0.0-alpha.19",
     "pyyaml~=6.0.3",
     "requests~=2.32.5",
     "ruamel-yaml~=0.18.15"
@@ -28,6 +29,7 @@ module-root = "src/"
 
 [tool.uv.sources]
 jentic-openapi-common = { workspace = true }
+jentic-openapi-datamodels = { workspace = true }
 
 [build-system]
 requires = ["uv_build~=0.8.15"]
@@ -38,4 +40,5 @@ pyyaml = "jentic.apitools.openapi.parser.backends.pyyaml:PyYAMLParserBackend"
 ruamel-safe = "jentic.apitools.openapi.parser.backends.ruamel_safe:RuamelSafeParserBackend"
 ruamel-roundtrip = "jentic.apitools.openapi.parser.backends.ruamel_roundtrip:RuamelRoundTripParserBackend"
 ruamel-ast = "jentic.apitools.openapi.parser.backends.ruamel_ast:RuamelASTParserBackend"
+datamodel-low = "jentic.apitools.openapi.parser.backends.datamodel_low:DatamodelLowParserBackend"
 

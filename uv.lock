@@ -301,6 +301,7 @@ source = { editable = "packages/jentic-openapi-parser" }
 dependencies = [
     { name = "attrs" },
     { name = "jentic-openapi-common" },
+    { name = "jentic-openapi-datamodels" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "ruamel-yaml" },
@@ -310,6 +311,7 @@ dependencies = [
 requires-dist = [
     { name = "attrs", specifier = "~=25.4.0" },
     { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
+    { name = "jentic-openapi-datamodels", editable = "packages/jentic-openapi-datamodels" },
     { name = "pyyaml", specifier = "~=6.0.3" },
     { name = "requests", specifier = "~=2.32.5" },
     { name = "ruamel-yaml", specifier = "~=0.18.15" },
