@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.21 (2025-11-19)
+
+### Chores
+
+- **deps**: Resolve security issues in npm deps
+  ([#154](https://github.com/jentic/jentic-openapi-tools/pull/154),
+  [`49f65b8`](https://github.com/jentic/jentic-openapi-tools/commit/49f65b82f7ed18f88bc1147945dbe12f82305dcd))
+
+### Features
+
+- **common**: Add OpenAPI version detection capabilities
+  ([#155](https://github.com/jentic/jentic-openapi-tools/pull/155),
+  [`94ae710`](https://github.com/jentic/jentic-openapi-tools/commit/94ae710f1aeb3b6d0e8ebf11e5044cc6e6c835b1))
+
+- **parser**: Add datamodel-low parser backend
+  ([#156](https://github.com/jentic/jentic-openapi-tools/pull/156),
+  [`3d0a5a2`](https://github.com/jentic/jentic-openapi-tools/commit/3d0a5a2b528bd6fded7bc913c218b591e4d260db))
+
+### Refactoring
+
+- **parser**: Use composition instead of inheritance for ruamel-ast parser
+  ([#153](https://github.com/jentic/jentic-openapi-tools/pull/153),
+  [`1ac0429`](https://github.com/jentic/jentic-openapi-tools/commit/1ac042902c78dab05a1cd9f01f79994bfe325be7))
+
+
 ## v1.0.0-alpha.20 (2025-11-18)
 
 ### Features
