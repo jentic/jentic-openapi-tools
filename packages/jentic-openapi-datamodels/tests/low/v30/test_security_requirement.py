@@ -82,7 +82,7 @@ def test_build_with_multiple_schemes(parse_yaml):
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert result.requirements is not None
+    assert isinstance(result.requirements, dict)
     assert len(result.requirements) == 2
 
     # Convert to dict for easier testing
@@ -124,7 +124,7 @@ def test_build_preserves_invalid_types(parse_yaml):
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert result.requirements is not None
+    assert isinstance(result.requirements, dict)
 
     # Convert to dict for testing
     requirements = {}
@@ -170,7 +170,7 @@ def test_build_with_custom_context(parse_yaml):
     result = security_requirement.build(root, context=custom_context)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert result.requirements is not None
+    assert isinstance(result.requirements, dict)
 
     # Extract scopes
     requirements = {}
@@ -228,7 +228,7 @@ def test_complex_oauth_scopes(parse_yaml):
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert result.requirements is not None
+    assert isinstance(result.requirements, dict)
 
     # Extract scopes
     requirements = {}
@@ -257,7 +257,7 @@ def test_multiple_requirements_different_types(parse_yaml):
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert result.requirements is not None
+    assert isinstance(result.requirements, dict)
     assert len(result.requirements) == 4
 
     # Extract all requirements

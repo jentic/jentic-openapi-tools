@@ -5,7 +5,7 @@ from typing import Any
 __all__ = ["fixed_field", "fixed_fields", "patterned_field", "patterned_fields"]
 
 
-def fixed_field(default: Any = None, metadata: dict[str, Any] | None = None) -> Any:
+def fixed_field(*, default: Any = None, metadata: dict[str, Any] | None = None) -> Any:
     """Mark a field as a fixed OpenAPI specification field."""
     return field(default=default, metadata={**(metadata or {}), "fixed_field": True})
 
