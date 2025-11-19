@@ -154,10 +154,10 @@ paths: {{}}
 
 
 def test_parse_version_with_suffix():
-    """Test parsing versions with suffixes like -rc1, -beta."""
+    """Test that versions with suffixes are rejected by version detection."""
     backend = DatamodelLowParserBackend()
 
-    # v3.0 with suffix
+    # v3.0 with suffix should be rejected
     yaml_text = """
 openapi: 3.0.4-rc1
 info:
@@ -165,12 +165,10 @@ info:
   version: 1.0.0
 paths: {}
 """
-    result = backend.parse(yaml_text)
-    assert isinstance(result, OpenAPI30)
-    assert result.openapi is not None
-    assert result.openapi.value == "3.0.4-rc1"
+    with pytest.raises(ValueError, match="Unsupported OpenAPI version"):
+        backend.parse(yaml_text)
 
-    # v3.1 with suffix
+    # v3.1 with suffix should be rejected
     yaml_text = """
 openapi: 3.1.2-beta
 info:
@@ -178,10 +176,8 @@ info:
   version: 1.0.0
 paths: {}
 """
-    result = backend.parse(yaml_text)
-    assert isinstance(result, OpenAPI31)
-    assert result.openapi is not None
-    assert result.openapi.value == "3.1.2-beta"
+    with pytest.raises(ValueError, match="Unsupported OpenAPI version"):
+        backend.parse(yaml_text)
 
 
 # Source Tracking Tests
@@ -430,8 +426,8 @@ info:
   version: 1.0.0
 paths: {}
 """
-    # swagger: '2.0' documents don't have 'openapi' field
-    with pytest.raises(ValueError, match="Missing required 'openapi' field"):
+    # swagger: '2.0' documents don't match OpenAPI 3.x patterns
+    with pytest.raises(ValueError, match="Unsupported OpenAPI version"):
         backend.parse(yaml_text)
 
 
@@ -445,7 +441,7 @@ info:
   version: 1.0.0
 paths: {}
 """
-    with pytest.raises(ValueError, match="Unsupported OpenAPI version: 3.2.x"):
+    with pytest.raises(ValueError, match="Unsupported OpenAPI version"):
         backend.parse(yaml_text)
 
 
@@ -458,7 +454,7 @@ info:
   version: 1.0.0
 paths: {}
 """
-    with pytest.raises(ValueError, match="Missing required 'openapi' field"):
+    with pytest.raises(ValueError, match="Unsupported OpenAPI version"):
         backend.parse(yaml_text)
 
 
@@ -472,8 +468,8 @@ info:
   version: 1.0.0
 paths: {}
 """
-    # 123 is parsed as int, but will fail at version format check
-    with pytest.raises(ValueError, match="Invalid openapi version format"):
+    # 123 is parsed as int, reported as unsupported version
+    with pytest.raises(ValueError, match="Unsupported OpenAPI version"):
         backend.parse(yaml_text)
 
 
@@ -487,20 +483,21 @@ info:
   version: 1.0.0
 paths: {}
 """
-    with pytest.raises(ValueError, match="Invalid openapi version format"):
+    # "3" doesn't match any version pattern
+    with pytest.raises(ValueError, match="Unsupported OpenAPI version"):
         backend.parse(yaml_text)
 
 
 def test_non_mapping_document():
-    """Test that non-mapping documents raise TypeError."""
+    """Test that non-mapping documents raise ValueError."""
     backend = DatamodelLowParserBackend()
 
-    # YAML list instead of mapping
-    with pytest.raises(TypeError, match="Parsed YAML document is not a mapping"):
+    # YAML list instead of mapping - doesn't match version patterns
+    with pytest.raises(ValueError, match="Unsupported OpenAPI version"):
         backend.parse("- item1\n- item2\n- item3")
 
-    # YAML scalar instead of mapping
-    with pytest.raises(TypeError, match="Parsed YAML document is not a mapping"):
+    # YAML scalar instead of mapping - doesn't match version patterns
+    with pytest.raises(ValueError, match="Unsupported OpenAPI version"):
         backend.parse("just a string")
 
 
