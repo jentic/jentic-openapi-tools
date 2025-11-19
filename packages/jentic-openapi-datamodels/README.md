@@ -47,9 +47,64 @@ pip install jentic-openapi-datamodels
 
 ## Quick Start
 
-### Parsing OpenAPI 3.0 Documents
+### Parsing with the `datamodel-low` Parser Backend (Recommended)
 
-The main use case is parsing complete OpenAPI Documents:
+The easiest way to parse OpenAPI documents into datamodels is using the `datamodel-low` backend from `jentic-openapi-parser`. This backend automatically detects the OpenAPI version and returns the appropriate typed datamodel:
+
+```python
+from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.parser.backends.datamodel_low import DataModelLow
+from jentic.apitools.openapi.datamodels.low.v30.openapi import OpenAPI30
+from jentic.apitools.openapi.datamodels.low.v31.openapi import OpenAPI31
+
+# Create parser with datamodel-low backend
+parser = OpenAPIParser("datamodel-low")
+
+# Parse OpenAPI 3.0 document - automatically returns OpenAPI30
+doc = parser.parse("""
+openapi: 3.0.4
+info:
+  title: Pet Store API
+  version: 1.0.0
+paths:
+  /pets:
+    get:
+      summary: List all pets
+      responses:
+        '200':
+          description: A list of pets
+""", return_type=DataModelLow)
+
+assert isinstance(doc, OpenAPI30)
+print(doc.openapi.value)  # "3.0.4"
+print(doc.info.value.title.value)  # "Pet Store API"
+
+# Parse OpenAPI 3.1 document - automatically returns OpenAPI31
+doc = parser.parse("""
+openapi: 3.1.2
+info:
+  title: Pet Store API
+  version: 1.0.0
+paths: {}
+""", return_type=DataModelLow)
+
+assert isinstance(doc, OpenAPI31)
+print(doc.openapi.value)  # "3.1.2"
+```
+
+**Benefits of `datamodel-low` backend:**
+- Automatic version detection (no manual version checking)
+- Returns strongly-typed `OpenAPI30` or `OpenAPI31` objects
+- Complete source tracking preserved
+- Single-step parsing (no need to manually call `build()`)
+
+### Manual Parsing with Builder Functions
+
+For advanced use cases or custom workflows, you can manually parse and build datamodels:
+
+#### Parsing OpenAPI 3.0 Documents
+
+The manual approach uses the `ruamel-ast` backend followed by calling the builder function:
 
 ```python
 from jentic.apitools.openapi.parser.core import OpenAPIParser
@@ -88,7 +143,7 @@ for path_key, path_item in openapi_doc.paths.value.path_items.items():
         print(f"  Summary: {operation.summary.value}")  # "List all pets"
 ```
 
-### Parsing OpenAPI 3.1 Documents with JSON Schema 2020-12
+#### Parsing OpenAPI 3.1 Documents with JSON Schema 2020-12
 
 OpenAPI 3.1 fully supports JSON Schema 2020-12, including advanced features like boolean schemas, conditional validation and vocabulary declarations:
 
