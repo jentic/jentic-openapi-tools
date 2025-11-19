@@ -9,7 +9,11 @@ from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
 from jentic.apitools.openapi.parser.core.loader import load_uri
 
 
-__all__ = ["RuamelSafeParserBackend"]
+__all__ = [
+    "RuamelSafeParserBackend",
+    # Re-export CommentedMap type for convenience
+    "CommentedMap",
+]
 
 
 class RuamelSafeParserBackend(BaseParserBackend):
