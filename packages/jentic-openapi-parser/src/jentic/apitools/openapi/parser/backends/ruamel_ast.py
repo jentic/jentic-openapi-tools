@@ -2,11 +2,10 @@ import logging
 from collections.abc import Sequence
 from typing import Literal
 
-from ruamel.yaml import MappingNode
+from ruamel.yaml import YAML, MappingNode
 
 from jentic.apitools.openapi.common.uri import is_uri_like
 from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
-from jentic.apitools.openapi.parser.backends.ruamel_roundtrip import RuamelRoundTripParserBackend
 from jentic.apitools.openapi.parser.core.loader import load_uri
 
 
@@ -18,8 +17,9 @@ __all__ = [
 
 
 class RuamelASTParserBackend(BaseParserBackend):
-    def __init__(self, pure: bool = True):
-        self.yaml = RuamelRoundTripParserBackend(pure=pure).yaml
+    def __init__(self, typ: str = "rt", pure: bool = True):
+        self.yaml = YAML(typ=typ, pure=pure)
+        self.yaml.default_flow_style = False
 
     def parse(self, document: str, *, logger: logging.Logger | None = None) -> MappingNode:
         logger = logger or logging.getLogger(__name__)
