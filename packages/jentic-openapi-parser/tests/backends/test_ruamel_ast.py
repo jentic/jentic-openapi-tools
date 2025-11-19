@@ -7,8 +7,6 @@ import pytest
 from ruamel.yaml import MappingNode, ScalarNode
 
 from jentic.apitools.openapi.parser.backends.ruamel_ast import RuamelASTParserBackend
-from jentic.apitools.openapi.parser.backends.ruamel_roundtrip import RuamelRoundTripParserBackend
-from jentic.apitools.openapi.parser.backends.ruamel_safe import RuamelSafeParserBackend
 from jentic.apitools.openapi.parser.core import OpenAPIParser
 
 
@@ -103,13 +101,15 @@ def test_non_mapping_document():
 
 
 def test_inheritance():
-    """Test RuamelASTParserBackend inherits from RuamelRoundTripParserBackend."""
+    """Test RuamelASTParserBackend inherits from BaseParserBackend."""
     backend = RuamelASTParserBackend()
 
-    assert isinstance(backend, RuamelRoundTripParserBackend)
-    assert isinstance(backend, RuamelSafeParserBackend)
+    # Uses composition, not inheritance from RuamelRoundTripParserBackend
+    from jentic.apitools.openapi.parser.backends.base import BaseParserBackend
 
-    # Should have yaml instance
+    assert isinstance(backend, BaseParserBackend)
+
+    # Should have yaml instance (via composition)
     assert hasattr(backend, "yaml")
     assert backend.yaml is not None
 
