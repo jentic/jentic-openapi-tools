@@ -45,6 +45,25 @@ Path security utilities for validating and securing filesystem access. Provides 
 
 Subprocess execution utilities with enhanced error handling and cross-platform support.
 
+### version_detection
+
+OpenAPI/Swagger version detection utilities. Provides functions to detect and extract version information from OpenAPI documents in text (YAML/JSON) or Mapping formats.
+
+**Available functions:**
+
+- `get_version(document: str | Mapping[str, Any]) -> str | None` - Extract version string from document (e.g., "3.0.4", "2.0")
+- `is_openapi_20(document: str | Mapping[str, Any]) -> bool` - Check if document is OpenAPI 2.0 (Swagger 2.0)
+- `is_openapi_30(document: str | Mapping[str, Any]) -> bool` - Check if document is OpenAPI 3.0.x
+- `is_openapi_31(document: str | Mapping[str, Any]) -> bool` - Check if document is OpenAPI 3.1.x
+- `is_openapi_32(document: str | Mapping[str, Any]) -> bool` - Check if document is OpenAPI 3.2.x
+
+**Version Detection Behavior:**
+
+- **Text input**: Validates against regex patterns, only returns/matches valid versions per specification
+- **Mapping input**:
+  - `get_version()` returns whatever version string is present (for extraction/inspection)
+  - `is_openapi_*()` validates against patterns (for version checking)
+
 ## Usage Examples
 
 ### URI Utilities
@@ -208,4 +227,83 @@ except SubprocessExecutionError as e:
 # Custom encoding
 result = run_subprocess(["python", "-c", "print('ñ')"], encoding="utf-8")
 print(result.stdout)  # "ñ\n"
+```
+
+### Version Detection
+
+```python
+from jentic.apitools.openapi.common.version_detection import (
+    get_version,
+    is_openapi_20,
+    is_openapi_30,
+    is_openapi_31,
+    is_openapi_32,
+)
+
+# Extract version from text (YAML/JSON)
+yaml_doc = """
+openapi: 3.0.4
+info:
+  title: Pet Store API
+  version: 1.0.0
+"""
+version = get_version(yaml_doc)
+print(version)  # "3.0.4"
+
+json_doc = '{"openapi": "3.1.2", "info": {"title": "API", "version": "1.0.0"}}'
+version = get_version(json_doc)
+print(version)  # "3.1.2"
+
+# Extract version from Mapping (returns any version string, even if unsupported)
+doc = {"openapi": "3.0.4"}
+version = get_version(doc)
+print(version)  # "3.0.4"
+
+# Even unsupported versions are returned from Mapping
+doc = {"openapi": "3.0.4-rc1"}
+version = get_version(doc)
+print(version)  # "3.0.4-rc1" (suffix returned as-is)
+
+# But text input validates with regex
+version = get_version("openapi: 3.0.4-rc1")
+print(version)  # None (suffix doesn't match pattern)
+
+# Version checking with predicates (validates for both text and Mapping)
+doc_20 = {"swagger": "2.0"}
+print(is_openapi_20(doc_20))  # True
+print(is_openapi_30(doc_20))  # False
+
+doc_30 = {"openapi": "3.0.4"}
+print(is_openapi_30(doc_30))  # True
+print(is_openapi_31(doc_30))  # False
+
+doc_31 = {"openapi": "3.1.2"}
+print(is_openapi_31(doc_31))  # True
+print(is_openapi_32(doc_31))  # False
+
+doc_32 = {"openapi": "3.2.0"}
+print(is_openapi_32(doc_32))  # True
+
+# Predicates validate strictly
+doc_suffix = {"openapi": "3.0.4-rc1"}
+print(is_openapi_30(doc_suffix))  # False (suffix rejected)
+
+doc_unsupported = {"openapi": "3.3.0"}
+print(is_openapi_32(doc_unsupported))  # False (unsupported version)
+
+# Works with YAML text too
+yaml_text = "openapi: 3.0.4\ninfo:\n  title: API"
+print(is_openapi_30(yaml_text))  # True
+
+# Works with JSON text
+json_text = '{"openapi": "3.1.2"}'
+print(is_openapi_31(json_text))  # True
+```
+
+## Testing
+
+Run the test suite:
+
+```bash
+uv run --package jentic-openapi-common pytest packages/jentic-openapi-common -v
 ```
