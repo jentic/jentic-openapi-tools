@@ -310,11 +310,11 @@ from ruamel.yaml import MappingNode  # Alternative import
 - Integration with validation tools that need exact source positions
 
 ### datamodel-low
-Low-level OpenAPI datamodel parser that automatically detects the OpenAPI version (3.0.x or 3.1.x) and returns the appropriate typed datamodel with complete source tracking.
+Low-level OpenAPI data model parser that automatically detects the OpenAPI version (3.0.x or 3.1.x) and returns the appropriate typed datamodel with complete source tracking.
 
 **Accepts:** `text` (JSON/YAML strings), `uri` (file paths/URLs)
 
-**Returns:** `OpenAPI30` or `OpenAPI31` datamodel (from `jentic-openapi-datamodels`)
+**Returns:** `OpenAPI30` or `OpenAPI31` data model (from `jentic-openapi-datamodels`)
 
 ```python
 from jentic.apitools.openapi.parser.core import OpenAPIParser
@@ -342,7 +342,6 @@ print(f"Title at line {doc.info.key_node.start_mark.line}")
 - **Automatic Version Detection**: Parses `openapi` field and routes to correct builder
 - **Typed Datamodels**: Returns strongly-typed `OpenAPI30` or `OpenAPI31` objects
 - **Complete Source Tracking**: Every field preserves YAML node information
-- **Version Suffix Support**: Handles versions like "3.0.4-rc1" or "3.1.2-beta"
 - **Error Handling**: Clear errors for unsupported versions (2.0, 3.2+)
 
 **Supported Versions:**

@@ -40,5 +40,5 @@ pyyaml = "jentic.apitools.openapi.parser.backends.pyyaml:PyYAMLParserBackend"
 ruamel-safe = "jentic.apitools.openapi.parser.backends.ruamel_safe:RuamelSafeParserBackend"
 ruamel-roundtrip = "jentic.apitools.openapi.parser.backends.ruamel_roundtrip:RuamelRoundTripParserBackend"
 ruamel-ast = "jentic.apitools.openapi.parser.backends.ruamel_ast:RuamelASTParserBackend"
-datamodel-low = "jentic.apitools.openapi.parser.backends.datamodel_low:DatamodelLowParserBackend"
+datamodel-low = "jentic.apitools.openapi.parser.backends.datamodel_low:DataModelLowParserBackend"
 

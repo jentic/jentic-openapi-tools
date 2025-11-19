@@ -1,4 +1,4 @@
-"""Tests for DatamodelLowParserBackend."""
+"""Tests for DataModelLowParserBackend."""
 
 import textwrap
 from pathlib import Path
@@ -10,7 +10,7 @@ from jentic.apitools.openapi.datamodels.low.v31.openapi import OpenAPI31
 from jentic.apitools.openapi.datamodels.low.v31.response import Response
 from jentic.apitools.openapi.datamodels.low.v31.schema import Schema
 from jentic.apitools.openapi.parser.backends.datamodel_low import (
-    DatamodelLowParserBackend,
+    DataModelLowParserBackend,
 )
 from jentic.apitools.openapi.parser.core import OpenAPIParser
 
@@ -19,8 +19,8 @@ from jentic.apitools.openapi.parser.core import OpenAPIParser
 
 
 def test_parse_v30_text():
-    """Test DatamodelLowParserBackend can parse OpenAPI 3.0 text documents."""
-    backend = DatamodelLowParserBackend()
+    """Test DataModelLowParserBackend can parse OpenAPI 3.0 text documents."""
+    backend = DataModelLowParserBackend()
     yaml_text = textwrap.dedent(
         """
         openapi: 3.0.4
@@ -44,8 +44,8 @@ def test_parse_v30_text():
 
 
 def test_parse_v31_text():
-    """Test DatamodelLowParserBackend can parse OpenAPI 3.1 text documents."""
-    backend = DatamodelLowParserBackend()
+    """Test DataModelLowParserBackend can parse OpenAPI 3.1 text documents."""
+    backend = DataModelLowParserBackend()
     yaml_text = textwrap.dedent(
         """
         openapi: 3.1.2
@@ -69,8 +69,8 @@ def test_parse_v31_text():
 
 
 def test_parse_json():
-    """Test DatamodelLowParserBackend can parse JSON documents."""
-    backend = DatamodelLowParserBackend()
+    """Test DataModelLowParserBackend can parse JSON documents."""
+    backend = DataModelLowParserBackend()
     json_text = '{"openapi":"3.0.4","info":{"title":"Test API","version":"1.0.0"},"paths":{}}'
 
     result = backend.parse(json_text)
@@ -81,8 +81,8 @@ def test_parse_json():
 
 
 def test_parse_uri(tmp_path: Path):
-    """Test DatamodelLowParserBackend can parse documents from URIs."""
-    backend = DatamodelLowParserBackend()
+    """Test DataModelLowParserBackend can parse documents from URIs."""
+    backend = DataModelLowParserBackend()
 
     # Create a test YAML file
     yaml_content = textwrap.dedent(
@@ -106,8 +106,8 @@ def test_parse_uri(tmp_path: Path):
 
 
 def test_accepts():
-    """Test DatamodelLowParserBackend reports correct accepted formats."""
-    backend = DatamodelLowParserBackend()
+    """Test DataModelLowParserBackend reports correct accepted formats."""
+    backend = DataModelLowParserBackend()
     accepts = backend.accepts()
 
     assert "text" in accepts
@@ -119,7 +119,7 @@ def test_accepts():
 
 def test_parse_v30_with_patch():
     """Test parsing OpenAPI 3.0.x with various patch versions."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
 
     for patch_version in ["3.0.0", "3.0.1", "3.0.2", "3.0.3", "3.0.4"]:
         yaml_text = f"""
@@ -137,7 +137,7 @@ paths: {{}}
 
 def test_parse_v31_with_patch():
     """Test parsing OpenAPI 3.1.x with various patch versions."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
 
     for patch_version in ["3.1.0", "3.1.1", "3.1.2"]:
         yaml_text = f"""
@@ -155,7 +155,7 @@ paths: {{}}
 
 def test_parse_version_with_suffix():
     """Test that versions with suffixes are rejected by version detection."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
 
     # v3.0 with suffix should be rejected
     yaml_text = """
@@ -184,8 +184,8 @@ paths: {}
 
 
 def test_preserves_source_location():
-    """Test DatamodelLowParserBackend preserves source location information."""
-    backend = DatamodelLowParserBackend()
+    """Test DataModelLowParserBackend preserves source location information."""
+    backend = DataModelLowParserBackend()
     yaml_text = textwrap.dedent(
         """\
         openapi: 3.0.4
@@ -214,7 +214,7 @@ def test_preserves_source_location():
 
 def test_line_column_info():
     """Test that backend provides accurate line/column information."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
     yaml_text = textwrap.dedent(
         """\
         openapi: 3.0.4
@@ -240,7 +240,7 @@ def test_line_column_info():
 
 def test_field_access_v30():
     """Test accessing fields in OpenAPI 3.0 datamodel."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
     yaml_text = textwrap.dedent(
         """
         openapi: 3.0.4
@@ -287,7 +287,7 @@ def test_field_access_v30():
 
 def test_field_access_v31():
     """Test accessing fields in OpenAPI 3.1 datamodel with JSON Schema 2020-12."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
     yaml_text = textwrap.dedent(
         """
         openapi: 3.1.2
@@ -370,10 +370,10 @@ def test_field_access_v31():
 
 
 def test_with_parser():
-    """Test DatamodelLowParserBackend integration with OpenAPIParser."""
+    """Test DataModelLowParserBackend integration with OpenAPIParser."""
     parser = OpenAPIParser("datamodel-low")
     backend_name = type(parser.backend).__name__
-    assert backend_name == "DatamodelLowParserBackend"
+    assert backend_name == "DataModelLowParserBackend"
 
     yaml_text = textwrap.dedent(
         """
@@ -418,7 +418,7 @@ def test_parser_v31():
 
 def test_unsupported_version_swagger_20():
     """Test that Swagger 2.0 raises ValueError."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
     yaml_text = """
 swagger: '2.0'
 info:
@@ -433,7 +433,7 @@ paths: {}
 
 def test_unsupported_version_32():
     """Test that OpenAPI 3.2 raises ValueError."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
     yaml_text = """
 openapi: 3.2.0
 info:
@@ -447,7 +447,7 @@ paths: {}
 
 def test_missing_openapi_field():
     """Test that documents without openapi field raise ValueError."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
     yaml_text = """
 info:
   title: Test
@@ -460,7 +460,7 @@ paths: {}
 
 def test_invalid_openapi_field_type():
     """Test that non-string openapi field raises ValueError."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
     yaml_text = """
 openapi: 123
 info:
@@ -475,7 +475,7 @@ paths: {}
 
 def test_invalid_version_format():
     """Test that invalid version format raises ValueError."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
     yaml_text = """
 openapi: "3"
 info:
@@ -490,7 +490,7 @@ paths: {}
 
 def test_non_mapping_document():
     """Test that non-mapping documents raise ValueError."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
 
     # YAML list instead of mapping - doesn't match version patterns
     with pytest.raises(ValueError, match="Unsupported OpenAPI version"):
@@ -506,7 +506,7 @@ def test_non_mapping_document():
 
 def test_real_world_v30_document():
     """Test parsing a realistic OpenAPI 3.0 document."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
     yaml_text = textwrap.dedent(
         """
         openapi: 3.0.4
@@ -579,7 +579,7 @@ def test_real_world_v30_document():
 
 def test_real_world_v31_document():
     """Test parsing a realistic OpenAPI 3.1 document."""
-    backend = DatamodelLowParserBackend()
+    backend = DataModelLowParserBackend()
     yaml_text = textwrap.dedent(
         """
         openapi: 3.1.2

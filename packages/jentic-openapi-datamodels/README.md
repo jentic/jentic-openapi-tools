@@ -53,6 +53,7 @@ The easiest way to parse OpenAPI documents into datamodels is using the `datamod
 
 ```python
 from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.parser.backends.datamodel_low import DataModelLow
 from jentic.apitools.openapi.datamodels.low.v30.openapi import OpenAPI30
 from jentic.apitools.openapi.datamodels.low.v31.openapi import OpenAPI31
 
@@ -72,7 +73,7 @@ paths:
       responses:
         '200':
           description: A list of pets
-""")
+""", return_type=DataModelLow)
 
 assert isinstance(doc, OpenAPI30)
 print(doc.openapi.value)  # "3.0.4"
@@ -85,7 +86,7 @@ info:
   title: Pet Store API
   version: 1.0.0
 paths: {}
-""")
+""", return_type=DataModelLow)
 
 assert isinstance(doc, OpenAPI31)
 print(doc.openapi.value)  # "3.1.2"

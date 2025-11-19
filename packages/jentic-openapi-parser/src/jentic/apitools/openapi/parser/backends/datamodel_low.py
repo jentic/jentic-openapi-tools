@@ -20,10 +20,10 @@ from jentic.apitools.openapi.parser.core.loader import load_uri
 DataModelLow: TypeAlias = OpenAPI30 | OpenAPI31 | ValueSource
 
 
-__all__ = ["DatamodelLowParserBackend", "DataModelLow"]
+__all__ = ["DataModelLowParserBackend", "DataModelLow"]
 
 
-class DatamodelLowParserBackend(BaseParserBackend):
+class DataModelLowParserBackend(BaseParserBackend):
     """Parser backend that returns low-level OpenAPI datamodels.
 
     This backend uses the RuamelASTParserBackend to parse YAML documents into
