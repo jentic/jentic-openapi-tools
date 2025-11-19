@@ -22,12 +22,11 @@ def test_build_with_single_scheme_empty_scopes(parse_yaml):
     assert isinstance(result, security_requirement.SecurityRequirement)
 
     assert result.root_node == root
-    assert isinstance(result.requirements, ValueSource)
-    assert isinstance(result.requirements.value, dict)
-    assert len(result.requirements.value) == 1
+    assert isinstance(result.requirements, dict)
+    assert len(result.requirements) == 1
 
     # Extract the api_key entry
-    api_key_entries = [(k.value, v.value) for k, v in result.requirements.value.items()]
+    api_key_entries = [(k.value, v.value) for k, v in result.requirements.items()]
     assert len(api_key_entries) == 1
     key, scopes = api_key_entries[0]
     assert key == "api_key"
@@ -49,10 +48,10 @@ def test_build_with_oauth2_scopes(parse_yaml):
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert isinstance(result.requirements, ValueSource)
+    assert isinstance(result.requirements, dict)
 
     # Extract scopes
-    requirements_dict = result.requirements.value
+    requirements_dict = result.requirements
     petstore_auth_key = None
     for k in requirements_dict.keys():
         if k.value == "petstore_auth":
@@ -83,12 +82,12 @@ def test_build_with_multiple_schemes(parse_yaml):
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert result.requirements is not None
-    assert len(result.requirements.value) == 2
+    assert isinstance(result.requirements, dict)
+    assert len(result.requirements) == 2
 
     # Convert to dict for easier testing
     requirements = {}
-    for k, v in result.requirements.value.items():
+    for k, v in result.requirements.items():
         requirements[k.value] = [scope.value for scope in v.value]
 
     assert "oauth2" in requirements
@@ -109,7 +108,7 @@ def test_build_with_empty_object(parse_yaml):
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert result.requirements is None
+    assert len(result.requirements) == 0
 
 
 def test_build_preserves_invalid_types(parse_yaml):
@@ -125,11 +124,11 @@ def test_build_preserves_invalid_types(parse_yaml):
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert result.requirements is not None
+    assert isinstance(result.requirements, dict)
 
     # Convert to dict for testing
     requirements = {}
-    for k, v in result.requirements.value.items():
+    for k, v in result.requirements.items():
         requirements[k.value] = v.value
 
     # Should preserve the actual invalid values
@@ -171,11 +170,11 @@ def test_build_with_custom_context(parse_yaml):
     result = security_requirement.build(root, context=custom_context)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert result.requirements is not None
+    assert isinstance(result.requirements, dict)
 
     # Extract scopes
     requirements = {}
-    for k, v in result.requirements.value.items():
+    for k, v in result.requirements.items():
         requirements[k.value] = [scope.value for scope in v.value]
 
     assert requirements["custom_auth"] == ["scope1", "scope2"]
@@ -195,17 +194,16 @@ def test_source_tracking(parse_yaml):
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    # Check that the entire requirements dict is wrapped
-    assert isinstance(result.requirements, ValueSource)
-    assert result.requirements.value_node is not None
+    # Check that the requirements dict is present
+    assert isinstance(result.requirements, dict)
 
     # Check that keys are wrapped
-    for key in result.requirements.value.keys():
+    for key in result.requirements.keys():
         assert key.key_node is not None
         assert key.value == "petstore_auth"
 
     # Check that scope arrays are wrapped
-    for value in result.requirements.value.values():
+    for value in result.requirements.values():
         assert isinstance(value, ValueSource)
         assert value.value_node is not None
 
@@ -230,11 +228,11 @@ def test_complex_oauth_scopes(parse_yaml):
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert result.requirements is not None
+    assert isinstance(result.requirements, dict)
 
     # Extract scopes
     requirements = {}
-    for k, v in result.requirements.value.items():
+    for k, v in result.requirements.items():
         requirements[k.value] = [scope.value for scope in v.value]
 
     assert len(requirements["google_oauth"]) == 3
@@ -259,12 +257,12 @@ def test_multiple_requirements_different_types(parse_yaml):
     result = security_requirement.build(root)
     assert isinstance(result, security_requirement.SecurityRequirement)
 
-    assert result.requirements is not None
-    assert len(result.requirements.value) == 4
+    assert isinstance(result.requirements, dict)
+    assert len(result.requirements) == 4
 
     # Extract all requirements
     requirements = {}
-    for k, v in result.requirements.value.items():
+    for k, v in result.requirements.items():
         requirements[k.value] = [scope.value for scope in v.value]
 
     # Check all schemes present

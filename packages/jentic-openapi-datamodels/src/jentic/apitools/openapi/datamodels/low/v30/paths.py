@@ -4,6 +4,7 @@ from ruamel import yaml
 
 from ..context import Context
 from ..extractors import extract_extension_fields
+from ..fields import patterned_field
 from ..sources import KeySource, ValueSource, YAMLInvalidValue, YAMLValue
 from .path_item import PathItem
 from .path_item import build as build_path_item
@@ -33,7 +34,7 @@ class Paths:
     """
 
     root_node: yaml.Node
-    paths: dict[KeySource[str], PathItem] = field(default_factory=dict)
+    paths: dict[KeySource[str], PathItem] = patterned_field(default_factory=dict)
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
