@@ -6,7 +6,7 @@ from ruamel import yaml
 
 from ..context import Context
 from ..extractors import extract_extension_fields
-from ..fields import fixed_field
+from ..fields import fixed_field, patterned_field
 from ..sources import FieldSource, KeySource, ValueSource, YAMLInvalidValue, YAMLValue
 from .reference import Reference
 from .response import Response, build_response_or_reference
@@ -34,7 +34,7 @@ class Responses:
 
     root_node: yaml.Node
     default: FieldSource[Response | Reference] | None = fixed_field()
-    responses: dict[KeySource[str], Response | Reference] = field(default_factory=dict)
+    responses: dict[KeySource[str], Response | Reference] = patterned_field(default_factory=dict)
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 

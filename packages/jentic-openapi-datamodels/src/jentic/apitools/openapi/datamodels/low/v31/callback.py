@@ -4,6 +4,7 @@ from ruamel import yaml
 
 from ..context import Context
 from ..extractors import extract_extension_fields
+from ..fields import patterned_field
 from ..sources import KeySource, ValueSource, YAMLInvalidValue, YAMLValue
 from .path_item import PathItem
 from .path_item import build as build_path_item
@@ -33,7 +34,7 @@ class Callback:
     """
 
     root_node: yaml.Node
-    path_items: dict[KeySource[str], PathItem] = field(default_factory=dict)
+    path_items: dict[KeySource[str], PathItem] = patterned_field(default_factory=dict)
     extensions: dict[KeySource[str], ValueSource[YAMLValue]] = field(default_factory=dict)
 
 
@@ -86,7 +87,7 @@ def build(
     extension_properties = {k.value for k in extensions.keys()}
 
     # Process each field to determine if it's an expression (not an extension)
-    path_items: dict[KeySource[str], PathItem | ValueSource[YAMLInvalidValue]] = {}
+    path_items = {}
 
     for key_node, value_node in root.value:
         expression = context.yaml_constructor.construct_yaml_str(key_node)
@@ -99,7 +100,7 @@ def build(
     # Create and return the Callback object with collected data
     return Callback(
         root_node=root,
-        path_items=path_items,  # type: ignore[arg-type]
+        path_items=path_items,
         extensions=extensions,
     )
 
