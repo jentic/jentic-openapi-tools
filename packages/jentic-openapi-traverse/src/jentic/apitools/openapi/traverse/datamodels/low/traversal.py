@@ -7,7 +7,7 @@ from .path import NodePath
 # Control flow symbol
 BREAK = object()
 
-__all__ = ["DataModelLowVisitor", "traverse", "BREAK"]
+__all__ = ["DataModelLowVisitor", "traverse", "BREAK", "default_traverse_children"]
 
 
 class DataModelLowVisitor:
@@ -64,14 +64,22 @@ class DataModelLowVisitor:
         Returns:
             None (continues traversal)
         """
-        return _default_traverse_children(self, path)
+        return default_traverse_children(self, path)
 
 
-def _default_traverse_children(visitor, path: NodePath):
+def default_traverse_children(visitor, path: NodePath):
     """
     Default child traversal logic.
 
     Used when no visit method exists or when visit method returns None.
+    Can be used by custom visitors that need standard child traversal behavior.
+
+    Args:
+        visitor: Visitor object with visit_* methods
+        path: Current node path
+
+    Returns:
+        BREAK to stop traversal, None otherwise
     """
     # Get all traversable fields
     for field_name, field_value in get_traversable_fields(path.node):
@@ -171,7 +179,7 @@ def _visit_node(visitor, path: NodePath):
                 return BREAK
         else:
             # Use default traversal
-            result = _default_traverse_children(visitor, path)
+            result = default_traverse_children(visitor, path)
             if result is BREAK:
                 return BREAK
 

@@ -410,6 +410,20 @@ name = "jentic-openapi-traverse"
 version = "1.0.0a21"
 source = { editable = "packages/jentic-openapi-traverse" }
 
+[package.dev-dependencies]
+dev = [
+    { name = "jentic-openapi-datamodels" },
+    { name = "jentic-openapi-parser" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "jentic-openapi-datamodels", editable = "packages/jentic-openapi-datamodels" },
+    { name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" },
+]
+
 [[package]]
 name = "jentic-openapi-validator"
 version = "1.0.0a21"

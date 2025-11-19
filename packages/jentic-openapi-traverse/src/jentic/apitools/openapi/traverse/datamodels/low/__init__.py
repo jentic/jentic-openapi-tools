@@ -2,7 +2,7 @@
 
 from .merge import merge_visitors
 from .path import NodePath
-from .traversal import BREAK, DataModelLowVisitor, traverse
+from .traversal import BREAK, DataModelLowVisitor, default_traverse_children, traverse
 
 
 __all__ = [
@@ -11,4 +11,5 @@ __all__ = [
     "BREAK",
     "NodePath",
     "merge_visitors",
+    "default_traverse_children",
 ]

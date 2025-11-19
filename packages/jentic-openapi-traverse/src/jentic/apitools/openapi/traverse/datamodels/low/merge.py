@@ -1,7 +1,7 @@
 """Visitor merging utilities (ApiDOM pattern)."""
 
 from .path import NodePath
-from .traversal import BREAK
+from .traversal import BREAK, default_traverse_children
 
 
 __all__ = ["merge_visitors"]
@@ -9,44 +9,76 @@ __all__ = ["merge_visitors"]
 
 def merge_visitors(*visitors) -> object:
     """
-    Merge multiple visitors into one composite visitor.
+    Merge multiple visitors into one composite visitor (ApiDOM semantics).
 
-    Visitors are called in sequence on each node.
-    If any visitor returns BREAK, traversal stops immediately.
-    If any visitor returns False, children are skipped.
+    Each visitor maintains independent state:
+    - If visitor[i] returns False, only that visitor skips children (resumes when leaving)
+    - If visitor[i] returns BREAK, only that visitor stops permanently
+    - Other visitors continue normally
+
+    This matches ApiDOM's per-visitor control model where each visitor can
+    independently skip subtrees or stop without affecting other visitors.
 
     Args:
         *visitors: Visitor objects (with visit_* methods)
 
     Returns:
-        A new visitor object that runs all visitors in sequence
+        A new visitor object that runs all visitors with independent state
 
     Example:
         security_check = SecurityCheckVisitor()
         counter = OperationCounterVisitor()
         validator = SchemaValidatorVisitor()
 
+        # Each visitor can skip/break independently
         merged = merge_visitors(security_check, counter, validator)
         traverse(doc, merged)
+
+        # If security_check.visit_PathItem returns False:
+        # - security_check skips PathItem's children
+        # - counter and validator still visit children normally
     """
 
     class MergedVisitor:
-        """Composite visitor that runs multiple visitors."""
+        """Composite visitor with per-visitor state tracking (ApiDOM pattern)."""
 
         def __init__(self, visitors):
             self.visitors = visitors
+            # State per visitor: None = active, NodePath = skipping, BREAK = stopped
+            self._skipping_state = [None] * len(visitors)
+
+        def _is_active(self, visitor_idx):
+            """Check if visitor is active (not skipping or stopped)."""
+            return self._skipping_state[visitor_idx] is None
+
+        def _is_skipping_node(self, visitor_idx, path):
+            """Check if we're leaving the exact node this visitor skipped."""
+            state = self._skipping_state[visitor_idx]
+            if state is None or state is BREAK:
+                return False
+            # Compare node identity (not equality)
+            return state.node is path.node
+
+        def generic_visit(self, path: NodePath):
+            """
+            Default child traversal for merged visitor.
+
+            Uses default traversal logic since merged visitor always
+            continues to children (per-visitor skip is handled internally).
+            """
+            return default_traverse_children(self, path)
 
         def __getattr__(self, name):
             """
             Dynamically handle visit_* method calls.
 
-            Calls the same method on all child visitors in sequence.
+            Maintains per-visitor state for skip/break control.
 
             Args:
                 name: Method name being called
 
             Returns:
-                Callable that merges visitor results
+                Callable that merges visitor results with state tracking
 
             Raises:
                 AttributeError: If not a visit_* method
@@ -54,22 +86,32 @@ def merge_visitors(*visitors) -> object:
             if not name.startswith("visit"):
                 raise AttributeError(f"'{self.__class__.__name__}' has no attribute '{name}'")
 
+            # Determine if this is a leave hook
+            is_leave_hook = name.startswith("visit_leave")
+
             def merged_visit_method(path: NodePath):
-                skip_children = False
+                for i, visitor in enumerate(self.visitors):
+                    if is_leave_hook:
+                        # Leave hook: only call if visitor is active
+                        if self._is_active(i) and hasattr(visitor, name):
+                            result = getattr(visitor, name)(path)
+                            if result is BREAK:
+                                self._skipping_state[i] = BREAK  # Stop this visitor
+                        # Resume visitor if leaving the skipped node (don't call leave hook)
+                        elif self._is_skipping_node(i, path):
+                            self._skipping_state[i] = None  # Resume for next nodes
+                    else:
+                        # Enter/visit hook: only call if visitor is active
+                        if self._is_active(i) and hasattr(visitor, name):
+                            result = getattr(visitor, name)(path)
 
-                for visitor in self.visitors:
-                    if hasattr(visitor, name):
-                        result = getattr(visitor, name)(path)
+                            if result is BREAK:
+                                self._skipping_state[i] = BREAK  # Stop this visitor
+                            elif result is False:
+                                self._skipping_state[i] = path  # Skip descendants
 
-                        # BREAK stops everything
-                        if result is BREAK:
-                            return BREAK
-
-                        # False marks to skip children
-                        if result is False:
-                            skip_children = True
-
-                return False if skip_children else None
+                # Never return BREAK or False - let traversal continue for all visitors
+                return None
 
             return merged_visit_method
 

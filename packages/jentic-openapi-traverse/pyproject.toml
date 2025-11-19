@@ -9,11 +9,21 @@ license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = []
 
+[dependency-groups]
+dev = [
+    "jentic-openapi-parser",
+    "jentic-openapi-datamodels",
+]
+
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
 
 [tool.uv]
 package = true
+
+[tool.uv.sources]
+jentic-openapi-parser = { workspace = true }
+jentic-openapi-datamodels = { workspace = true }
 
 [tool.uv.build-backend]
 namespace = true
