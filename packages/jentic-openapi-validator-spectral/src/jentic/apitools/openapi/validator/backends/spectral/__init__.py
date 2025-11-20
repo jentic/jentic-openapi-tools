@@ -1,4 +1,5 @@
 import json
+import logging
 import shlex
 import tempfile
 from collections.abc import Sequence
@@ -21,6 +22,8 @@ from jentic.apitools.openapi.validator.core import JenticDiagnostic, ValidationR
 
 __all__ = ["SpectralValidatorBackend"]
 
+
+logger = logging.getLogger(__name__)
 
 rulesets_files_dir = files("jentic.apitools.openapi.validator.backends.spectral.rulesets")
 ruleset_file = rulesets_files_dir.joinpath("spectral.mjs")
@@ -135,6 +138,9 @@ class SpectralValidatorBackend(BaseValidatorBackend):
                 else self.ruleset_path
             )
 
+            with tempfile.NamedTemporaryFile() as tmp_output:
+                output_path = tmp_output.name
+
             with as_file(ruleset_file) as default_ruleset_path:
                 # Build spectral command
                 cmd = [
@@ -144,6 +150,8 @@ class SpectralValidatorBackend(BaseValidatorBackend):
                     validated_ruleset_path or default_ruleset_path,
                     "-f",
                     "json",
+                    "-o",
+                    output_path,
                     validated_doc_path,
                 ]
                 result = run_subprocess(cmd, timeout=self.timeout)
@@ -155,21 +163,31 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         if result is None:
             raise RuntimeError("Spectral validation failed - no result returned")
 
-        if result.returncode not in (0, 1) or (result.stderr and not result.stdout):
+        # Check for execution errors
+        if result.returncode not in (0, 1):
             # According to Spectral docs, return code 2 might indicate lint errors found,
             # 0 means no issues, but let's not assume this; we'll parse output.
             # If returncode is something else, spectral encountered an execution error.
-            err = result.stderr.strip() or result.stdout.strip()
-            msg = err or f"Spectral exited with code {result.returncode}"
+            msg = result.stderr.strip() or f"Spectral exited with code {result.returncode}"
             raise RuntimeError(msg)
 
-        output = result.stdout.replace("No results with a severity of 'error' found!", "")
-
+        # Read and parse JSON output
         try:
-            issues: list[dict] = json.loads(output)
-        except json.JSONDecodeError:
-            # If an output isn't JSON (maybe spectral old version or error format), handle gracefully
+            with open(output_path, encoding="utf-8") as f:
+                issues: list[dict] = json.load(f)
+        except FileNotFoundError:
+            if result.stderr:
+                raise RuntimeError(f"Spectral did not create output file: {result.stderr.strip()}")
+            logger.warning("Spectral output file not found, returning empty diagnostics")
             return ValidationResult(diagnostics=[])
+        except json.JSONDecodeError as e:
+            if result.stderr:
+                raise RuntimeError(f"Spectral output is not valid JSON: {result.stderr.strip()}")
+            logger.warning(f"Spectral output is not valid JSON: {e}, returning empty diagnostics")
+            return ValidationResult(diagnostics=[])
+        finally:
+            # Clean up temp file
+            Path(output_path).unlink(missing_ok=True)
 
         diagnostics: list[JenticDiagnostic] = []
         for issue in issues:
