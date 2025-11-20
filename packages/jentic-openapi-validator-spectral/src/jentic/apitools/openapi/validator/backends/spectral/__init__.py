@@ -166,7 +166,15 @@ class SpectralValidatorBackend(BaseValidatorBackend):
                     # According to Spectral docs, return code 2 might indicate lint errors found,
                     # 0 means no issues, but let's not assume this; we'll parse output.
                     # If returncode is something else, spectral encountered an execution error.
-                    msg = result.stderr.strip() or f"Spectral exited with code {result.returncode}"
+                    stderr_msg = result.stderr.strip()
+                    custom_diagnostics = self._handle_error(
+                        stderr_msg, result, validated_doc_path, target
+                    )
+                    if custom_diagnostics is not None:
+                        return custom_diagnostics
+
+                    # Default error handling
+                    msg = stderr_msg or f"Spectral exited with code {result.returncode}"
                     raise RuntimeError(msg)
 
                 # Read and parse output file
@@ -246,3 +254,50 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             return self._validate_uri(
                 Path(temp_file.name).as_uri(), base_url=base_url, target=target
             )
+
+    def _handle_error(
+        self,
+        stderr_msg: str,
+        result: SubprocessExecutionResult,
+        document_path: str,
+        target: str | None = None,
+    ) -> ValidationResult | None:
+        """Handle custom error cases from Spectral execution.
+
+        This is an extension point for subclasses to provide custom error handling.
+        By default, returns None to proceed with standard error handling (raising RuntimeError).
+
+        If this method returns a ValidationResult, that result will be returned to the caller.
+        If this method returns None, the default error handling will proceed (raising RuntimeError).
+
+        Args:
+            stderr_msg: The stderr output from Spectral
+            result: The subprocess execution result from Spectral
+            document_path: The path or URL being validated
+            target: Optional target identifier for validation context
+
+        Returns:
+            ValidationResult if the error was handled, None to proceed with default handling
+
+        Example:
+            Override this method to handle specific errors gracefully:
+
+            def _handle_error(self, stderr_msg, result, document_path, target):
+                # Handle fetch errors (403, 404, etc.) by returning diagnostics
+                if "Could not parse" in stderr_msg and "://" in document_path:
+                    diagnostic = JenticDiagnostic(
+                        range=Range(start=Position(line=0, character=0),
+                                    end=Position(line=0, character=0)),
+                        message=f"Could not fetch document: {document_path}",
+                        severity=DiagnosticSeverity.Error,
+                        code="document-fetch-error",
+                        source="spectral-validator",
+                    )
+                    diagnostic.set_target(target)
+                    return ValidationResult(diagnostics=[diagnostic])
+
+                # Fall back to default behavior
+                return super()._handle_error(stderr_msg, result, document_path, target)
+        """
+        # Return None to proceed with default error handling (raising RuntimeError)
+        return None
