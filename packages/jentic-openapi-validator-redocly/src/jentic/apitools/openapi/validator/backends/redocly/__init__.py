@@ -54,6 +54,9 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
                 If None (default), only file extension validation is performed (no base directory
                 containment check). Extension validation ensures only .yaml, .yml, and .json files
                 are processed.
+            max_problems: Maximum number of validation problems to report (default: 1000000).
+                This limits the number of issues returned by Redocly to prevent memory/performance
+                issues when validating large documents with many errors.
         """
         self.redocly_path = redocly_path
         self.ruleset_path = ruleset_path if isinstance(ruleset_path, str) else None
@@ -163,43 +166,45 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
                     # Open the temp output file for writing and redirect stdout to it
                     with open(output_path, "w", encoding="utf-8") as output_file:
                         result = run_subprocess(cmd, timeout=self.timeout, stdout=output_file)
-            except Exception:
-                # Clean up temp output file on error
+
+                if result is None:
+                    raise RuntimeError("Redocly validation failed - no result returned")
+
+                # Check for execution errors
+                if result.returncode not in (0, 1):
+                    # Redocly returns 0 (no errors) or 1 (validation errors found).
+                    # Exit code 2 or higher indicates command-line/configuration errors.
+                    msg = result.stderr.strip() or f"Redocly exited with code {result.returncode}"
+                    raise RuntimeError(msg)
+
+                # Read and parse JSON output
+                try:
+                    with open(output_path, mode="r", encoding="utf-8") as f:
+                        output_data = json.load(f)
+                        problems: list[dict] = output_data.get("problems", [])
+                except FileNotFoundError:
+                    if result.stderr:
+                        raise RuntimeError(
+                            f"Redocly did not create output file: {result.stderr.strip()}"
+                        )
+                    logger.warning("Redocly output file not found, returning empty diagnostics")
+                    return ValidationResult(diagnostics=[])
+                except json.JSONDecodeError as e:
+                    if result.stderr:
+                        raise RuntimeError(
+                            f"Redocly output is not valid JSON: {result.stderr.strip()}"
+                        )
+                    logger.warning(
+                        f"Redocly output is not valid JSON: {e}, returning empty diagnostics"
+                    )
+                    return ValidationResult(diagnostics=[])
+            finally:
+                # Clean up temp output file
                 Path(output_path).unlink(missing_ok=True)
-                raise
 
         except SubprocessExecutionError as e:
             # only timeout and OS errors, as run_subprocess has a default `fail_on_error = False`
             raise e
-
-        if result is None:
-            raise RuntimeError("Redocly validation failed - no result returned")
-
-        # Check for execution errors
-        if result.returncode not in (0, 1):
-            # Redocly returns 0 (no errors) or 1 (validation errors found).
-            # Exit code 2 or higher indicates command-line/configuration errors.
-            msg = result.stderr.strip() or f"Redocly exited with code {result.returncode}"
-            raise RuntimeError(msg)
-
-        # Read and parse JSON output
-        try:
-            with open(output_path, mode="r", encoding="utf-8") as f:
-                output_data = json.load(f)
-                problems: list[dict] = output_data.get("problems", [])
-        except FileNotFoundError:
-            if result.stderr:
-                raise RuntimeError(f"Redocly did not create output file: {result.stderr.strip()}")
-            logger.warning("Redocly output file not found, returning empty diagnostics")
-            return ValidationResult(diagnostics=[])
-        except json.JSONDecodeError as e:
-            if result.stderr:
-                raise RuntimeError(f"Redocly output is not valid JSON: {result.stderr.strip()}")
-            logger.warning(f"Redocly output is not valid JSON: {e}, returning empty diagnostics")
-            return ValidationResult(diagnostics=[])
-        finally:
-            # Clean up temp output file
-            Path(output_path).unlink(missing_ok=True)
 
         diagnostics: list[JenticDiagnostic] = []
         for problem in problems:
