@@ -138,6 +138,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
                 else self.ruleset_path
             )
 
+            # Determine output file path
             with tempfile.NamedTemporaryFile() as tmp_output:
                 output_path = tmp_output.name
 
@@ -171,7 +172,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             msg = result.stderr.strip() or f"Spectral exited with code {result.returncode}"
             raise RuntimeError(msg)
 
-        # Read and parse JSON output
+        # Read and parse output file
         try:
             with open(output_path, encoding="utf-8") as f:
                 issues: list[dict] = json.load(f)
@@ -186,7 +187,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             logger.warning(f"Spectral output is not valid JSON: {e}, returning empty diagnostics")
             return ValidationResult(diagnostics=[])
         finally:
-            # Clean up temp file
+            # Clean up the temp output file
             Path(output_path).unlink(missing_ok=True)
 
         diagnostics: list[JenticDiagnostic] = []

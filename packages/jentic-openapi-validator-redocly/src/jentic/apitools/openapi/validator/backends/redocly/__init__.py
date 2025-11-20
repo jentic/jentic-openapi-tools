@@ -1,4 +1,5 @@
 import json
+import logging
 import shlex
 import tempfile
 from collections.abc import Sequence
@@ -23,6 +24,8 @@ from jentic.apitools.openapi.validator.core import JenticDiagnostic, ValidationR
 __all__ = ["RedoclyValidatorBackend"]
 
 
+logger = logging.getLogger(__name__)
+
 rulesets_files_dir = files("jentic.apitools.openapi.validator.backends.redocly.rulesets")
 ruleset_file = rulesets_files_dir.joinpath("redocly.yaml")
 
@@ -34,6 +37,7 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
         ruleset_path: str | None = None,
         timeout: float = 600.0,
         allowed_base_dir: str | Path | None = None,
+        max_problems: int = 1000000,
     ):
         """
         Initialize the RedoclyValidatorBackend.
@@ -55,6 +59,7 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
         self.ruleset_path = ruleset_path if isinstance(ruleset_path, str) else None
         self.timeout = timeout
         self.allowed_base_dir = allowed_base_dir
+        self.max_problems = max_problems
 
     @staticmethod
     def accepts() -> Sequence[Literal["uri", "dict"]]:
@@ -133,18 +138,35 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
                 else self.ruleset_path
             )
 
-            with as_file(ruleset_file) as default_ruleset_path:
-                # Build redocly command
-                cmd = [
-                    *shlex.split(self.redocly_path),
-                    "lint",
-                    "--config",
-                    validated_ruleset_path or default_ruleset_path,
-                    "--format",
-                    "json",
-                    validated_doc_path,
-                ]
-                result = run_subprocess(cmd, timeout=self.timeout)
+            # Create a temporary file to capture Redocly output
+            # This avoids stdout buffer size limitations (65536 bytes)
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".json", delete=False, encoding="utf-8"
+            ) as tmp_output:
+                output_path = tmp_output.name
+
+            try:
+                with as_file(ruleset_file) as default_ruleset_path:
+                    # Build redocly command
+                    cmd = [
+                        *shlex.split(self.redocly_path),
+                        "lint",
+                        "--config",
+                        validated_ruleset_path or default_ruleset_path,
+                        "--format",
+                        "json",
+                        "--max-problems",
+                        str(self.max_problems),
+                        validated_doc_path,
+                    ]
+
+                    # Open the temp output file for writing and redirect stdout to it
+                    with open(output_path, "w", encoding="utf-8") as output_file:
+                        result = run_subprocess(cmd, timeout=self.timeout, stdout=output_file)
+            except Exception:
+                # Clean up temp output file on error
+                Path(output_path).unlink(missing_ok=True)
+                raise
 
         except SubprocessExecutionError as e:
             # only timeout and OS errors, as run_subprocess has a default `fail_on_error = False`
@@ -153,20 +175,31 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
         if result is None:
             raise RuntimeError("Redocly validation failed - no result returned")
 
-        if result.returncode not in (0, 1) or (result.stderr and not result.stdout):
+        # Check for execution errors
+        if result.returncode not in (0, 1):
             # Redocly returns 0 (no errors) or 1 (validation errors found).
             # Exit code 2 or higher indicates command-line/configuration errors.
-            err = result.stderr.strip() or result.stdout.strip()
-            msg = err or f"Redocly exited with code {result.returncode}"
+            msg = result.stderr.strip() or f"Redocly exited with code {result.returncode}"
             raise RuntimeError(msg)
 
-        output = result.stdout
-
+        # Read and parse JSON output
         try:
-            problems: list[dict] = json.loads(output).get("problems", [])
-        except json.JSONDecodeError:
-            # If output isn't JSON (maybe redocly error format), handle gracefully
+            with open(output_path, mode="r", encoding="utf-8") as f:
+                output_data = json.load(f)
+                problems: list[dict] = output_data.get("problems", [])
+        except FileNotFoundError:
+            if result.stderr:
+                raise RuntimeError(f"Redocly did not create output file: {result.stderr.strip()}")
+            logger.warning("Redocly output file not found, returning empty diagnostics")
             return ValidationResult(diagnostics=[])
+        except json.JSONDecodeError as e:
+            if result.stderr:
+                raise RuntimeError(f"Redocly output is not valid JSON: {result.stderr.strip()}")
+            logger.warning(f"Redocly output is not valid JSON: {e}, returning empty diagnostics")
+            return ValidationResult(diagnostics=[])
+        finally:
+            # Clean up temp output file
+            Path(output_path).unlink(missing_ok=True)
 
         diagnostics: list[JenticDiagnostic] = []
         for problem in problems:
