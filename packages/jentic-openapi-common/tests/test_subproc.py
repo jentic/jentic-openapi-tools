@@ -283,43 +283,30 @@ def test_timeout_successful_completion(is_windows):
 )
 def test_custom_stdout_to_file(is_windows, tmp_path):
     """Test redirecting stdout to a file."""
-    import tempfile
-
     # Create a temporary file to capture stdout
-    with tempfile.NamedTemporaryFile(
-        mode="w+", suffix=".txt", delete=False, encoding="utf-8"
-    ) as temp_file:
-        temp_path = temp_file.name
+    temp_path = tmp_path / "stdout.txt"
 
-    try:
-        # Open file for writing and pass to run_subprocess
-        with open(temp_path, "w", encoding="utf-8") as f:
-            if is_windows:
-                cmd = ["cmd", "/c", "echo", "output_to_file"]
-            else:
-                cmd = ["echo", "output_to_file"]
+    # Open file for writing and pass to run_subprocess
+    with open(temp_path, "w", encoding="utf-8") as f:
+        if is_windows:
+            cmd = ["cmd", "/c", "echo", "output_to_file"]
+        else:
+            cmd = ["echo", "output_to_file"]
 
-            result = run_subprocess(cmd, stdout=f)
+        result = run_subprocess(cmd, stdout=f)
 
-        # Verify the command succeeded
-        assert result.returncode == 0
-        # When stdout is redirected, result.stdout should be empty
-        assert result.stdout == ""
-        # stderr should still be captured
-        assert result.stderr == ""
+    # Verify the command succeeded
+    assert result.returncode == 0
+    # When stdout is redirected, result.stdout should be empty
+    assert result.stdout == ""
+    # stderr should still be captured
+    assert result.stderr == ""
 
-        # Read the file to verify output was written
-        with open(temp_path, "r", encoding="utf-8") as f:
-            file_content = f.read()
+    # Read the file to verify output was written
+    with open(temp_path, "r", encoding="utf-8") as f:
+        file_content = f.read()
 
-        assert "output_to_file" in file_content
-
-    finally:
-        # Clean up the temp file
-        import os
-
-        if os.path.exists(temp_path):
-            os.unlink(temp_path)
+    assert "output_to_file" in file_content
 
 
 @pytest.mark.skipif(
@@ -328,39 +315,26 @@ def test_custom_stdout_to_file(is_windows, tmp_path):
 )
 def test_custom_stderr_to_file(tmp_path):
     """Test redirecting stderr to a file."""
-    import tempfile
-
     # Create a temporary file to capture stderr
-    with tempfile.NamedTemporaryFile(
-        mode="w+", suffix=".txt", delete=False, encoding="utf-8"
-    ) as temp_file:
-        temp_path = temp_file.name
+    temp_path = tmp_path / "stderr.txt"
 
-    try:
-        # Open file for writing and pass to run_subprocess
-        with open(temp_path, "w", encoding="utf-8") as f:
-            cmd = ["sh", "-c", "echo 'error message' >&2"]
-            result = run_subprocess(cmd, stderr=f)
+    # Open file for writing and pass to run_subprocess
+    with open(temp_path, "w", encoding="utf-8") as f:
+        cmd = ["sh", "-c", "echo 'error message' >&2"]
+        result = run_subprocess(cmd, stderr=f)
 
-        # Verify the command succeeded
-        assert result.returncode == 0
-        # When stderr is redirected, result.stderr should be empty
-        assert result.stderr == ""
-        # stdout should still be captured
-        assert result.stdout == ""
+    # Verify the command succeeded
+    assert result.returncode == 0
+    # When stderr is redirected, result.stderr should be empty
+    assert result.stderr == ""
+    # stdout should still be captured
+    assert result.stdout == ""
 
-        # Read the file to verify stderr was written
-        with open(temp_path, "r", encoding="utf-8") as f:
-            file_content = f.read()
+    # Read the file to verify stderr was written
+    with open(temp_path, "r", encoding="utf-8") as f:
+        file_content = f.read()
 
-        assert "error message" in file_content
-
-    finally:
-        # Clean up the temp file
-        import os
-
-        if os.path.exists(temp_path):
-            os.unlink(temp_path)
+    assert "error message" in file_content
 
 
 @pytest.mark.skipif(
@@ -369,52 +343,34 @@ def test_custom_stderr_to_file(tmp_path):
 )
 def test_custom_stdout_and_stderr_to_files(is_windows, tmp_path):
     """Test redirecting both stdout and stderr to separate files."""
-    import tempfile
-
     # Create temporary files for stdout and stderr
-    with tempfile.NamedTemporaryFile(
-        mode="w+", suffix=".txt", delete=False, encoding="utf-8"
-    ) as stdout_file:
-        stdout_path = stdout_file.name
-    with tempfile.NamedTemporaryFile(
-        mode="w+", suffix=".txt", delete=False, encoding="utf-8"
-    ) as stderr_file:
-        stderr_path = stderr_file.name
+    stdout_path = tmp_path / "stdout.txt"
+    stderr_path = tmp_path / "stderr.txt"
 
-    try:
-        # Open both files and pass to run_subprocess
-        with (
-            open(stdout_path, "w", encoding="utf-8") as f_out,
-            open(stderr_path, "w", encoding="utf-8") as f_err,
-        ):
-            if is_windows:
-                # On Windows, redirect both streams
-                cmd = ["cmd", "/c", "echo stdout_msg && echo stderr_msg 1>&2"]
-            else:
-                cmd = ["sh", "-c", "echo 'stdout_msg' && echo 'stderr_msg' >&2"]
+    # Open both files and pass to run_subprocess
+    with (
+        open(stdout_path, "w", encoding="utf-8") as f_out,
+        open(stderr_path, "w", encoding="utf-8") as f_err,
+    ):
+        if is_windows:
+            # On Windows, redirect both streams
+            cmd = ["cmd", "/c", "echo stdout_msg && echo stderr_msg 1>&2"]
+        else:
+            cmd = ["sh", "-c", "echo 'stdout_msg' && echo 'stderr_msg' >&2"]
 
-            result = run_subprocess(cmd, stdout=f_out, stderr=f_err)
+        result = run_subprocess(cmd, stdout=f_out, stderr=f_err)
 
-        # Verify the command succeeded
-        assert result.returncode == 0
-        # Both should be empty when redirected
-        assert result.stdout == ""
-        assert result.stderr == ""
+    # Verify the command succeeded
+    assert result.returncode == 0
+    # Both should be empty when redirected
+    assert result.stdout == ""
+    assert result.stderr == ""
 
-        # Read the files to verify content was written
-        with open(stdout_path, "r", encoding="utf-8") as f:
-            stdout_content = f.read()
-        with open(stderr_path, "r", encoding="utf-8") as f:
-            stderr_content = f.read()
+    # Read the files to verify content was written
+    with open(stdout_path, "r", encoding="utf-8") as f:
+        stdout_content = f.read()
+    with open(stderr_path, "r", encoding="utf-8") as f:
+        stderr_content = f.read()
 
-        assert "stdout_msg" in stdout_content
-        assert "stderr_msg" in stderr_content
-
-    finally:
-        # Clean up the temp files
-        import os
-
-        if os.path.exists(stdout_path):
-            os.unlink(stdout_path)
-        if os.path.exists(stderr_path):
-            os.unlink(stderr_path)
+    assert "stdout_msg" in stdout_content
+    assert "stderr_msg" in stderr_content
