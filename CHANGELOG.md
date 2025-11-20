@@ -2,6 +2,35 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.22 (2025-11-20)
+
+### Bug Fixes
+
+- **datamodels**: Use patterned fields properly
+  ([#158](https://github.com/jentic/jentic-openapi-tools/pull/158),
+  [`df0eb6f`](https://github.com/jentic/jentic-openapi-tools/commit/df0eb6f21458136b542dd1dc9767f71154004cc4))
+
+- **redocly-validator**: Collect diagnostics to temp output file
+  ([#161](https://github.com/jentic/jentic-openapi-tools/pull/161),
+  [`0bda9e4`](https://github.com/jentic/jentic-openapi-tools/commit/0bda9e418b141af668844a4d088a1823b0c7aac0))
+
+- **validator-spectral**: Collect diagnostics to temp output file
+  ([#159](https://github.com/jentic/jentic-openapi-tools/pull/159),
+  [`5e6f3f0`](https://github.com/jentic/jentic-openapi-tools/commit/5e6f3f0d2a24298805f9e345e504fa2666eae458))
+
+### Features
+
+- **common**: Allow to pass custom stdout/stderr to run_subprocess
+  ([#160](https://github.com/jentic/jentic-openapi-tools/pull/160),
+  [`d391c96`](https://github.com/jentic/jentic-openapi-tools/commit/d391c96d1522300979a8cfe50291299e6d510596))
+
+- **validator-redocly**: Add support for custom error handling
+  ([`51d65c7`](https://github.com/jentic/jentic-openapi-tools/commit/51d65c759e504cecf81a8dce1d14a831dc269f05))
+
+- **validator-spectral**: Add support for custom error handling
+  ([`c9a1641`](https://github.com/jentic/jentic-openapi-tools/commit/c9a16419846e125de371eeb7d009ce2c362e1aa8))
+
+
 ## v1.0.0-alpha.21 (2025-11-19)
 
 ### Chores
