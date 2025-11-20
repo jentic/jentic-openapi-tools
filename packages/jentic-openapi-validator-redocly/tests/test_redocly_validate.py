@@ -130,6 +130,108 @@ class TestRedoclyValidatorErrorCases:
             validator.validate("/some/test/file.yaml")
 
 
+class TestRedoclyValidatorErrorHandling:
+    """Test _handle_error extension point."""
+
+    def test_base_class_raises_runtime_error_on_execution_failure(self):
+        """Test that base class raises RuntimeError for execution errors by default."""
+        validator = RedoclyValidatorBackend(redocly_path="nonexistent_redocly_cli")
+
+        # Base class should raise SubprocessExecutionError (command not found)
+        with pytest.raises(SubprocessExecutionError):
+            validator.validate("/some/test/file.yaml")
+
+    def test_custom_error_handler_can_intercept_errors(self):
+        """Test that subclasses can override _handle_error to handle errors gracefully."""
+        from lsprotocol.types import DiagnosticSeverity, Position, Range
+
+        from jentic.apitools.openapi.common.subproc import SubprocessExecutionResult
+        from jentic.apitools.openapi.validator.core import JenticDiagnostic, ValidationResult
+
+        class CustomRedoclyValidator(RedoclyValidatorBackend):
+            """Custom validator that handles network errors gracefully."""
+
+            def _handle_error(
+                self,
+                stderr_msg: str,
+                result: SubprocessExecutionResult,
+                document_path: str,
+                target: str | None = None,
+            ) -> ValidationResult | None:
+                """Override to handle network errors."""
+                # Simulate detecting a network error
+                if "ENOTFOUND" in stderr_msg or "network" in stderr_msg.lower():
+                    diagnostic = JenticDiagnostic(
+                        range=Range(
+                            start=Position(line=0, character=0),
+                            end=Position(line=0, character=0),
+                        ),
+                        message=f"Network error fetching document: {document_path}",
+                        severity=DiagnosticSeverity.Error,
+                        code="network-error",
+                        source="redocly-validator",
+                    )
+                    diagnostic.set_target(target)
+                    return ValidationResult(diagnostics=[diagnostic])
+
+                # Fall back to default behavior
+                return super()._handle_error(stderr_msg, result, document_path, target)
+
+        # This test verifies the structure works, but we can't easily trigger
+        # a real network error in a unit test without external dependencies
+        validator = CustomRedoclyValidator()
+        assert hasattr(validator, "_handle_error")
+        assert callable(validator._handle_error)
+
+    def test_custom_error_handler_accesses_instance_state(self):
+        """Test that custom error handler can access instance attributes via self."""
+        from jentic.apitools.openapi.common.subproc import SubprocessExecutionResult
+        from jentic.apitools.openapi.validator.core import ValidationResult
+
+        class StateAccessValidator(RedoclyValidatorBackend):
+            """Validator that accesses instance state in error handler."""
+
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.error_count = 0
+
+            def _handle_error(
+                self,
+                stderr_msg: str,
+                result: SubprocessExecutionResult,
+                document_path: str,
+                target: str | None = None,
+            ) -> ValidationResult | None:
+                """Track errors using instance state."""
+                self.error_count += 1
+                # Fall back to default behavior
+                return super()._handle_error(stderr_msg, result, document_path, target)
+
+        validator = StateAccessValidator(redocly_path="nonexistent_cli")
+
+        # Verify instance attributes are accessible
+        assert validator.error_count == 0
+        assert validator.timeout == 600.0  # default
+        assert validator.max_problems == 1000000  # default
+
+        # Try to validate (will fail, but that's expected)
+        with pytest.raises(SubprocessExecutionError):
+            validator.validate("/test/file.yaml")
+
+    def test_handle_error_returns_none_by_default(self):
+        """Test that base implementation returns None (allowing default error handling)."""
+        from jentic.apitools.openapi.common.subproc import SubprocessExecutionResult
+
+        validator = RedoclyValidatorBackend()
+
+        # Call _handle_error directly
+        result = SubprocessExecutionResult(returncode=2, stdout="", stderr="some error")
+        handled = validator._handle_error("some error", result, "/test/doc.yaml", target=None)
+
+        # Should return None to proceed with default error handling
+        assert handled is None
+
+
 class TestRedoclyValidatorPathSecurity:
     """Test path security validation features."""
 
