@@ -178,9 +178,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         except FileNotFoundError:
             if result.stderr:
                 raise RuntimeError(f"Spectral did not create output file: {result.stderr.strip()}")
-            logger.warning(
-                f"Spectral output file not found at {output_path}, returning empty diagnostics"
-            )
+            logger.warning("Spectral output file not found, returning empty diagnostics")
             return ValidationResult(diagnostics=[])
         except json.JSONDecodeError as e:
             if result.stderr:
