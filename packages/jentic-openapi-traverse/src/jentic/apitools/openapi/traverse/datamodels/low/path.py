@@ -1,13 +1,15 @@
 """NodePath context for traversal."""
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
+
+from jsonpointer import JsonPointer
 
 
 __all__ = ["NodePath"]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class NodePath:
     """
     Context for a node during traversal.
@@ -73,40 +75,65 @@ class NodePath:
 
         traverse(self.node, visitor)
 
-    def format_path(self) -> str:
+    def format_path(
+        self, *, path_format: Literal["jsonpointer", "jsonpath"] = "jsonpointer"
+    ) -> str:
         """
-        Format path as JSONPath-like string.
+        Format path as RFC 6901 JSON Pointer or RFC 9535 Normalized JSONPath.
+
+        Args:
+            path_format: Output format - "jsonpointer" (default) or "jsonpath"
 
         Returns:
-            JSONPath string like "$.paths./pets.get.responses.200"
+            JSONPointer string like "/paths/~1pets/get/responses/200"
+            or Normalized JSONPath like "$['paths']['/pets']['get']['responses']['200']"
 
-        Examples:
-            $.info
-            $.paths./pets.get
-            $.paths./users/{id}.parameters[0]
-            $.components.schemas.User.properties.name
+        Examples (jsonpointer):
+            "" (root)
+            "/info"
+            "/paths/~1pets/get"
+            "/paths/~1users~1{id}/parameters/0"
+            "/components/schemas/User/properties/name"
+
+        Examples (jsonpath):
+            "$" (root)
+            "$['info']"
+            "$['paths']['/pets']['get']"
+            "$['paths']['/users/{id}']['parameters'][0]"
+            "$['components']['schemas']['User']['properties']['name']"
         """
+        # Root node
         if not self.ancestors and self.parent_field is None:
-            return "$"
+            return "$" if path_format == "jsonpath" else ""
 
-        parts = ["$"]
+        # Build parts list
+        parts: list[str | int] = []
 
-        # Build path by walking back through parent chain
-        # This is a simplified implementation
-        # A full implementation would need to track field names through the tree
-
+        # This is a simplified implementation that only captures one level
+        # A full implementation would need to walk back through ancestors
         if self.parent_field:
             parts.append(self.parent_field)
 
         if self.parent_key is not None:
-            if isinstance(self.parent_key, int):
-                # Array index
-                parts[-1] = f"{parts[-1]}[{self.parent_key}]"
-            else:
-                # Object key (like path "/pets" or schema "User")
-                parts.append(str(self.parent_key))
+            # Both int (array index) and str (object key) work with from_parts
+            parts.append(self.parent_key)
 
-        return ".".join(parts)
+        if path_format == "jsonpath":
+            # RFC 9535 Normalized JSONPath: $['field'][index]['key']
+            segments = ["$"]
+            for part in parts:
+                if isinstance(part, int):
+                    # Array index: $[0]
+                    segments.append(f"[{part}]")
+                else:
+                    # Member name: $['field']
+                    # Escape single quotes in the string
+                    escaped = str(part).replace("'", "\\'")
+                    segments.append(f"['{escaped}']")
+            return "".join(segments)
+
+        # RFC 6901 JSON Pointer
+        return JsonPointer.from_parts(parts).path
 
     def get_root(self) -> Any:
         """

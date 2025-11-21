@@ -411,6 +411,7 @@ version = "1.0.0a22"
 source = { editable = "packages/jentic-openapi-traverse" }
 dependencies = [
     { name = "jentic-openapi-datamodels" },
+    { name = "jsonpointer" },
 ]
 
 [package.dev-dependencies]
@@ -419,7 +420,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "jentic-openapi-datamodels", editable = "packages/jentic-openapi-datamodels" }]
+requires-dist = [
+    { name = "jentic-openapi-datamodels", editable = "packages/jentic-openapi-datamodels" },
+    { name = "jsonpointer", specifier = "~=3.0.0" },
+]
 
 [package.metadata.requires-dev]
 dev = [{ name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" }]
