@@ -476,29 +476,32 @@ class TestMixedBehavior:
         assert normal.operations == 2
 
 
-class TestGenericVisitSupport:
-    """Test that merged visitor supports generic_visit."""
+class TestAutomaticTraversal:
+    """Test that merged visitor automatically traverses children."""
 
-    def test_merged_visitor_has_generic_visit(self, simple_doc):
-        """Merged visitor should have generic_visit method."""
+    def test_merged_visitor_visits_node_and_children(self, simple_doc):
+        """Merged visitor should visit node and automatically traverse children."""
 
         class CustomVisitor(DataModelLowVisitor):
             def __init__(self):
-                self.count = 0
+                self.info_count = 0
+                self.response_count = 0
 
             def visit_Info(self, path):
-                self.count += 1
-                return self.generic_visit(path)
+                self.info_count += 1
+                # Children automatically visited (no return needed)
+
+            def visit_Response(self, path):
+                self.response_count += 1
 
         visitor = CustomVisitor()
         merged = merge_visitors(visitor)
 
-        # Should have generic_visit
-        assert hasattr(merged, "generic_visit")
-
-        # Should work
         traverse(simple_doc, merged)
-        assert visitor.count == 1
+
+        # Should visit Info and also reach Response (proving children traversed)
+        assert visitor.info_count == 1
+        assert visitor.response_count == 1
 
     def test_merged_visitor_traverses_children_by_default(self, simple_doc):
         """Merged visitor should traverse children even without specific methods."""

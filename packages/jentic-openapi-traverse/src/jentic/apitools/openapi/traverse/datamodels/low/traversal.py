@@ -4,10 +4,13 @@ from .introspection import get_traversable_fields, is_datamodel_node, unwrap_val
 from .path import NodePath
 
 
-# Control flow symbol
-BREAK = object()
+__all__ = ["DataModelLowVisitor", "traverse", "BREAK"]
 
-__all__ = ["DataModelLowVisitor", "traverse", "BREAK", "default_traverse_children"]
+
+class _BreakType: ...
+
+
+BREAK = _BreakType()
 
 
 class DataModelLowVisitor:
@@ -15,7 +18,7 @@ class DataModelLowVisitor:
     Optional base class for OpenAPI datamodel visitors.
 
     You don't need to inherit from this class - just implement visit_* methods.
-    This class provides generic_visit() utility for default child traversal.
+    Inheritance is optional and provides no functionality - use for organizational purposes only.
 
     Visitor Method Signatures:
         Generic hooks (fire for ALL nodes):
@@ -31,48 +34,84 @@ class DataModelLowVisitor:
         1. visit_enter(path) - generic enter
         2. visit_enter_ClassName(path) - specific enter
         3. visit_ClassName(path) - main visitor
-        4. [child traversal]
+        4. [child traversal - automatic unless False returned]
         5. visit_leave_ClassName(path) - specific leave
         6. visit_leave(path) - generic leave
 
     Return Values:
-        - None: Continue traversal normally
+        - None: Continue traversal normally (children visited automatically)
         - False: Skip visiting children of this node
         - BREAK: Stop entire traversal immediately
 
-    Example:
+    Example (with enter/leave hooks):
         class MyVisitor(DataModelLowVisitor):  # Optional inheritance
-            def visit_Operation(self, path):
-                print(path.format_path())
-                return self.generic_visit(path)  # Use inherited utility
+            def visit_enter_Operation(self, path):
+                print(f"Entering: {path.format_path()}")
 
-        class SimpleVisitor:  # No inheritance (duck typing)
+            def visit_leave_Operation(self, path):
+                print(f"Leaving: {path.format_path()}")
+
+        class SimpleVisitor:  # No inheritance (duck typing works too)
             def visit_Operation(self, path):
-                print(path.format_path())
+                print(f"Found: {path.format_path()}")
+                # Children automatically visited
     """
 
-    def generic_visit(self, path: NodePath):
-        """
-        Default visitor that traverses all children.
-
-        Useful when inheriting from DataModelLowVisitor.
-        Discovers traversable fields and visits them automatically.
-
-        Args:
-            path: Current node path
-
-        Returns:
-            None (continues traversal)
-        """
-        return default_traverse_children(self, path)
+    pass
 
 
-def default_traverse_children(visitor, path: NodePath):
+def traverse(root, visitor) -> None:
     """
-    Default child traversal logic.
+    Traverse OpenAPI datamodel tree using visitor pattern.
 
-    Used when no visit method exists or when visit method returns None.
-    Can be used by custom visitors that need standard child traversal behavior.
+    The visitor can be any object with visit_* methods (duck typing).
+    Optionally inherit from DataModelLowVisitor for organizational purposes.
+
+    Children are automatically traversed unless a visitor method returns False.
+    Use enter/leave hooks for pre/post traversal logic.
+
+    Args:
+        root: Root datamodel object (OpenAPI30, OpenAPI31, or any datamodel node)
+        visitor: Object with visit_* methods
+
+    Example:
+        # Using enter/leave hooks
+        class MyVisitor(DataModelLowVisitor):
+            def visit_enter_Operation(self, path):
+                print(f"Entering operation: {path.format_path()}")
+
+            def visit_leave_Operation(self, path):
+                print(f"Leaving operation: {path.format_path()}")
+
+        # Simple visitor (duck typing - no inheritance needed)
+        class SimpleVisitor:
+            def visit_Operation(self, path):
+                print(f"Found operation: {path.format_path()}")
+                # Children automatically visited
+
+        doc = parser.parse(..., return_type=DataModelLow)
+        traverse(doc, MyVisitor())
+        traverse(doc, SimpleVisitor())
+    """
+    # Create initial root path
+    initial_path = NodePath(
+        node=root,
+        parent=None,
+        parent_field=None,
+        parent_key=None,
+        ancestors=(),
+    )
+
+    # Start traversal
+    _visit_node(visitor, initial_path)
+
+
+def _default_traverse_children(visitor, path: NodePath) -> _BreakType | None:
+    """
+    Internal child traversal logic.
+
+    Iterates through traversable fields and visits datamodel children.
+    Called automatically during traversal.
 
     Args:
         visitor: Visitor object with visit_* methods
@@ -126,7 +165,7 @@ def default_traverse_children(visitor, path: NodePath):
     return None
 
 
-def _visit_node(visitor, path: NodePath):
+def _visit_node(visitor, path: NodePath) -> _BreakType | None:
     """
     Visit a single node with the visitor.
 
@@ -176,16 +215,9 @@ def _visit_node(visitor, path: NodePath):
 
     # Automatic child traversal (unless explicitly skipped)
     if not skip_auto_traverse:
-        # Check if visitor has custom generic_visit
-        if hasattr(visitor, "generic_visit"):
-            result = visitor.generic_visit(path)
-            if result is BREAK:
-                return BREAK
-        else:
-            # Use default traversal
-            result = default_traverse_children(visitor, path)
-            if result is BREAK:
-                return BREAK
+        result = _default_traverse_children(visitor, path)
+        if result is BREAK:
+            return BREAK
 
     # Try leave hook: visit_leave_ClassName
     leave_method = f"visit_leave_{node_class}"
@@ -201,43 +233,3 @@ def _visit_node(visitor, path: NodePath):
             return BREAK
 
     return None
-
-
-def traverse(root, visitor) -> None:
-    """
-    Traverse OpenAPI datamodel tree using visitor pattern.
-
-    The visitor can be any object with visit_* methods (duck typing).
-    Optionally inherit from DataModelLowVisitor for generic_visit() utility.
-
-    Args:
-        root: Root datamodel object (OpenAPI30, OpenAPI31, or any datamodel node)
-        visitor: Object with visit_* methods
-
-    Example:
-        # With inheritance
-        class MyVisitor(DataModelLowVisitor):
-            def visit_Operation(self, path):
-                print(f"Operation: {path.format_path()}")
-                return self.generic_visit(path)
-
-        # Without inheritance (duck typing)
-        class SimpleVisitor:
-            def visit_Operation(self, path):
-                print(f"Operation: {path.format_path()}")
-
-        doc = parser.parse(..., return_type=DataModelLow)
-        traverse(doc, MyVisitor())
-        traverse(doc, SimpleVisitor())
-    """
-    # Create initial root path
-    initial_path = NodePath(
-        node=root,
-        parent=None,
-        parent_field=None,
-        parent_key=None,
-        ancestors=(),
-    )
-
-    # Start traversal
-    _visit_node(visitor, initial_path)

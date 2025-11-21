@@ -1,7 +1,7 @@
 """Visitor merging utilities (ApiDOM pattern)."""
 
 from .path import NodePath
-from .traversal import BREAK, default_traverse_children
+from .traversal import BREAK
 
 
 __all__ = ["merge_visitors"]
@@ -60,15 +60,6 @@ def merge_visitors(*visitors) -> object:
             # Compare node identity (not equality)
             assert isinstance(state, NodePath)
             return state.node is path.node
-
-        def generic_visit(self, path: NodePath):
-            """
-            Default child traversal for merged visitor.
-
-            Uses default traversal logic since merged visitor always
-            continues to children (per-visitor skip is handled internally).
-            """
-            return default_traverse_children(self, path)
 
         def __getattr__(self, name):
             """
