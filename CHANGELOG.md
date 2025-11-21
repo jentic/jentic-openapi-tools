@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.23 (2025-11-21)
+
+### Chores
+
+- **deps**: Bump actions/checkout from 5 to 6
+  ([#163](https://github.com/jentic/jentic-openapi-tools/pull/163),
+  [`c91fa7d`](https://github.com/jentic/jentic-openapi-tools/commit/c91fa7d72dca376d5cd505213ea4a5891167e4ec))
+
+### Features
+
+- **traverse**: Add low data model traversal capability
+  ([#157](https://github.com/jentic/jentic-openapi-tools/pull/157),
+  [`30a5c52`](https://github.com/jentic/jentic-openapi-tools/commit/30a5c52a946b9e3c462baefcaf8212a19b2ed791))
+
+
 ## v1.0.0-alpha.22 (2025-11-20)
 
 ### Bug Fixes

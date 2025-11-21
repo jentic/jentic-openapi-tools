@@ -1,21 +1,21 @@
 [project]
 name = "jentic-openapi-tools"
-version = "1.0.0-alpha.22"
+version = "1.0.0-alpha.23"
 description = "Workspace root for Jentic OpenAPI Tools"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
 license = {text = "Apache-2.0"}
 requires-python = ">=3.11"
 dependencies = [
-  "jentic-openapi-common~=1.0.0-alpha.22",
-  "jentic-openapi-datamodels~=1.0.0-alpha.22",
-  "jentic-openapi-parser~=1.0.0-alpha.22",
-  "jentic-openapi-transformer~=1.0.0-alpha.22",
-  "jentic-openapi-transformer-redocly~=1.0.0-alpha.22",
-  "jentic-openapi-traverse~=1.0.0-alpha.22",
-  "jentic-openapi-validator~=1.0.0-alpha.22",
-  "jentic-openapi-validator-redocly~=1.0.0-alpha.22",
-  "jentic-openapi-validator-spectral~=1.0.0-alpha.22"
+  "jentic-openapi-common~=1.0.0-alpha.23",
+  "jentic-openapi-datamodels~=1.0.0-alpha.23",
+  "jentic-openapi-parser~=1.0.0-alpha.23",
+  "jentic-openapi-transformer~=1.0.0-alpha.23",
+  "jentic-openapi-transformer-redocly~=1.0.0-alpha.23",
+  "jentic-openapi-traverse~=1.0.0-alpha.23",
+  "jentic-openapi-validator~=1.0.0-alpha.23",
+  "jentic-openapi-validator-redocly~=1.0.0-alpha.23",
+  "jentic-openapi-validator-spectral~=1.0.0-alpha.23"
 ]
 
 [project.urls]
