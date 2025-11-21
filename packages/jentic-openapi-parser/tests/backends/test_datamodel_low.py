@@ -10,9 +10,11 @@ from jentic.apitools.openapi.datamodels.low.v31.openapi import OpenAPI31
 from jentic.apitools.openapi.datamodels.low.v31.response import Response
 from jentic.apitools.openapi.datamodels.low.v31.schema import Schema
 from jentic.apitools.openapi.parser.backends.datamodel_low import (
+    DataModelLow,
     DataModelLowParserBackend,
 )
 from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.parser.core.exceptions import TypeConversionError
 
 
 # Basic Functionality Tests
@@ -411,6 +413,90 @@ def test_parser_v31():
     assert isinstance(result, OpenAPI31)
     assert result.openapi is not None
     assert result.openapi.value == "3.1.2"
+
+
+# Union Type Tests
+
+
+def test_parser_with_union_type_v30():
+    """Test parsing with DataModelLow union type returns OpenAPI30."""
+    parser = OpenAPIParser("datamodel-low")
+
+    yaml_text = textwrap.dedent(
+        """
+        openapi: 3.0.4
+        info:
+          title: Test API
+          version: 1.0.0
+        paths: {}
+    """
+    )
+
+    # Use union type - type checker sees 'Any', runtime gets OpenAPI30
+    result = parser.parse(yaml_text, return_type=DataModelLow)
+    assert isinstance(result, OpenAPI30)
+    assert result.openapi is not None
+    assert result.openapi.value == "3.0.4"
+
+
+def test_parser_with_union_type_v31():
+    """Test parsing with DataModelLow union type returns OpenAPI31."""
+    parser = OpenAPIParser("datamodel-low")
+
+    yaml_text = textwrap.dedent(
+        """
+        openapi: 3.1.2
+        info:
+          title: Test API
+          version: 1.0.0
+        paths: {}
+    """
+    )
+
+    # Use union type - type checker sees 'Any', runtime gets OpenAPI31
+    result = parser.parse(yaml_text, return_type=DataModelLow)
+    assert isinstance(result, OpenAPI31)
+    assert result.openapi is not None
+    assert result.openapi.value == "3.1.2"
+
+
+def test_parser_with_union_type_strict_valid():
+    """Test parsing with DataModelLow and strict=True passes for valid type."""
+    parser = OpenAPIParser("datamodel-low")
+
+    yaml_text = textwrap.dedent(
+        """
+        openapi: 3.0.4
+        info:
+          title: Test API
+          version: 1.0.0
+        paths: {}
+    """
+    )
+
+    # Should not raise - result is OpenAPI30 which is in the union
+    result = parser.parse(yaml_text, return_type=DataModelLow, strict=True)
+    assert isinstance(result, OpenAPI30)
+
+
+def test_parser_with_concrete_type_strict_invalid():
+    """Test parsing with concrete type and strict=True raises for type mismatch."""
+    parser = OpenAPIParser("datamodel-low")
+
+    # This is a v3.0 document
+    yaml_text = textwrap.dedent(
+        """
+        openapi: 3.0.4
+        info:
+          title: Test API
+          version: 1.0.0
+        paths: {}
+    """
+    )
+
+    # Expect OpenAPI31 but get OpenAPI30 - should raise with strict=True
+    with pytest.raises(TypeConversionError, match="Expected OpenAPI31, got OpenAPI30"):
+        parser.parse(yaml_text, return_type=OpenAPI31, strict=True)
 
 
 # Error Handling Tests

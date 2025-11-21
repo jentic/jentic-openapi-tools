@@ -1,6 +1,14 @@
 """Utilities for introspecting datamodel fields."""
 
-from dataclasses import fields, is_dataclass
+from dataclasses import is_dataclass
+from typing import Any
+
+from jentic.apitools.openapi.datamodels.low.fields import fixed_fields, patterned_fields
+from jentic.apitools.openapi.datamodels.low.sources import (
+    FieldSource,
+    KeySource,
+    ValueSource,
+)
 
 
 __all__ = [
@@ -19,8 +27,9 @@ def get_traversable_fields(node):
     """
     Get all fields that should be traversed in a datamodel node.
 
-    Uses dataclass introspection to discover fields.
-    Filters out infrastructure fields and scalar values.
+    Uses field metadata (fixed_field, patterned_field) to identify OpenAPI
+    specification fields. This leverages the explicit field marking system
+    from the datamodels package.
 
     Caches field names per class type for performance.
 
@@ -37,8 +46,11 @@ def get_traversable_fields(node):
 
     # Get or compute field names for this class
     if node_class not in _FIELD_NAMES_CACHE:
-        # Compute once per class type
-        field_names = [f.name for f in fields(node) if f.name != "root_node"]
+        # Get all OpenAPI spec fields (fixed + patterned)
+        fixed = fixed_fields(node_class)
+        patterned = patterned_fields(node_class)
+        # Combine and extract field names
+        field_names = list(fixed.keys()) + list(patterned.keys())
         _FIELD_NAMES_CACHE[node_class] = field_names
 
     # Use cached field names
@@ -62,9 +74,16 @@ def get_traversable_fields(node):
     return result
 
 
-def unwrap_value(value):
+def unwrap_value(value: Any) -> Any:
     """
     Unwrap FieldSource/ValueSource/KeySource to get actual value.
+
+    Wrapper types (FieldSource, ValueSource, KeySource) are used to preserve
+    source location information for field values. This function extracts the
+    actual value from these wrappers.
+
+    This excludes datamodel nodes like Example which may have .value field
+    but are not wrapper types.
 
     Args:
         value: Potentially wrapped value
@@ -72,37 +91,24 @@ def unwrap_value(value):
     Returns:
         Unwrapped value, or original if not wrapped
     """
-    # FieldSource, ValueSource, KeySource all have .value attribute
-    if hasattr(value, "value"):
+    # Check if it's a wrapper type
+    if isinstance(value, (FieldSource, ValueSource, KeySource)):
         return value.value
     return value
 
 
 def is_datamodel_node(value):
     """
-    Check if value is a traversable datamodel object.
+    Check if value is a low-level datamodel object.
+
+    Low-level datamodels are distinguished by having a root_node field,
+    which contains the YAML source location information. This excludes
+    wrapper types (FieldSource, ValueSource, KeySource) and other dataclasses.
 
     Args:
         value: Value to check
 
     Returns:
-        True if it's a dataclass (datamodel node), False otherwise
+        True if it's a low-level datamodel node, False otherwise
     """
-    if value is None:
-        return False
-
-    # Must be a dataclass
-    if not is_dataclass(value):
-        return False
-
-    # Exclude primitives (though dataclasses of primitives are unlikely)
-    if isinstance(value, (str, int, float, bool)):
-        return False
-
-    # Note: We do NOT filter out wrapper types or YAML nodes here.
-    # If these appear after unwrapping, it indicates a bug:
-    # - FieldSource/ValueSource/KeySource: missing unwrap or double-wrapping
-    # - ScalarNode/SequenceNode/MappingNode: root_node leaked or invalid data
-    # Fail-fast is better than silent failures!
-
-    return True
+    return is_dataclass(value) and hasattr(value, "root_node")

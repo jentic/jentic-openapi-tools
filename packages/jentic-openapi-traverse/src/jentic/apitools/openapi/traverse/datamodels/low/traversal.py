@@ -110,6 +110,10 @@ def default_traverse_children(visitor, path: NodePath):
                 unwrapped_value = unwrap_value(value)
 
                 if is_datamodel_node(unwrapped_value):
+                    # Dict keys should be str after unwrapping (field names, paths, status codes, etc.)
+                    assert isinstance(unwrapped_key, (str, int)), (
+                        f"Expected str or int key, got {type(unwrapped_key)}"
+                    )
                     child_path = path.create_child(
                         node=unwrapped_value,
                         parent_field=field_name,

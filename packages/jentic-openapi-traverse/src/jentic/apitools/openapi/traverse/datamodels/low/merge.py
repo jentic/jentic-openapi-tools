@@ -45,7 +45,7 @@ def merge_visitors(*visitors) -> object:
         def __init__(self, visitors):
             self.visitors = visitors
             # State per visitor: None = active, NodePath = skipping, BREAK = stopped
-            self._skipping_state = [None] * len(visitors)
+            self._skipping_state: list[NodePath | object | None] = [None] * len(visitors)
 
         def _is_active(self, visitor_idx):
             """Check if visitor is active (not skipping or stopped)."""
@@ -56,7 +56,9 @@ def merge_visitors(*visitors) -> object:
             state = self._skipping_state[visitor_idx]
             if state is None or state is BREAK:
                 return False
+            # At this point, state must be a NodePath
             # Compare node identity (not equality)
+            assert isinstance(state, NodePath)
             return state.node is path.node
 
         def generic_visit(self, path: NodePath):

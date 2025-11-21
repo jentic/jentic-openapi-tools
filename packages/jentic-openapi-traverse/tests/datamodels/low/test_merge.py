@@ -4,7 +4,7 @@ import textwrap
 
 import pytest
 
-from jentic.apitools.openapi.parser.backends.datamodel_low import DataModelLow
+from jentic.apitools.openapi.datamodels.low.v30 import OpenAPI30
 from jentic.apitools.openapi.parser.core import OpenAPIParser
 from jentic.apitools.openapi.traverse.datamodels.low import (
     BREAK,
@@ -31,7 +31,7 @@ def simple_doc():
                   description: Success
     """)
     parser = OpenAPIParser("datamodel-low")
-    return parser.parse(yaml_text, return_type=DataModelLow)
+    return parser.parse(yaml_text, return_type=OpenAPI30)
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ def multi_path_doc():
                   description: Created
     """)
     parser = OpenAPIParser("datamodel-low")
-    return parser.parse(yaml_text, return_type=DataModelLow)
+    return parser.parse(yaml_text, return_type=OpenAPI30)
 
 
 class TestBasicMerging:

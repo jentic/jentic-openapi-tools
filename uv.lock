@@ -409,20 +409,20 @@ requires-dist = [
 name = "jentic-openapi-traverse"
 version = "1.0.0a22"
 source = { editable = "packages/jentic-openapi-traverse" }
+dependencies = [
+    { name = "jentic-openapi-datamodels" },
+]
 
 [package.dev-dependencies]
 dev = [
-    { name = "jentic-openapi-datamodels" },
     { name = "jentic-openapi-parser" },
 ]
 
 [package.metadata]
+requires-dist = [{ name = "jentic-openapi-datamodels", editable = "packages/jentic-openapi-datamodels" }]
 
 [package.metadata.requires-dev]
-dev = [
-    { name = "jentic-openapi-datamodels", editable = "packages/jentic-openapi-datamodels" },
-    { name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" },
-]
+dev = [{ name = "jentic-openapi-parser", editable = "packages/jentic-openapi-parser" }]
 
 [[package]]
 name = "jentic-openapi-validator"

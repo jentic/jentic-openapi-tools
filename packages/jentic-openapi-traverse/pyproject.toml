@@ -7,12 +7,13 @@ authors = [{ name = "Jentic", email = "hello@jentic.com" }]
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "jentic-openapi-datamodels",
+]
 
 [dependency-groups]
 dev = [
     "jentic-openapi-parser",
-    "jentic-openapi-datamodels",
 ]
 
 [project.urls]
