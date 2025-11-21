@@ -116,6 +116,106 @@ class TestSpectralValidatorErrorCases:
             validator.validate("/some/test/file.yaml")
 
 
+class TestSpectralValidatorErrorHandling:
+    """Test _handle_error extension point."""
+
+    def test_base_class_raises_runtime_error_on_execution_failure(self):
+        """Test that base class raises RuntimeError for execution errors by default."""
+        validator = SpectralValidatorBackend(spectral_path="nonexistent_spectral_cli")
+
+        # Base class should raise SubprocessExecutionError (command not found)
+        with pytest.raises(SubprocessExecutionError):
+            validator.validate("/some/test/file.yaml")
+
+    def test_custom_error_handler_can_intercept_errors(self):
+        """Test that subclasses can override _handle_error to handle errors gracefully."""
+        from lsprotocol.types import DiagnosticSeverity, Position, Range
+
+        from jentic.apitools.openapi.common.subproc import SubprocessExecutionResult
+        from jentic.apitools.openapi.validator.core import JenticDiagnostic, ValidationResult
+
+        class CustomSpectralValidator(SpectralValidatorBackend):
+            """Custom validator that handles fetch errors gracefully."""
+
+            def _handle_error(
+                self,
+                stderr_msg: str,
+                result: SubprocessExecutionResult,
+                document_path: str,
+                target: str | None = None,
+            ) -> ValidationResult | None:
+                """Override to handle fetch errors."""
+                # Handle "Could not parse" errors (fetch failures)
+                if "Could not parse" in stderr_msg and "://" in document_path:
+                    diagnostic = JenticDiagnostic(
+                        range=Range(
+                            start=Position(line=0, character=0),
+                            end=Position(line=0, character=0),
+                        ),
+                        message=f"Could not fetch document: {document_path}",
+                        severity=DiagnosticSeverity.Error,
+                        code="document-fetch-error",
+                        source="spectral-validator",
+                    )
+                    diagnostic.set_target(target)
+                    return ValidationResult(diagnostics=[diagnostic])
+
+                # Fall back to default behavior
+                return super()._handle_error(stderr_msg, result, document_path, target)
+
+        # This test verifies the structure works
+        validator = CustomSpectralValidator()
+        assert hasattr(validator, "_handle_error")
+        assert callable(validator._handle_error)
+
+    def test_custom_error_handler_accesses_instance_state(self):
+        """Test that custom error handler can access instance attributes via self."""
+        from jentic.apitools.openapi.common.subproc import SubprocessExecutionResult
+        from jentic.apitools.openapi.validator.core import ValidationResult
+
+        class StateAccessValidator(SpectralValidatorBackend):
+            """Validator that accesses instance state in error handler."""
+
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.error_count = 0
+
+            def _handle_error(
+                self,
+                stderr_msg: str,
+                result: SubprocessExecutionResult,
+                document_path: str,
+                target: str | None = None,
+            ) -> ValidationResult | None:
+                """Track errors using instance state."""
+                self.error_count += 1
+                # Fall back to default behavior
+                return super()._handle_error(stderr_msg, result, document_path, target)
+
+        validator = StateAccessValidator(spectral_path="nonexistent_cli")
+
+        # Verify instance attributes are accessible
+        assert validator.error_count == 0
+        assert validator.timeout == 600.0  # default
+
+        # Try to validate (will fail, but that's expected)
+        with pytest.raises(SubprocessExecutionError):
+            validator.validate("/test/file.yaml")
+
+    def test_handle_error_returns_none_by_default(self):
+        """Test that base implementation returns None (allowing default error handling)."""
+        from jentic.apitools.openapi.common.subproc import SubprocessExecutionResult
+
+        validator = SpectralValidatorBackend()
+
+        # Call _handle_error directly
+        result = SubprocessExecutionResult(returncode=2, stdout="", stderr="some error")
+        handled = validator._handle_error("some error", result, "/test/doc.yaml", target=None)
+
+        # Should return None to proceed with default error handling
+        assert handled is None
+
+
 class TestSpectralValidatorPathSecurity:
     """Test path security features."""
 

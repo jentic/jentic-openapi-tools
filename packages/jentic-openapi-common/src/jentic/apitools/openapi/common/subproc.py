@@ -3,6 +3,7 @@
 import subprocess
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import IO, Any
 
 
 __all__ = ["run_subprocess", "SubprocessExecutionResult", "SubprocessExecutionError"]
@@ -57,6 +58,8 @@ def run_subprocess(
     encoding: str = "utf-8",
     errors: str = "strict",
     cwd: str | None = None,
+    stdout: int | IO[Any] | None = None,
+    stderr: int | IO[Any] | None = None,
 ) -> SubprocessExecutionResult:
     """
     Run a subprocess command and return (stdout, stderr) as text.
@@ -76,27 +79,55 @@ def run_subprocess(
         Error handler for text decoding.
     cwd : str | None
         Working directory for the subprocess.
+    stdout : int | IO[Any] | None
+        Optional stdout destination. Can be subprocess.PIPE (default), subprocess.DEVNULL,
+        an open file object, or None. When redirected to a file, result.stdout will be empty.
+    stderr : int | IO[Any] | None
+        Optional stderr destination. Can be subprocess.PIPE (default), subprocess.DEVNULL,
+        an open file object, or None. When redirected to a file, result.stderr will be empty.
 
     Returns
     -------
     (stdout, stderr, returncode): SubprocessExecutionResult
+        Note: If stdout/stderr are redirected to a file, the corresponding result fields
+        will be empty strings.
     """
     try:
-        completed_process = subprocess.run(
-            cmd,
-            check=False,
-            capture_output=True,
-            text=True,
-            shell=False,
-            encoding=encoding,  # ensure the CompletedProcess has stdout/stderr
-            errors=errors,
-            timeout=timeout,
-            cwd=cwd,
-        )
+        # If both stdout and stderr are None, use capture_output for simplicity
+        if stdout is None and stderr is None:
+            completed_process = subprocess.run(
+                cmd,
+                check=False,
+                capture_output=True,
+                text=True,
+                shell=False,
+                encoding=encoding,
+                errors=errors,
+                timeout=timeout,
+                cwd=cwd,
+            )
+        else:
+            # Use explicit stdout/stderr with defaults to PIPE if not specified
+            completed_process = subprocess.run(
+                cmd,
+                check=False,
+                stdout=stdout if stdout is not None else subprocess.PIPE,
+                stderr=stderr if stderr is not None else subprocess.PIPE,
+                text=True,
+                shell=False,
+                encoding=encoding,
+                errors=errors,
+                timeout=timeout,
+                cwd=cwd,
+            )
     except subprocess.TimeoutExpired as e:
-        stdout = e.stdout.decode(encoding, errors) if isinstance(e.stdout, bytes) else e.stdout
-        stderr = e.stderr.decode(encoding, errors) if isinstance(e.stderr, bytes) else e.stderr
-        raise SubprocessExecutionError(cmd, -1, stdout, stderr) from e
+        timeout_stdout = (
+            e.stdout.decode(encoding, errors) if isinstance(e.stdout, bytes) else e.stdout
+        )
+        timeout_stderr = (
+            e.stderr.decode(encoding, errors) if isinstance(e.stderr, bytes) else e.stderr
+        )
+        raise SubprocessExecutionError(cmd, -1, timeout_stdout, timeout_stderr) from e
     except OSError as e:  # e.g., executable not found, permission denied
         raise SubprocessExecutionError(cmd, -1, None, str(e)) from e
 

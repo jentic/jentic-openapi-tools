@@ -1,4 +1,5 @@
 import json
+import logging
 import shlex
 import tempfile
 from collections.abc import Sequence
@@ -23,6 +24,8 @@ from jentic.apitools.openapi.validator.core import JenticDiagnostic, ValidationR
 __all__ = ["RedoclyValidatorBackend"]
 
 
+logger = logging.getLogger(__name__)
+
 rulesets_files_dir = files("jentic.apitools.openapi.validator.backends.redocly.rulesets")
 ruleset_file = rulesets_files_dir.joinpath("redocly.yaml")
 
@@ -34,6 +37,7 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
         ruleset_path: str | None = None,
         timeout: float = 600.0,
         allowed_base_dir: str | Path | None = None,
+        max_problems: int = 1000000,
     ):
         """
         Initialize the RedoclyValidatorBackend.
@@ -50,11 +54,15 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
                 If None (default), only file extension validation is performed (no base directory
                 containment check). Extension validation ensures only .yaml, .yml, and .json files
                 are processed.
+            max_problems: Maximum number of validation problems to report (default: 1000000).
+                This limits the number of issues returned by Redocly to prevent memory/performance
+                issues when validating large documents with many errors.
         """
         self.redocly_path = redocly_path
         self.ruleset_path = ruleset_path if isinstance(ruleset_path, str) else None
         self.timeout = timeout
         self.allowed_base_dir = allowed_base_dir
+        self.max_problems = max_problems
 
     @staticmethod
     def accepts() -> Sequence[Literal["uri", "dict"]]:
@@ -133,40 +141,80 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
                 else self.ruleset_path
             )
 
-            with as_file(ruleset_file) as default_ruleset_path:
-                # Build redocly command
-                cmd = [
-                    *shlex.split(self.redocly_path),
-                    "lint",
-                    "--config",
-                    validated_ruleset_path or default_ruleset_path,
-                    "--format",
-                    "json",
-                    validated_doc_path,
-                ]
-                result = run_subprocess(cmd, timeout=self.timeout)
+            # Create a temporary file to capture Redocly output
+            # This avoids stdout buffer size limitations (65536 bytes)
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".json", delete=False, encoding="utf-8"
+            ) as tmp_output:
+                output_path = tmp_output.name
+
+            try:
+                with as_file(ruleset_file) as default_ruleset_path:
+                    # Build redocly command
+                    cmd = [
+                        *shlex.split(self.redocly_path),
+                        "lint",
+                        "--config",
+                        validated_ruleset_path or default_ruleset_path,
+                        "--format",
+                        "json",
+                        "--max-problems",
+                        str(self.max_problems),
+                        validated_doc_path,
+                    ]
+
+                    # Open the temp output file for writing and redirect stdout to it
+                    with open(output_path, "w", encoding="utf-8") as output_file:
+                        result = run_subprocess(cmd, timeout=self.timeout, stdout=output_file)
+
+                if result is None:
+                    raise RuntimeError("Redocly validation failed - no result returned")
+
+                # Check for execution errors
+                if result.returncode not in (0, 1):
+                    # Redocly returns 0 (no errors) or 1 (validation errors found).
+                    # Exit code 2 or higher indicates command-line/configuration errors.
+                    stderr_msg = result.stderr.strip()
+
+                    # Try custom error handling (can be overridden in subclasses)
+                    custom_diagnostics = self._handle_error(
+                        stderr_msg, result, validated_doc_path, target
+                    )
+                    if custom_diagnostics is not None:
+                        return custom_diagnostics
+
+                    # Default error handling
+                    msg = stderr_msg or f"Redocly exited with code {result.returncode}"
+                    raise RuntimeError(msg)
+
+                # Read and parse JSON output
+                try:
+                    with open(output_path, mode="r", encoding="utf-8") as f:
+                        output_data = json.load(f)
+                        problems: list[dict] = output_data.get("problems", [])
+                except FileNotFoundError:
+                    if result.stderr:
+                        raise RuntimeError(
+                            f"Redocly did not create output file: {result.stderr.strip()}"
+                        )
+                    logger.warning("Redocly output file not found, returning empty diagnostics")
+                    return ValidationResult(diagnostics=[])
+                except json.JSONDecodeError as e:
+                    if result.stderr:
+                        raise RuntimeError(
+                            f"Redocly output is not valid JSON: {result.stderr.strip()}"
+                        )
+                    logger.warning(
+                        f"Redocly output is not valid JSON: {e}, returning empty diagnostics"
+                    )
+                    return ValidationResult(diagnostics=[])
+            finally:
+                # Clean up temp output file
+                Path(output_path).unlink(missing_ok=True)
 
         except SubprocessExecutionError as e:
             # only timeout and OS errors, as run_subprocess has a default `fail_on_error = False`
             raise e
-
-        if result is None:
-            raise RuntimeError("Redocly validation failed - no result returned")
-
-        if result.returncode not in (0, 1) or (result.stderr and not result.stdout):
-            # Redocly returns 0 (no errors) or 1 (validation errors found).
-            # Exit code 2 or higher indicates command-line/configuration errors.
-            err = result.stderr.strip() or result.stdout.strip()
-            msg = err or f"Redocly exited with code {result.returncode}"
-            raise RuntimeError(msg)
-
-        output = result.stdout
-
-        try:
-            problems: list[dict] = json.loads(output).get("problems", [])
-        except json.JSONDecodeError:
-            # If output isn't JSON (maybe redocly error format), handle gracefully
-            return ValidationResult(diagnostics=[])
 
         diagnostics: list[JenticDiagnostic] = []
         for problem in problems:
@@ -219,3 +267,50 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
             return self._validate_uri(
                 Path(temp_file.name).as_uri(), base_url=base_url, target=target
             )
+
+    def _handle_error(
+        self,
+        stderr_msg: str,
+        result: SubprocessExecutionResult,
+        document_path: str,
+        target: str | None = None,
+    ) -> ValidationResult | None:
+        """Handle custom error cases from Redocly execution.
+
+        This is an extension point for subclasses to provide custom error handling.
+        By default, returns None to proceed with standard error handling (raising RuntimeError).
+
+        If this method returns a ValidationResult, that result will be returned to the caller.
+        If this method returns None, the default error handling will proceed (raising RuntimeError).
+
+        Args:
+            stderr_msg: The stderr output from Redocly
+            result: The subprocess execution result from Redocly
+            document_path: The path or URL being validated
+            target: Optional target identifier for validation context
+
+        Returns:
+            ValidationResult if the error was handled, None to proceed with default handling
+
+        Example:
+            Override this method to handle specific errors gracefully:
+
+            def _handle_error(self, stderr_msg, result, document_path, target):
+                # Handle fetch errors (403, 404, etc.) by returning diagnostics
+                if "ENOTFOUND" in stderr_msg or "ETIMEDOUT" in stderr_msg:
+                    diagnostic = JenticDiagnostic(
+                        range=Range(start=Position(line=0, character=0),
+                                    end=Position(line=0, character=0)),
+                        message=f"Could not fetch document: {document_path}",
+                        severity=DiagnosticSeverity.Error,
+                        code="document-fetch-error",
+                        source="redocly-validator",
+                    )
+                    diagnostic.set_target(target)
+                    return ValidationResult(diagnostics=[diagnostic])
+
+                # Fall back to default behavior
+                return super()._handle_error(stderr_msg, result, document_path, target)
+        """
+        # Return None to proceed with default error handling (raising RuntimeError)
+        return None

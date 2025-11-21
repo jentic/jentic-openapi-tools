@@ -33,8 +33,8 @@ class SecurityRequirement:
     """
 
     root_node: yaml.Node
-    requirements: ValueSource[dict[KeySource[str], ValueSource[list[ValueSource[str]]]]] | None = (
-        patterned_field()
+    requirements: dict[KeySource[str], ValueSource[list[ValueSource[str]]]] = patterned_field(
+        default_factory=dict
     )
 
 
@@ -61,7 +61,7 @@ def build(
         yaml = YAML()
         root = yaml.compose("api_key: []")
         security_req = build(root)
-        assert security_req.requirements is not None
+        assert len(security_req.requirements) > 0
     """
     context = context or Context()
 
@@ -70,7 +70,7 @@ def build(
         value = context.yaml_constructor.construct_object(root, deep=True)
         return ValueSource(value=value, value_node=root)
 
-    requirements_dict: dict[KeySource[str], ValueSource[list[ValueSource[str]]]] = {}
+    requirements = {}
 
     for key_node, value_node in root.value:
         key = context.yaml_constructor.construct_yaml_str(key_node)
@@ -88,19 +88,17 @@ def build(
                 item_value = context.yaml_constructor.construct_object(item_node, deep=True)
                 scope_list.append(ValueSource(value=item_value, value_node=item_node))
 
-            requirements_dict[KeySource(value=key, key_node=key_node)] = ValueSource(
+            requirements[KeySource(value=key, key_node=key_node)] = ValueSource(
                 value=scope_list, value_node=value_node
             )
         else:
             # Not a sequence - preserve as-is for validation to catch
             value = context.yaml_constructor.construct_object(value_node, deep=True)
-            requirements_dict[KeySource(value=key, key_node=key_node)] = ValueSource(
+            requirements[KeySource(value=key, key_node=key_node)] = ValueSource(
                 value=value, value_node=value_node
             )
 
     return SecurityRequirement(
         root_node=root,
-        requirements=(
-            ValueSource(value=requirements_dict, value_node=root) if requirements_dict else None
-        ),
+        requirements=requirements,
     )

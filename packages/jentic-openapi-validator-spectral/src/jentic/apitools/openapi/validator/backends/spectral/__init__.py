@@ -1,4 +1,5 @@
 import json
+import logging
 import shlex
 import tempfile
 from collections.abc import Sequence
@@ -21,6 +22,8 @@ from jentic.apitools.openapi.validator.core import JenticDiagnostic, ValidationR
 
 __all__ = ["SpectralValidatorBackend"]
 
+
+logger = logging.getLogger(__name__)
 
 rulesets_files_dir = files("jentic.apitools.openapi.validator.backends.spectral.rulesets")
 ruleset_file = rulesets_files_dir.joinpath("spectral.mjs")
@@ -135,41 +138,72 @@ class SpectralValidatorBackend(BaseValidatorBackend):
                 else self.ruleset_path
             )
 
-            with as_file(ruleset_file) as default_ruleset_path:
-                # Build spectral command
-                cmd = [
-                    *shlex.split(self.spectral_path),
-                    "lint",
-                    "-r",
-                    validated_ruleset_path or default_ruleset_path,
-                    "-f",
-                    "json",
-                    validated_doc_path,
-                ]
-                result = run_subprocess(cmd, timeout=self.timeout)
+            # Determine output file path
+            with tempfile.NamedTemporaryFile() as tmp_output:
+                output_path = tmp_output.name
+
+            try:
+                with as_file(ruleset_file) as default_ruleset_path:
+                    # Build spectral command
+                    cmd = [
+                        *shlex.split(self.spectral_path),
+                        "lint",
+                        "-r",
+                        validated_ruleset_path or default_ruleset_path,
+                        "-f",
+                        "json",
+                        "-o",
+                        output_path,
+                        validated_doc_path,
+                    ]
+                    result = run_subprocess(cmd, timeout=self.timeout)
+
+                if result is None:
+                    raise RuntimeError("Spectral validation failed - no result returned")
+
+                # Check for execution errors
+                if result.returncode not in (0, 1):
+                    # According to Spectral docs, return code 2 might indicate lint errors found,
+                    # 0 means no issues, but let's not assume this; we'll parse output.
+                    # If returncode is something else, spectral encountered an execution error.
+                    stderr_msg = result.stderr.strip()
+                    custom_diagnostics = self._handle_error(
+                        stderr_msg, result, validated_doc_path, target
+                    )
+                    if custom_diagnostics is not None:
+                        return custom_diagnostics
+
+                    # Default error handling
+                    msg = stderr_msg or f"Spectral exited with code {result.returncode}"
+                    raise RuntimeError(msg)
+
+                # Read and parse output file
+                try:
+                    with open(output_path, encoding="utf-8") as f:
+                        issues: list[dict] = json.load(f)
+                except FileNotFoundError:
+                    if result.stderr:
+                        raise RuntimeError(
+                            f"Spectral did not create output file: {result.stderr.strip()}"
+                        )
+                    logger.warning("Spectral output file not found, returning empty diagnostics")
+                    return ValidationResult(diagnostics=[])
+                except json.JSONDecodeError as e:
+                    if result.stderr:
+                        raise RuntimeError(
+                            f"Spectral output is not valid JSON: {result.stderr.strip()}"
+                        )
+                    logger.warning(
+                        f"Spectral output is not valid JSON: {e}, returning empty diagnostics"
+                    )
+                    return ValidationResult(diagnostics=[])
+            finally:
+                # Clean up the temp output file
+                Path(output_path).unlink(missing_ok=True)
 
         except SubprocessExecutionError as e:
             # only timeout and OS errors, as run_subprocess has a default `fail_on_error = False`
             raise e
-
-        if result is None:
-            raise RuntimeError("Spectral validation failed - no result returned")
-
-        if result.returncode not in (0, 1) or (result.stderr and not result.stdout):
-            # According to Spectral docs, return code 2 might indicate lint errors found,
-            # 0 means no issues, but let's not assume this; we'll parse output.
-            # If returncode is something else, spectral encountered an execution error.
-            err = result.stderr.strip() or result.stdout.strip()
-            msg = err or f"Spectral exited with code {result.returncode}"
-            raise RuntimeError(msg)
-
-        output = result.stdout.replace("No results with a severity of 'error' found!", "")
-
-        try:
-            issues: list[dict] = json.loads(output)
-        except json.JSONDecodeError:
-            # If an output isn't JSON (maybe spectral old version or error format), handle gracefully
-            return ValidationResult(diagnostics=[])
 
         diagnostics: list[JenticDiagnostic] = []
         for issue in issues:
@@ -220,3 +254,50 @@ class SpectralValidatorBackend(BaseValidatorBackend):
             return self._validate_uri(
                 Path(temp_file.name).as_uri(), base_url=base_url, target=target
             )
+
+    def _handle_error(
+        self,
+        stderr_msg: str,
+        result: SubprocessExecutionResult,
+        document_path: str,
+        target: str | None = None,
+    ) -> ValidationResult | None:
+        """Handle custom error cases from Spectral execution.
+
+        This is an extension point for subclasses to provide custom error handling.
+        By default, returns None to proceed with standard error handling (raising RuntimeError).
+
+        If this method returns a ValidationResult, that result will be returned to the caller.
+        If this method returns None, the default error handling will proceed (raising RuntimeError).
+
+        Args:
+            stderr_msg: The stderr output from Spectral
+            result: The subprocess execution result from Spectral
+            document_path: The path or URL being validated
+            target: Optional target identifier for validation context
+
+        Returns:
+            ValidationResult if the error was handled, None to proceed with default handling
+
+        Example:
+            Override this method to handle specific errors gracefully:
+
+            def _handle_error(self, stderr_msg, result, document_path, target):
+                # Handle fetch errors (403, 404, etc.) by returning diagnostics
+                if "Could not parse" in stderr_msg and "://" in document_path:
+                    diagnostic = JenticDiagnostic(
+                        range=Range(start=Position(line=0, character=0),
+                                    end=Position(line=0, character=0)),
+                        message=f"Could not fetch document: {document_path}",
+                        severity=DiagnosticSeverity.Error,
+                        code="document-fetch-error",
+                        source="spectral-validator",
+                    )
+                    diagnostic.set_target(target)
+                    return ValidationResult(diagnostics=[diagnostic])
+
+                # Fall back to default behavior
+                return super()._handle_error(stderr_msg, result, document_path, target)
+        """
+        # Return None to proceed with default error handling (raising RuntimeError)
+        return None
