@@ -314,7 +314,7 @@ Low-level OpenAPI data model parser that automatically detects the OpenAPI versi
 
 **Accepts:** `text` (JSON/YAML strings), `uri` (file paths/URLs)
 
-**Returns:** `OpenAPI30` or `OpenAPI31` data mdatamodel-lowodel (from `jentic-openapi-datamodels`)
+**Returns:** `OpenAPI30` or `OpenAPI31` data model (from `jentic-openapi-datamodels`)
 
 ```python
 from jentic.apitools.openapi.parser.core import OpenAPIParser
