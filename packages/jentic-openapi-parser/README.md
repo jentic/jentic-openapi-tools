@@ -318,24 +318,34 @@ Low-level OpenAPI data model parser that automatically detects the OpenAPI versi
 
 ```python
 from jentic.apitools.openapi.parser.core import OpenAPIParser
+from jentic.apitools.openapi.parser.backends.datamodel_low import DataModelLow
 from jentic.apitools.openapi.datamodels.low.v30.openapi import OpenAPI30
 from jentic.apitools.openapi.datamodels.low.v31.openapi import OpenAPI31
+
 
 parser = OpenAPIParser("datamodel-low")
 
 # Parse OpenAPI 3.0.x document
-doc = parser.parse("file:///path/to/openapi-3.0.yaml")
+doc = parser.parse("file:///path/to/openapi-3.0.yaml", return_type=OpenAPI30)
 assert isinstance(doc, OpenAPI30)
 print(doc.openapi.value)  # "3.0.4"
 print(doc.info.value.title.value)  # Access with source tracking
 
 # Parse OpenAPI 3.1.x document
-doc = parser.parse("file:///path/to/openapi-3.1.yaml")
+doc = parser.parse("file:///path/to/openapi-3.1.yaml", return_type=OpenAPI31)
 assert isinstance(doc, OpenAPI31)
 print(doc.openapi.value)  # "3.1.2"
 
 # Access fields with source information
 print(f"Title at line {doc.info.key_node.start_mark.line}")
+
+doc = parser.parse("file:///path/to/openapi.yaml", return_type=DataModelLow)
+# Type checker sees 'Any', runtime type will be one of: OpenAPI30, OpenAPI31, or ValueSource
+print(type(doc).__name__)  # "OpenAPI30" or "OpenAPI31"
+
+# Optional: Enable strict runtime validation
+doc = parser.parse("file:///path/to/openapi.yaml", return_type=DataModelLow, strict=True)
+# Raises TypeConversionError if result is not one of the union types
 ```
 
 **Features:**

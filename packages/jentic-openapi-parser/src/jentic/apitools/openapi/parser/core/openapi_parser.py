@@ -1,5 +1,6 @@
 import importlib.metadata
 import logging
+import types
 import warnings
 from typing import Any, Mapping, Optional, Sequence, Type, TypeVar, cast, overload
 
@@ -106,8 +107,17 @@ class OpenAPIParser:
     @overload
     def parse(self, document: str, *, return_type: type[T], strict: bool = False) -> T: ...
 
+    @overload
     def parse(
-        self, document: str, *, return_type: type[T] | None = None, strict: bool = False
+        self, document: str, *, return_type: types.UnionType, strict: bool = False
+    ) -> Any: ...
+
+    def parse(
+        self,
+        document: str,
+        *,
+        return_type: type[T] | types.UnionType | None = None,
+        strict: bool = False,
     ) -> Any:
         try:
             raw = self._parse(document)
@@ -119,6 +129,17 @@ class OpenAPIParser:
         if return_type is None:
             return self._to_plain(raw)
 
+        # Handle union types
+        if isinstance(return_type, types.UnionType):
+            if strict:
+                # Python 3.11+ supports isinstance with UnionType directly
+                if not isinstance(raw, return_type):
+                    type_names = " | ".join(t.__name__ for t in return_type.__args__)
+                    self.logger.error(f"Expected {type_names}, got {type(raw).__name__}")
+                    raise TypeConversionError(f"Expected {type_names}, got {type(raw).__name__}")
+            return raw
+
+        # Handle concrete types
         if strict:
             if not isinstance(raw, return_type):
                 msg = f"Expected {getattr(return_type, '__name__', return_type)}, got {type(raw).__name__}"
