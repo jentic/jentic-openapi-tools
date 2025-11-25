@@ -1,5 +1,7 @@
 """Core traversal functionality for low-level OpenAPI datamodels."""
 
+from jentic.apitools.openapi.datamodels.low.fields import patterned_fields
+
 from .introspection import get_traversable_fields, is_datamodel_node, unwrap_value
 from .path import NodePath
 
@@ -96,10 +98,9 @@ def traverse(root, visitor) -> None:
     # Create initial root path
     initial_path = NodePath(
         node=root,
-        parent=None,
+        parent_path=None,
         parent_field=None,
         parent_key=None,
-        ancestors=(),
     )
 
     # Start traversal
@@ -144,6 +145,12 @@ def _default_traverse_children(visitor, path: NodePath) -> _BreakType | None:
 
         # Handle dicts
         elif isinstance(unwrapped, dict):
+            # Check if this field is a patterned field
+            # Patterned fields (like Paths.paths, Components.schemas) should not
+            # add their field name to the path when iterating dict items
+            patterned_field_names = patterned_fields(type(path.node))
+            is_patterned = field_name in patterned_field_names
+
             for key, value in unwrapped.items():
                 unwrapped_key = unwrap_value(key)
                 unwrapped_value = unwrap_value(value)
@@ -153,9 +160,12 @@ def _default_traverse_children(visitor, path: NodePath) -> _BreakType | None:
                     assert isinstance(unwrapped_key, (str, int)), (
                         f"Expected str or int key, got {type(unwrapped_key)}"
                     )
+                    # For patterned fields, don't include the field name in the path
+                    # (e.g., Paths.paths is patterned, so /paths/{path-key} not /paths/paths/{path-key})
+                    dict_field_name: str | None = None if is_patterned else field_name
                     child_path = path.create_child(
                         node=unwrapped_value,
-                        parent_field=field_name,
+                        parent_field=dict_field_name,
                         parent_key=unwrapped_key,
                     )
                     result = _visit_node(visitor, child_path)

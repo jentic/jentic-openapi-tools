@@ -19,13 +19,28 @@ class NodePath:
     """
 
     node: Any  # Current datamodel object
-    parent: Any | None  # Parent datamodel object
+    parent_path: "NodePath | None"  # Reference to parent's NodePath (chain)
     parent_field: str | None  # Field name in parent
     parent_key: str | int | None  # Key if parent field is list/dict
-    ancestors: tuple[Any, ...]  # Tuple of ancestor nodes (root first)
+
+    @property
+    def parent(self) -> Any | None:
+        """Get parent node. Computed from parent_path for convenience."""
+        return self.parent_path.node if self.parent_path else None
+
+    @property
+    def ancestors(self) -> tuple[Any, ...]:
+        """Get ancestor nodes from root to parent. Computed for convenience."""
+        result = []
+        current = self.parent_path
+        while current is not None:
+            result.append(current.node)
+            current = current.parent_path
+        result.reverse()  # Root first
+        return tuple(result)
 
     def create_child(
-        self, node: Any, parent_field: str, parent_key: str | int | None
+        self, node: Any, parent_field: str | None, parent_key: str | int | None
     ) -> "NodePath":
         """
         Create a child NodePath from this path.
@@ -34,7 +49,7 @@ class NodePath:
 
         Args:
             node: Child node
-            parent_field: Field name in current node
+            parent_field: Field name in current node (None for dict items to avoid duplicates)
             parent_key: Key if field is list/dict
 
         Returns:
@@ -42,10 +57,9 @@ class NodePath:
         """
         return NodePath(
             node=node,
-            parent=self.node,
+            parent_path=self,
             parent_field=parent_field,
             parent_key=parent_key,
-            ancestors=self.ancestors + (self.node,),
         )
 
     def traverse(self, visitor) -> None:
@@ -103,37 +117,39 @@ class NodePath:
             "$['components']['schemas']['User']['properties']['name']"
         """
         # Root node
-        if not self.ancestors and self.parent_field is None:
+        if self.parent_path is None:
             return "$" if path_format == "jsonpath" else ""
 
-        # Build parts list
-        parts: list[str | int] = []
+        # Walk back collecting all segments
+        segments: list[str | int] = []
+        current = self
+        while current.parent_path is not None:
+            # Add in reverse order (key first, then field) because we'll reverse the list
+            # This ensures field comes before key in the final path
+            if current.parent_key is not None:
+                segments.append(current.parent_key)
+            if current.parent_field:
+                segments.append(current.parent_field)
+            current = current.parent_path
 
-        # This is a simplified implementation that only captures one level
-        # A full implementation would need to walk back through ancestors
-        if self.parent_field:
-            parts.append(self.parent_field)
-
-        if self.parent_key is not None:
-            # Both int (array index) and str (object key) work with from_parts
-            parts.append(self.parent_key)
+        segments.reverse()  # Root to leaf order
 
         if path_format == "jsonpath":
             # RFC 9535 Normalized JSONPath: $['field'][index]['key']
-            segments = ["$"]
-            for part in parts:
-                if isinstance(part, int):
+            result = ["$"]
+            for segment in segments:
+                if isinstance(segment, int):
                     # Array index: $[0]
-                    segments.append(f"[{part}]")
+                    result.append(f"[{segment}]")
                 else:
                     # Member name: $['field']
                     # Escape single quotes in the string
-                    escaped = str(part).replace("'", "\\'")
-                    segments.append(f"['{escaped}']")
-            return "".join(segments)
+                    escaped = str(segment).replace("'", "\\'")
+                    result.append(f"['{escaped}']")
+            return "".join(result)
 
         # RFC 6901 JSON Pointer
-        return JsonPointer.from_parts(parts).path
+        return JsonPointer.from_parts(segments).path
 
     def get_root(self) -> Any:
         """
@@ -142,4 +158,7 @@ class NodePath:
         Returns:
             Root datamodel object
         """
-        return self.ancestors[0] if self.ancestors else self.node
+        current = self
+        while current.parent_path is not None:
+            current = current.parent_path
+        return current.node
