@@ -15,7 +15,31 @@ __all__ = [
     "get_traversable_fields",
     "unwrap_value",
     "is_datamodel_node",
+    "get_yaml_field_name",
 ]
+
+
+def get_yaml_field_name(node_class: type, python_field_name: str) -> str:
+    """
+    Convert Python field name to YAML field name using metadata.
+
+    Args:
+        node_class: Datamodel class type
+        python_field_name: Python attribute name (e.g., "external_docs")
+
+    Returns:
+        YAML field name from metadata, or python_field_name if not found
+        (e.g., "externalDocs")
+    """
+    fixed = fixed_fields(node_class)
+    patterned = patterned_fields(node_class)
+
+    # Try fixed fields first, then patterned
+    field_obj = fixed.get(python_field_name) or patterned.get(python_field_name)
+    if field_obj:
+        return field_obj.metadata.get("yaml_name", python_field_name)
+
+    return python_field_name
 
 
 # Cache of field names to check per class type

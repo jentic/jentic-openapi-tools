@@ -599,3 +599,32 @@ class TestFormatPathEdgeCases:
         root = visitor.deep_path.get_root()
         assert root.__class__.__name__ == "OpenAPI30"
         assert root is openapi30_doc
+
+    def test_yaml_field_names_in_paths(self):
+        """Paths should use YAML field names (e.g., externalDocs not external_docs)."""
+        yaml_text = textwrap.dedent("""
+            openapi: 3.1.0
+            info:
+              title: Test API
+              version: 1.0.0
+            externalDocs:
+              url: https://example.com/docs
+              description: API Documentation
+        """)
+        parser = OpenAPIParser("datamodel-low")
+        doc = parser.parse(yaml_text, return_type=OpenAPI31)
+
+        class ExternalDocsCapture:
+            def __init__(self):
+                self.path = None
+
+            def visit_ExternalDocumentation(self, path):
+                self.path = path
+
+        visitor = ExternalDocsCapture()
+        traverse(doc, visitor)
+
+        assert visitor.path is not None
+        # Should use YAML name "externalDocs" not Python name "external_docs"
+        assert visitor.path.format_path() == "/externalDocs"
+        assert visitor.path.format_path(path_format="jsonpath") == "$['externalDocs']"
