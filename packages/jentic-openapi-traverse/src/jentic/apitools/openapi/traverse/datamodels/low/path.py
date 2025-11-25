@@ -5,6 +5,8 @@ from typing import Any, Literal
 
 from jsonpointer import JsonPointer
 
+from .introspection import get_yaml_field_name
+
 
 __all__ = ["NodePath"]
 
@@ -129,7 +131,10 @@ class NodePath:
             if current.parent_key is not None:
                 segments.append(current.parent_key)
             if current.parent_field:
-                segments.append(current.parent_field)
+                # Convert Python field name to YAML name for output
+                parent_class = type(current.parent_path.node)
+                yaml_name = get_yaml_field_name(parent_class, current.parent_field)
+                segments.append(yaml_name)
             current = current.parent_path
 
         segments.reverse()  # Root to leaf order
