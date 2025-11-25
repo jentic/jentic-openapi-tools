@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.25 (2025-11-25)
+
+### Bug Fixes
+
+- **traverse**: Use yaml_name for constructing formatted paths
+  ([#167](https://github.com/jentic/jentic-openapi-tools/pull/167),
+  [`a267241`](https://github.com/jentic/jentic-openapi-tools/commit/a26724111c491f143f7d6ade1d6192476007307b))
+
+
 ## v1.0.0-alpha.24 (2025-11-25)
 
 ### Bug Fixes
