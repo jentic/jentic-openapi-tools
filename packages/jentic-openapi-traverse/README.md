@@ -108,14 +108,41 @@ class PathInspector:
         print(f"Parent field: {path.parent_field}")  # e.g., "get", "post"
         print(f"Parent key: {path.parent_key}")      # e.g., "/users" (for path items)
 
-        # Ancestry
+        # Ancestry (computed properties)
+        print(f"Parent: {path.parent.__class__.__name__}")
         print(f"Ancestors: {len(path.ancestors)}")
         root = path.get_root()
 
-        # Path formatting
-        print(f"JSONPointer: {path.format_path()}")                      # /paths/~1users/get
-        print(f"JSONPath: {path.format_path(path_format='jsonpath')}")   # $['paths']['/users']['get']
+        # Complete path formatting (RFC 6901 JSONPointer / RFC 9535 JSONPath)
+        print(f"JSONPointer: {path.format_path()}")
+        # Output: /paths/~1users/get
+
+        print(f"JSONPath: {path.format_path(path_format='jsonpath')}")
+        # Output: $['paths']['/users']['get']
 ```
+
+#### Path Reconstruction
+
+NodePath uses a linked chain structure (`parent_path`) internally to preserve complete path information from root to current node. This enables accurate JSONPointer and JSONPath reconstruction:
+
+```python
+class PathFormatter:
+    def visit_Response(self, path):
+        # Complete paths from root to current node
+        pointer = path.format_path()
+        # /paths/~1users/get/responses/200
+
+        jsonpath = path.format_path(path_format='jsonpath')
+        # $['paths']['/users']['get']['responses']['200']
+```
+
+**Special handling for patterned fields:**
+- Patterned fields like `Paths.paths` don't duplicate in paths: `/paths/{key}` (not `/paths/paths/{key}`)
+- Fixed dict fields like `webhooks`, `callbacks`, `schemas` include their field name: `/webhooks/{key}`, `/components/schemas/{key}`
+
+**Computed properties:**
+- `path.parent` - Returns parent node (computed from parent_path chain)
+- `path.ancestors` - Returns tuple of ancestor nodes from root to parent (computed on access)
 
 ### Enter/Leave Hooks
 
