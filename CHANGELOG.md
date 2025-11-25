@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.24 (2025-11-25)
+
+### Bug Fixes
+
+- **traverse**: Correct traversal path construction
+  ([#166](https://github.com/jentic/jentic-openapi-tools/pull/166),
+  [`f9e581f`](https://github.com/jentic/jentic-openapi-tools/commit/f9e581f4a5c5b7f93ba59445a54fc0f4e672eefa))
+
+
 ## v1.0.0-alpha.23 (2025-11-21)
 
 ### Chores
