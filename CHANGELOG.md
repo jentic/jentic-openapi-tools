@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.26 (2025-11-26)
+
+### Features
+
+- **datamodels**: Add support for meta data for Reference spec object
+  ([#168](https://github.com/jentic/jentic-openapi-tools/pull/168),
+  [`574ea00`](https://github.com/jentic/jentic-openapi-tools/commit/574ea00a57bf8605f5b24333077f9a5279232903))
+
+
 ## v1.0.0-alpha.25 (2025-11-25)
 
 ### Bug Fixes
