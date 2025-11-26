@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, TypeAlias, get_args
 
 from ruamel import yaml
@@ -331,7 +331,11 @@ def build_schema_or_reference(node: yaml.Node, context: Context) -> NestedSchema
         for key_node, _ in node.value:
             key = context.yaml_constructor.construct_yaml_str(key_node)
             if key == "$ref":
-                return build_reference(node, context)
+                reference = build_reference(node, context)
+                # Add metadata indicating this is a Schema reference
+                if isinstance(reference, Reference):
+                    reference = replace(reference, meta={"referenced_type": "Schema"})
+                return reference
 
     # Otherwise, try to build as Schema (which may be recursive)
     return build(node, context)
