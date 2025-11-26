@@ -914,3 +914,35 @@ def test_build_with_self_referential_schema(parse_yaml):
     assert isinstance(children_value, schema.Schema)
     assert children_value.type is not None
     assert children_value.type.value == "array"
+
+
+def test_schema_reference_has_meta(parse_yaml):
+    """Test that schema references have metadata indicating referenced_type."""
+    yaml_content = textwrap.dedent(
+        """
+        type: object
+        properties:
+          user:
+            $ref: '#/components/schemas/User'
+        """
+    )
+    root = parse_yaml(yaml_content)
+
+    result = schema.build(root)
+    assert isinstance(result, schema.Schema)
+
+    # Check that properties contains a Reference
+    assert result.properties is not None
+    properties = {k.value: v for k, v in result.properties.value.items()}
+    assert "user" in properties
+
+    user_ref = properties["user"]
+    assert isinstance(user_ref, Reference)
+
+    # Verify meta field is set correctly
+    assert user_ref.meta is not None
+    assert user_ref.meta == {"referenced_type": "Schema"}
+
+    # Verify the $ref value is preserved
+    assert user_ref.ref is not None
+    assert user_ref.ref.value == "#/components/schemas/User"

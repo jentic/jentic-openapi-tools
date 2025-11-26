@@ -23,9 +23,11 @@ class Reference:
         ref: REQUIRED. The reference identifier. This MUST be in the form of a URI.
         summary: A short summary which by default SHOULD override that of the referenced component. If the referenced object-type does not allow a summary field, then this field has no effect.
         description: A description which by default SHOULD override that of the referenced component. CommonMark syntax MAY be used for rich text representation. If the referenced object-type does not allow a description field, then this field has no effect.
+        meta: Optional metadata as a dictionary.
     """
 
     root_node: yaml.Node
+    meta: dict | None = None
     ref: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$ref"})
     summary: FieldSource[str] | None = fixed_field()
     description: FieldSource[str] | None = fixed_field()

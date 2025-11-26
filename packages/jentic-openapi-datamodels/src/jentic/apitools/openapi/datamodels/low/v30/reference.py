@@ -24,10 +24,12 @@ class Reference:
 
     Attributes:
         root_node: The top-level node representing the entire Reference object in the original source file
+        meta: Optional metadata as a dictionary.
         ref: REQUIRED. The reference string. Must be in the format of a URI.
     """
 
     root_node: yaml.Node
+    meta: dict | None = None
     ref: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$ref"})
 
 
