@@ -46,9 +46,9 @@ class Schema:
         root_node: The top-level node representing the entire Schema object in the original source file
 
         # JSON Schema Core Keywords (2020-12)
-        schema_: The $schema keyword - URI of the meta-schema
-        id_: The $id keyword - URI that identifies the schema resource
-        ref_: The $ref keyword - URI reference to another schema
+        schema: The $schema keyword - URI of the meta-schema
+        id: The $id keyword - URI that identifies the schema resource
+        ref: The $ref keyword - URI reference to another schema
         anchor: The $anchor keyword - Plain name fragment for identification
         dynamic_ref: The $dynamicRef keyword - Dynamic reference to another schema
         dynamic_anchor: The $dynamicAnchor keyword - Dynamic anchor for identification
@@ -146,9 +146,9 @@ class Schema:
     root_node: yaml.Node
 
     # Core Keywords
-    id_: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$id"})
-    schema_: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$schema"})
-    ref_: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$ref"})
+    id: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$id"})
+    schema: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$schema"})
+    ref: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$ref"})
     comment: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$comment"})
     defs: FieldSource[dict[KeySource[str], NestedSchema]] | None = fixed_field(
         metadata={"yaml_name": "$defs"}

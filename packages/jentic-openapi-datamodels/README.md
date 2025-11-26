@@ -276,9 +276,9 @@ Special cases for Python reserved keywords and `$` fields:
 - `then` → `then_`
 - `else` → `else_`
 - `not` → `not_`
-- `$ref` → `ref_`
-- `$id` → `id_`
-- `$schema` → `schema_`
+- `$ref` → `ref`
+- `$id` → `id`
+- `$schema` → `schema`
 
 ### Source Tracking
 
