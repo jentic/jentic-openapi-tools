@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 from ruamel import yaml
 
@@ -29,7 +30,7 @@ class Reference:
     """
 
     root_node: yaml.Node
-    meta: dict | None = None
+    meta: dict[str, Any] | None = None
     ref: FieldSource[str] | None = fixed_field(metadata={"yaml_name": "$ref"})
 
 
