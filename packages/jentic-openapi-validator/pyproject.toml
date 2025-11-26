@@ -1,6 +1,6 @@
 [project]
 name = "jentic-openapi-validator"
-version = "1.0.0-alpha.26"
+version = "1.0.0-alpha.27"
 description = "Jentic OpenAPI Validator"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
@@ -8,14 +8,14 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
-  "jentic-openapi-parser~=1.0.0-alpha.26",
+  "jentic-openapi-parser~=1.0.0-alpha.27",
   "openapi-spec-validator~=0.7.2",
   "lsprotocol~=2025.0.0"
 ]
 
 [project.optional-dependencies]
-spectral = ["jentic-openapi-validator-spectral~=1.0.0-alpha.26"]
-redocly = ["jentic-openapi-validator-redocly~=1.0.0-alpha.26"]
+spectral = ["jentic-openapi-validator-spectral~=1.0.0-alpha.27"]
+redocly = ["jentic-openapi-validator-redocly~=1.0.0-alpha.27"]
 
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"

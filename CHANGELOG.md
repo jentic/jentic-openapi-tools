@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.27 (2025-11-26)
+
+### Bug Fixes
+
+- **datamodels**: Fix names of v31 Schema object fields
+  ([#169](https://github.com/jentic/jentic-openapi-tools/pull/169),
+  [`bc59a53`](https://github.com/jentic/jentic-openapi-tools/commit/bc59a53bf317864b253849366f23890422c60be3))
+
+
 ## v1.0.0-alpha.26 (2025-11-26)
 
 ### Features
