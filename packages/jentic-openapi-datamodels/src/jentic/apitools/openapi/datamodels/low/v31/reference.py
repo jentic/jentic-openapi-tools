@@ -21,10 +21,10 @@ class Reference:
 
     Attributes:
         root_node: The top-level node representing the entire Reference object in the original source file
+        meta: Optional metadata as a dictionary.
         ref: REQUIRED. The reference identifier. This MUST be in the form of a URI.
         summary: A short summary which by default SHOULD override that of the referenced component. If the referenced object-type does not allow a summary field, then this field has no effect.
         description: A description which by default SHOULD override that of the referenced component. CommonMark syntax MAY be used for rich text representation. If the referenced object-type does not allow a description field, then this field has no effect.
-        meta: Optional metadata as a dictionary.
     """
 
     root_node: yaml.Node
