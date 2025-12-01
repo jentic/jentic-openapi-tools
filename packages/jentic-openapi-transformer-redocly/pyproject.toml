@@ -1,6 +1,6 @@
 [project]
 name = "jentic-openapi-transformer-redocly"
-version = "1.0.0-alpha.28"
+version = "1.0.0-alpha.29"
 description = "Jentic OpenAPI Redocly Transformer Backend"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
@@ -8,8 +8,8 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
-  "jentic-openapi-common~=1.0.0-alpha.28",
-  "jentic-openapi-transformer~=1.0.0-alpha.28"
+  "jentic-openapi-common~=1.0.0-alpha.29",
+  "jentic-openapi-transformer~=1.0.0-alpha.29"
 ]
 
 [project.urls]

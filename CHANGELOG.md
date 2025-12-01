@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.29 (2025-12-01)
+
+### Bug Fixes
+
+- **validator**: Simplify parallel validations
+  ([#173](https://github.com/jentic/jentic-openapi-tools/pull/173),
+  [`f9ebd3f`](https://github.com/jentic/jentic-openapi-tools/commit/f9ebd3f702328ee5b7bb548ef19eb5e3cc4dac08))
+
+
 ## v1.0.0-alpha.28 (2025-12-01)
 
 ### Features
