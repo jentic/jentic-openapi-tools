@@ -105,14 +105,16 @@ def test_parallel_single_backend_no_parallelization(valid_openapi_dict):
 
     validator = OpenAPIValidator(backends=[backend])
 
-    # Should not call asyncio.run for single backend
-    with patch("jentic.apitools.openapi.validator.core.openapi_validator.asyncio.run") as mock_run:
+    # Should not create ProcessPoolExecutor for single backend
+    with patch(
+        "jentic.apitools.openapi.validator.core.openapi_validator.ProcessPoolExecutor"
+    ) as mock_executor:
         result = validator.validate(valid_openapi_dict, parallel=True)
 
     assert result.valid
     assert backend.call_count == 1
-    # asyncio.run should not be called for single backend
-    mock_run.assert_not_called()
+    # ProcessPoolExecutor should not be created for single backend
+    mock_executor.assert_not_called()
 
 
 def test_parallel_aggregates_diagnostics(valid_openapi_dict):

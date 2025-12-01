@@ -1,9 +1,8 @@
-import asyncio
 import importlib.metadata
 import json
 import warnings
 from collections.abc import Sequence
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import Type
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser
@@ -147,24 +146,29 @@ class OpenAPIValidator:
                 f"Expected str (URI or JSON/YAML) or dict."
             )
 
+        diagnostics: list[JenticDiagnostic] = []
+
         # Run validation through all backends
         if parallel and len(self.backends) > 1:
-            # Parallel execution using asyncio with ProcessPoolExecutor
-            diagnostics = asyncio.run(
-                _validate_parallel(
-                    self.backends,
-                    document,
-                    document_dict,
-                    document_text,
-                    document_is_uri,
-                    base_url,
-                    target,
-                    max_workers,
-                )
-            )
+            # Parallel execution using ProcessPoolExecutor
+            with ProcessPoolExecutor(max_workers=max_workers) as executor:
+                futures = [
+                    executor.submit(
+                        _validate_single_backend,
+                        backend,
+                        document,
+                        document_dict,
+                        document_text,
+                        document_is_uri,
+                        base_url,
+                        target,
+                    )
+                    for backend in self.backends
+                ]
+                for future in as_completed(futures):
+                    diagnostics.extend(future.result())
         else:
             # Sequential execution (default)
-            diagnostics: list[JenticDiagnostic] = []
             for backend in self.backends:
                 diagnostics.extend(
                     _validate_single_backend(
@@ -259,58 +263,3 @@ def _validate_single_backend(
         result = backend.validate(backend_document, base_url=base_url, target=target)
         return list(result.diagnostics)
     return []
-
-
-async def _validate_parallel(
-    backends: Sequence[BaseValidatorBackend],
-    document: str | dict,
-    document_dict: dict | None,
-    document_text: str,
-    document_is_uri: bool,
-    base_url: str | None,
-    target: str | None,
-    max_workers: int | None,
-) -> list[JenticDiagnostic]:
-    """
-    Run validators in parallel using ProcessPoolExecutor.
-
-    This module-level async function uses asyncio's run_in_executor to dispatch
-    each backend validation to a separate process, enabling true parallelism
-    for CPU-bound validators.
-
-    Args:
-        backends: List of validator backends to run
-        document: The original document (URI or text)
-        document_dict: Parsed document as dict (if available)
-        document_text: Document as text string
-        document_is_uri: Whether document is a URI
-        base_url: Optional base URL for resolving references
-        target: Optional target identifier
-        max_workers: Maximum number of worker processes
-
-    Returns:
-        Aggregated list of diagnostics from all backends
-    """
-    loop = asyncio.get_running_loop()
-
-    with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        tasks = [
-            loop.run_in_executor(
-                executor,
-                _validate_single_backend,
-                backend,
-                document,
-                document_dict,
-                document_text,
-                document_is_uri,
-                base_url,
-                target,
-            )
-            for backend in backends
-        ]
-        results = await asyncio.gather(*tasks)
-
-    diagnostics: list[JenticDiagnostic] = []
-    for result in results:
-        diagnostics.extend(result)
-    return diagnostics
