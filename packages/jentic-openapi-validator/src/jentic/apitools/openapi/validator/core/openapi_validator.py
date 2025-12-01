@@ -291,7 +291,7 @@ async def _validate_parallel(
     Returns:
         Aggregated list of diagnostics from all backends
     """
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         tasks = [
