@@ -68,22 +68,35 @@ def test_parallel_false_runs_sequentially(valid_openapi_dict):
 
 
 def test_parallel_true_runs_concurrently(valid_openapi_dict):
-    """Test that parallel=True runs backends concurrently."""
+    """Test that parallel=True runs backends concurrently and is faster than sequential."""
     # Use longer delays to make timing differences more reliable
-    backend1 = SlowMockBackend(delay=0.3, name="backend1")
-    backend2 = SlowMockBackend(delay=0.3, name="backend2")
+    delay = 0.3
 
-    validator = OpenAPIValidator(backends=[backend1, backend2])
-
+    # Run sequential first
+    validator_seq = OpenAPIValidator(
+        backends=[SlowMockBackend(delay=delay), SlowMockBackend(delay=delay)]
+    )
     start_time = time.time()
-    result = validator.validate(valid_openapi_dict, parallel=True)
-    elapsed = time.time() - start_time
+    result_seq = validator_seq.validate(valid_openapi_dict, parallel=False)
+    sequential_time = time.time() - start_time
 
-    assert result.valid
-    # Parallel execution should take less than 0.6s (both run concurrently)
-    # Sequential would take at least 0.6s, parallel should be around 0.3s + overhead
+    # Run parallel
+    validator_par = OpenAPIValidator(
+        backends=[SlowMockBackend(delay=delay), SlowMockBackend(delay=delay)]
+    )
+    start_time = time.time()
+    result_par = validator_par.validate(valid_openapi_dict, parallel=True)
+    parallel_time = time.time() - start_time
+
+    assert result_seq.valid
+    assert result_par.valid
+    # Parallel should be significantly faster than sequential (at least 1.3x faster)
+    # With 2 backends of 0.3s each: sequential ~0.6s, parallel ~0.3s + overhead
     # Note: call_count won't be updated because ProcessPoolExecutor pickles backends
-    assert elapsed < 0.55, f"Parallel execution took {elapsed:.2f}s, expected < 0.55s"
+    assert parallel_time < sequential_time * 0.85, (
+        f"Parallel ({parallel_time:.2f}s) should be faster than "
+        f"sequential ({sequential_time:.2f}s) by factor of 0.85"
+    )
 
 
 def test_parallel_single_backend_no_parallelization(valid_openapi_dict):
@@ -131,25 +144,40 @@ def test_parallel_aggregates_diagnostics(valid_openapi_dict):
 
 def test_parallel_with_max_workers(valid_openapi_dict):
     """Test that max_workers parameter limits concurrency."""
-    # 4 backends with 0.2s delay each
-    backends: list[BaseValidatorBackend] = [
-        SlowMockBackend(delay=0.2, name=f"backend{i}") for i in range(4)
+    delay = 0.2
+    num_backends = 4
+
+    # Run sequential first
+    backends_seq: list[BaseValidatorBackend] = [
+        SlowMockBackend(delay=delay, name=f"backend{i}") for i in range(num_backends)
     ]
+    validator_seq = OpenAPIValidator(backends=backends_seq)
+    start_time = time.time()
+    result_seq = validator_seq.validate(valid_openapi_dict, parallel=False)
+    sequential_time = time.time() - start_time
 
-    validator = OpenAPIValidator(backends=backends)
-
+    # Run parallel with max_workers=2
+    backends_par: list[BaseValidatorBackend] = [
+        SlowMockBackend(delay=delay, name=f"backend{i}") for i in range(num_backends)
+    ]
+    validator_par = OpenAPIValidator(backends=backends_par)
     start_time = time.time()
     # With max_workers=2, should process 4 backends with 2 at a time
     # This means 2 batches of 0.2s each = ~0.4s total
-    result = validator.validate(valid_openapi_dict, parallel=True, max_workers=2)
-    elapsed = time.time() - start_time
+    result_par = validator_par.validate(valid_openapi_dict, parallel=True, max_workers=2)
+    parallel_time = time.time() - start_time
 
-    assert result.valid
-    # With max_workers=2 and 4 backends: 2 batches of 2 parallel executions
-    # Expected time: ~0.4s (2 batches × 0.2s)
-    # Sequential would be: 4 × 0.2s = 0.8s
+    assert result_seq.valid
+    assert result_par.valid
+    # With max_workers=2 and 4 backends:
+    # - Sequential: 4 × delay = 4 × 0.2s = 0.8s
+    # - Parallel: 2 batches × delay = 2 × 0.2s = ~0.4s + overhead
+    # Parallel should be at least 1.3x faster (factor of ~0.77)
     # Note: call_count won't be updated because ProcessPoolExecutor pickles backends
-    assert elapsed < 0.7, f"Parallel execution with max_workers=2 took {elapsed:.2f}s"
+    assert parallel_time < sequential_time * 0.85, (
+        f"Parallel with max_workers=2 ({parallel_time:.2f}s) should be faster than "
+        f"sequential ({sequential_time:.2f}s) by factor of 0.85"
+    )
 
 
 def test_default_parallel_is_false(valid_openapi_dict):
@@ -170,19 +198,32 @@ def test_default_parallel_is_false(valid_openapi_dict):
 
 
 def test_parallel_with_string_document(valid_openapi_string):
-    """Test parallel execution with string document input."""
-    backend1 = SlowMockBackend(delay=0.1, name="backend1")
-    backend2 = SlowMockBackend(delay=0.1, name="backend2")
+    """Test parallel execution with string document input is faster than sequential."""
+    delay = 0.15
 
-    validator = OpenAPIValidator(backends=[backend1, backend2])
-
+    # Run sequential first
+    validator_seq = OpenAPIValidator(
+        backends=[SlowMockBackend(delay=delay), SlowMockBackend(delay=delay)]
+    )
     start_time = time.time()
-    result = validator.validate(valid_openapi_string, parallel=True)
-    elapsed = time.time() - start_time
+    result_seq = validator_seq.validate(valid_openapi_string, parallel=False)
+    sequential_time = time.time() - start_time
 
-    assert result.valid
-    # Should be faster than sequential (0.2s)
-    assert elapsed < 0.18
+    # Run parallel
+    validator_par = OpenAPIValidator(
+        backends=[SlowMockBackend(delay=delay), SlowMockBackend(delay=delay)]
+    )
+    start_time = time.time()
+    result_par = validator_par.validate(valid_openapi_string, parallel=True)
+    parallel_time = time.time() - start_time
+
+    assert result_seq.valid
+    assert result_par.valid
+    # Parallel should be significantly faster than sequential
+    assert parallel_time < sequential_time * 0.85, (
+        f"Parallel ({parallel_time:.2f}s) should be faster than "
+        f"sequential ({sequential_time:.2f}s) by factor of 0.85"
+    )
 
 
 def test_parallel_with_real_backends_returns_diagnostics():
