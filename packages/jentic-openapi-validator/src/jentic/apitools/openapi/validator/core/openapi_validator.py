@@ -262,7 +262,7 @@ def _validate_single_backend(
 
 
 async def _validate_parallel(
-    backends: list[BaseValidatorBackend],
+    backends: Sequence[BaseValidatorBackend],
     document: str | dict,
     document_dict: dict | None,
     document_text: str,

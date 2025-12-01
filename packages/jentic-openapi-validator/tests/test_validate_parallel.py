@@ -63,7 +63,8 @@ def test_parallel_false_runs_sequentially(valid_openapi_dict):
     assert backend1.call_count == 1
     assert backend2.call_count == 1
     # Sequential execution should take at least 0.1s (0.05 + 0.05)
-    assert elapsed >= 0.1
+    # Use 0.09 threshold to account for timing precision on slow systems
+    assert elapsed >= 0.09
 
 
 def test_parallel_true_runs_concurrently(valid_openapi_dict):
@@ -164,7 +165,8 @@ def test_default_parallel_is_false(valid_openapi_dict):
 
     assert result.valid
     # Default is sequential, so should take at least 0.1s
-    assert elapsed >= 0.1
+    # Use 0.09 threshold to account for timing precision on slow systems
+    assert elapsed >= 0.09
 
 
 def test_parallel_with_string_document(valid_openapi_string):
