@@ -1,6 +1,9 @@
+import asyncio
 import importlib.metadata
 import json
 import warnings
+from collections.abc import Sequence
+from concurrent.futures import ProcessPoolExecutor
 from typing import Type
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser
@@ -40,7 +43,7 @@ class OpenAPIValidator:
 
     def __init__(
         self,
-        backends: list[str | BaseValidatorBackend | Type[BaseValidatorBackend]] | None = None,
+        backends: Sequence[str | BaseValidatorBackend | Type[BaseValidatorBackend]] | None = None,
         parser: OpenAPIParser | None = None,
     ):
         """
@@ -78,7 +81,13 @@ class OpenAPIValidator:
                 raise TypeError("Invalid backend type: must be name or backend class/instance")
 
     def validate(
-        self, document: str | dict, *, base_url: str | None = None, target: str | None = None
+        self,
+        document: str | dict,
+        *,
+        base_url: str | None = None,
+        target: str | None = None,
+        parallel: bool = False,
+        max_workers: int | None = None,
     ) -> ValidationResult:
         """
         Validate an OpenAPI document using all configured backends.
@@ -94,6 +103,11 @@ class OpenAPIValidator:
                 - Python dictionary
             base_url: Optional base URL for resolving relative references in the document
             target: Optional target identifier for validation context
+            parallel: If True and multiple backends are configured, run validation
+                in parallel using ProcessPoolExecutor. Defaults to False.
+            max_workers: Maximum number of worker processes for parallel execution.
+                If None, defaults to the number of processors on the machine.
+                Only used when parallel=True.
 
         Returns:
             ValidationResult containing aggregated diagnostics from all backends.
@@ -103,7 +117,6 @@ class OpenAPIValidator:
             TypeError: If document is not a str or dict
         """
 
-        diagnostics: list[JenticDiagnostic] = []
         document_is_uri: bool = False
         document_text: str = ""
         document_dict: dict | None = None
@@ -135,21 +148,35 @@ class OpenAPIValidator:
             )
 
         # Run validation through all backends
-        for backend in self.backends:
-            accepted = backend.accepts()
-            backend_document = None
-
-            # Determine which format to pass to this backend
-            if document_is_uri and "uri" in accepted:
-                backend_document = document
-            elif "dict" in accepted and document_dict is not None:
-                backend_document = document_dict
-            elif "text" in accepted:
-                backend_document = document_text
-
-            if backend_document is not None:
-                result = backend.validate(backend_document, base_url=base_url, target=target)
-                diagnostics.extend(result.diagnostics)
+        if parallel and len(self.backends) > 1:
+            # Parallel execution using asyncio with ProcessPoolExecutor
+            diagnostics = asyncio.run(
+                _validate_parallel(
+                    self.backends,
+                    document,
+                    document_dict,
+                    document_text,
+                    document_is_uri,
+                    base_url,
+                    target,
+                    max_workers,
+                )
+            )
+        else:
+            # Sequential execution (default)
+            diagnostics: list[JenticDiagnostic] = []
+            for backend in self.backends:
+                diagnostics.extend(
+                    _validate_single_backend(
+                        backend,
+                        document,
+                        document_dict,
+                        document_text,
+                        document_is_uri,
+                        base_url,
+                        target,
+                    )
+                )
 
         return ValidationResult(diagnostics=diagnostics)
 
@@ -189,3 +216,101 @@ class OpenAPIValidator:
             ['default', 'spectral']
         """
         return list(_VALIDATOR_BACKENDS.keys())
+
+
+def _validate_single_backend(
+    backend: BaseValidatorBackend,
+    document: str | dict,
+    document_dict: dict | None,
+    document_text: str,
+    document_is_uri: bool,
+    base_url: str | None,
+    target: str | None,
+) -> list[JenticDiagnostic]:
+    """
+    Validate document with a single backend.
+
+    This is a module-level function (not a method) to ensure it's picklable
+    for use with ProcessPoolExecutor.
+
+    Args:
+        backend: The validator backend to use
+        document: The original document (URI or text)
+        document_dict: Parsed document as dict (if available)
+        document_text: Document as text string
+        document_is_uri: Whether document is a URI
+        base_url: Optional base URL for resolving references
+        target: Optional target identifier
+
+    Returns:
+        List of diagnostics from the backend
+    """
+    accepted = backend.accepts()
+    backend_document: str | dict | None = None
+
+    if document_is_uri and "uri" in accepted:
+        backend_document = document
+    elif "dict" in accepted and document_dict is not None:
+        backend_document = document_dict
+    elif "text" in accepted:
+        backend_document = document_text
+
+    if backend_document is not None:
+        result = backend.validate(backend_document, base_url=base_url, target=target)
+        return list(result.diagnostics)
+    return []
+
+
+async def _validate_parallel(
+    backends: Sequence[BaseValidatorBackend],
+    document: str | dict,
+    document_dict: dict | None,
+    document_text: str,
+    document_is_uri: bool,
+    base_url: str | None,
+    target: str | None,
+    max_workers: int | None,
+) -> list[JenticDiagnostic]:
+    """
+    Run validators in parallel using ProcessPoolExecutor.
+
+    This module-level async function uses asyncio's run_in_executor to dispatch
+    each backend validation to a separate process, enabling true parallelism
+    for CPU-bound validators.
+
+    Args:
+        backends: List of validator backends to run
+        document: The original document (URI or text)
+        document_dict: Parsed document as dict (if available)
+        document_text: Document as text string
+        document_is_uri: Whether document is a URI
+        base_url: Optional base URL for resolving references
+        target: Optional target identifier
+        max_workers: Maximum number of worker processes
+
+    Returns:
+        Aggregated list of diagnostics from all backends
+    """
+    loop = asyncio.get_running_loop()
+
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        tasks = [
+            loop.run_in_executor(
+                executor,
+                _validate_single_backend,
+                backend,
+                document,
+                document_dict,
+                document_text,
+                document_is_uri,
+                base_url,
+                target,
+            )
+            for backend in backends
+        ]
+        results = await asyncio.gather(*tasks)
+
+    diagnostics: list[JenticDiagnostic] = []
+    for result in results:
+        diagnostics.extend(result)
+    return diagnostics
