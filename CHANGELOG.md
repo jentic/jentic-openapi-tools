@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.28 (2025-12-01)
+
+### Features
+
+- **validator**: Add support for running backends in parallel
+  ([#171](https://github.com/jentic/jentic-openapi-tools/pull/171),
+  [`0f44a27`](https://github.com/jentic/jentic-openapi-tools/commit/0f44a2771e5dcdda2213639543916dfb2f30539b))
+
+
 ## v1.0.0-alpha.27 (2025-11-26)
 
 ### Bug Fixes
