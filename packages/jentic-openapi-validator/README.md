@@ -132,7 +132,7 @@ result = validator.validate(document, parallel=True)
 result = validator.validate(document, parallel=True, max_workers=2)
 ```
 
-Parallel execution uses `asyncio` with `ProcessPoolExecutor` via `run_in_executor()`, enabling true parallelism that bypasses Python's GIL. This is particularly beneficial when using multiple backends, especially I/O-bound backends like Spectral and Redocly that spawn subprocesses.
+Parallel execution uses `ProcessPoolExecutor` for true parallelism that bypasses Python's GIL. This is particularly beneficial when using multiple backends, especially I/O-bound backends like Spectral and Redocly that spawn subprocesses.
 
 **Notes:**
 - `parallel=False` by default (opt-in)
