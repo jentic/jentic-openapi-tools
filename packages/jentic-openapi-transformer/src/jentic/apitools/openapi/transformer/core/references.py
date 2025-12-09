@@ -18,11 +18,12 @@ __all__ = [
     "RewriteOptions",
     "rewrite_urls_inplace",
     "iter_url_fields",
+    "iter_ref_fields",
     "count_references",
 ]
 
 
-def count_references(root: Any) -> Tuple[int, int, int, int]:
+def count_references(root: Any, refs_only: bool = False) -> Tuple[int, int, int, int]:
     """
     Counts the number of references in a given data structure based on their type.
 
@@ -34,6 +35,8 @@ def count_references(root: Any) -> Tuple[int, int, int, int]:
     Args:
         root: Any
             The root data structure containing references to be analyzed.
+        refs_only: bool, optional (default=False)
+            If True, only count references in $ref fields.
 
     Returns:
         Tuple[int, int, int, int]: A tuple containing the following counts:
@@ -47,7 +50,8 @@ def count_references(root: Any) -> Tuple[int, int, int, int]:
     total_refs_count = 0
     local_refs_count = 0
 
-    for path, _parent, key, value in iter_url_fields(root):
+    iterator = iter_ref_fields if refs_only else iter_url_fields
+    for path, _parent, key, value in iterator(root):
         assert isinstance(key, str)
         total_refs_count += 1
         if key == "$ref" and is_fragment_only_uri(value):
@@ -60,14 +64,15 @@ def count_references(root: Any) -> Tuple[int, int, int, int]:
     return total_refs_count, local_refs_count, relative_refs_count, absolute_http_refs_count
 
 
-def find_relative_urls(root: Any) -> List[Tuple[JSONPath, str, str]]:
+def find_relative_urls(root: Any, refs_only: bool = False) -> List[Tuple[JSONPath, str, str]]:
     """
-    Return a list of (json_path, key, value) for any URL-like field
-    (including $ref) whose value is relative (e.g., 'schemas/a.yaml', '../b', '/c')
+    Return a list of (json_path, key, value) for any URL-like field (refs_only=False) or $ref field (refs_only=True)
+    whose value is relative (e.g., 'schemas/a.yaml', '../b', '/c')
     and not a pure fragment '#/...' .
     """
     out: List[Tuple[JSONPath, str, str]] = []
-    for path, _parent, key, value in iter_url_fields(root):
+    iterator = iter_ref_fields if refs_only else iter_url_fields
+    for path, _parent, key, value in iterator(root):
         assert isinstance(key, str)
         if key == "$ref" and is_fragment_only_uri(value):
             continue
@@ -77,13 +82,14 @@ def find_relative_urls(root: Any) -> List[Tuple[JSONPath, str, str]]:
     return out
 
 
-def find_absolute_http_urls(root: Any) -> List[Tuple[JSONPath, str, str]]:
+def find_absolute_http_urls(root: Any, refs_only: bool = False) -> List[Tuple[JSONPath, str, str]]:
     """
-    Return a list of (json_path, key, value) for any URL-like field
-    (including $ref) whose value is absolute and http
+    Return a list of (json_path, key, value) for any URL-like field (refs_only=False) or $ref field (refs_only=True)
+    whose value is absolute and http
     """
     out: List[Tuple[JSONPath, str, str]] = []
-    for path, _parent, key, value in iter_url_fields(root):
+    iterator = iter_ref_fields if refs_only else iter_url_fields
+    for path, _parent, key, value in iterator(root):
         assert isinstance(key, str)
         if key == "$ref" and is_fragment_only_uri(value):
             continue
@@ -100,24 +106,27 @@ class RewriteOptions:
     - original_base_url:  If provided together with include_absolute_urls=True, we'll
                           retarget absolute URLs that begin with original_base_url to base_url.
     - include_absolute_urls: If True (and original_base_url given), retarget absolute URLs too.
+    - refs_only: If True, only rewrite $ref fields.
     """
 
-    __slots__ = ("base_url", "original_base_url", "include_absolute_urls")
+    __slots__ = ("base_url", "original_base_url", "include_absolute_urls", "refs_only")
 
     def __init__(
         self,
         base_url: str,
         original_base_url: str | None = None,
         include_absolute_urls: bool = False,
+        refs_only: bool = False,
     ) -> None:
         self.base_url = base_url
         self.original_base_url = original_base_url
         self.include_absolute_urls = include_absolute_urls
+        self.refs_only = refs_only
 
 
 def rewrite_urls_inplace(root: Any, opts: RewriteOptions) -> int:
     """
-    Rewrite $ref and other URL-bearing fields in-place.
+    Rewrite $ref and other URL-bearing fields (refs_only=False) in-place.
     Rules:
     - Relative values (except fragment-only) are absolutized against opts.base_url.
     - If opts.include_absolute_urls and opts.original_base_url are set,
@@ -126,7 +135,8 @@ def rewrite_urls_inplace(root: Any, opts: RewriteOptions) -> int:
     Returns the number of fields changed.
     """
     changed = 0
-    for _path, parent, key, value in iter_url_fields(root):
+    iterator = iter_ref_fields if opts.refs_only else iter_url_fields
+    for _path, parent, key, value in iterator(root):
         # value is str by iter_url_fields contract
         if key == "$ref" and is_fragment_only_uri(value):
             continue  # keep pure fragments
@@ -155,6 +165,20 @@ def iter_url_fields(root: Any) -> Iterator[Tuple[JSONPath, MutableMapping[str, A
             and isinstance(node.segment, str)
             and isinstance(node.value, str)
             and node.segment in _URL_KEYS_EXPLICIT
+        ):
+            yield node.path, node.parent, node.segment, node.value
+
+
+def iter_ref_fields(root: Any) -> Iterator[Tuple[JSONPath, MutableMapping[str, Any], str, str]]:
+    """
+    Iterate over all $ref fields
+    """
+    for node in traverse(root):
+        if (
+            isinstance(node.parent, MutableMapping)
+            and isinstance(node.segment, str)
+            and isinstance(node.value, str)
+            and node.segment == "$ref"
         ):
             yield node.path, node.parent, node.segment, node.value
 
