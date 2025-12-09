@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.31 (2025-12-09)
+
+### Features
+
+- **transformer**: Enhance `count_references` with `refs_only` support
+  ([`4c23327`](https://github.com/jentic/jentic-openapi-tools/commit/4c23327db35ded1d467fff4b97f605c38095120d))
+
+
 ## v1.0.0-alpha.30 (2025-12-09)
 
 ### Chores
