@@ -2,6 +2,20 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.30 (2025-12-09)
+
+### Chores
+
+- Add initial CLAUDE.md file ([#174](https://github.com/jentic/jentic-openapi-tools/pull/174),
+  [`2d97e9e`](https://github.com/jentic/jentic-openapi-tools/commit/2d97e9e89a81227dcae19da1671446650d36f533))
+
+### Features
+
+- **traverse**: Expose method on NodePath returning list of paths
+  ([#175](https://github.com/jentic/jentic-openapi-tools/pull/175),
+  [`31a2b75`](https://github.com/jentic/jentic-openapi-tools/commit/31a2b7529d518ab29e0b152263c9d8928b553649))
+
+
 ## v1.0.0-alpha.29 (2025-12-01)
 
 ### Bug Fixes
