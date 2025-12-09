@@ -13,6 +13,11 @@ __pycache__/
 *$py.class
 
 # ==============================
+# Git Worktrees
+# ==============================
+/.trees
+
+# ==============================
 # Virtual environments
 # (uv creates .venv by default on `uv sync`)
 # ==============================
