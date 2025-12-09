@@ -533,7 +533,7 @@ class TestFormatPathWebhooksAndCallbacks:
 
 
 class TestToParts:
-    """Test to_parts method returning path as list."""
+    """Test to_parts method returning path parts as list."""
 
     def test_root_node(self, openapi30_doc):
         """Root node should return empty list."""
@@ -569,7 +569,7 @@ class TestToParts:
         assert visitor.info_path.to_parts() == ["info"]
 
     def test_nested_path(self, openapi30_doc):
-        """Nested path should return full path list."""
+        """Nested path should return full path parts list."""
 
         class OperationCapture:
             def __init__(self):
@@ -614,7 +614,7 @@ class TestToParts:
         ]
 
     def test_schema_property(self, openapi30_doc):
-        """Schema property should return complete path list."""
+        """Schema property should return complete path parts list."""
 
         class SchemaCapture:
             def __init__(self):
