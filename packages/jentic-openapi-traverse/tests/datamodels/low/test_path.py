@@ -532,6 +532,147 @@ class TestFormatPathWebhooksAndCallbacks:
         )
 
 
+class TestToParts:
+    """Test to_parts method returning path as list."""
+
+    def test_root_node(self, openapi30_doc):
+        """Root node should return empty list."""
+
+        class RootCapture:
+            def __init__(self):
+                self.root_path = None
+
+            def visit_OpenAPI30(self, path):
+                self.root_path = path
+                return False  # Skip children
+
+        visitor = RootCapture()
+        traverse(openapi30_doc, visitor)
+
+        assert visitor.root_path is not None
+        assert visitor.root_path.to_parts() == []
+
+    def test_single_field(self, openapi30_doc):
+        """Single field should return single-element list."""
+
+        class InfoCapture:
+            def __init__(self):
+                self.info_path = None
+
+            def visit_Info(self, path):
+                self.info_path = path
+
+        visitor = InfoCapture()
+        traverse(openapi30_doc, visitor)
+
+        assert visitor.info_path is not None
+        assert visitor.info_path.to_parts() == ["info"]
+
+    def test_nested_path(self, openapi30_doc):
+        """Nested path should return full path list."""
+
+        class OperationCapture:
+            def __init__(self):
+                self.operation_paths = []
+
+            def visit_Operation(self, path):
+                self.operation_paths.append(path)
+
+        visitor = OperationCapture()
+        traverse(openapi30_doc, visitor)
+
+        # Should have two operations
+        assert len(visitor.operation_paths) == 2
+
+        # First operation: ["paths", "/users", "get"]
+        assert visitor.operation_paths[0].to_parts() == ["paths", "/users", "get"]
+
+        # Second operation: ["paths", "/pets/{id}", "get"]
+        assert visitor.operation_paths[1].to_parts() == ["paths", "/pets/{id}", "get"]
+
+    def test_array_index(self, openapi30_doc):
+        """Array index should be integer in list."""
+
+        class ParameterCapture:
+            def __init__(self):
+                self.parameter_paths = []
+
+            def visit_Parameter(self, path):
+                self.parameter_paths.append(path)
+
+        visitor = ParameterCapture()
+        traverse(openapi30_doc, visitor)
+
+        # Should have one parameter
+        assert len(visitor.parameter_paths) == 1
+        assert visitor.parameter_paths[0].to_parts() == [
+            "paths",
+            "/users",
+            "get",
+            "parameters",
+            0,
+        ]
+
+    def test_schema_property(self, openapi30_doc):
+        """Schema property should return complete path list."""
+
+        class SchemaCapture:
+            def __init__(self):
+                self.property_schemas = []
+
+            def visit_Schema(self, path):
+                # Check if this is a property schema
+                if path.parent and path.parent.__class__.__name__ == "Schema":
+                    self.property_schemas.append(path)
+
+        visitor = SchemaCapture()
+        traverse(openapi30_doc, visitor)
+
+        # Should have name property
+        assert len(visitor.property_schemas) == 1
+        assert visitor.property_schemas[0].to_parts() == [
+            "components",
+            "schemas",
+            "User",
+            "properties",
+            "name",
+        ]
+
+    def test_consistency_with_format_path(self, openapi30_doc):
+        """to_parts() should be consistent with format_path() output."""
+        from jsonpointer import JsonPointer
+
+        class AllPathsCapture:
+            def __init__(self):
+                self.paths = []
+
+            def visit_Info(self, path):
+                self.paths.append(path)
+
+            def visit_Operation(self, path):
+                self.paths.append(path)
+
+            def visit_Response(self, path):
+                self.paths.append(path)
+
+            def visit_Parameter(self, path):
+                self.paths.append(path)
+
+        visitor = AllPathsCapture()
+        traverse(openapi30_doc, visitor)
+
+        # Verify that to_parts() is consistent with format_path()
+        for path in visitor.paths:
+            parts = path.to_parts()
+            formatted = path.format_path(path_format="jsonpointer")
+            reconstructed = JsonPointer.from_parts(parts).path
+
+            assert formatted == reconstructed, (
+                f"Inconsistency for {path.node.__class__.__name__}: "
+                f"format_path()={formatted!r} vs to_parts()={reconstructed!r}"
+            )
+
+
 class TestFormatPathEdgeCases:
     """Test edge cases for format_path."""
 

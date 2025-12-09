@@ -118,43 +118,62 @@ class NodePath:
             "$['paths']['/users/{id}']['parameters'][0]"
             "$['components']['schemas']['User']['properties']['name']"
         """
+        parts = self.to_parts()
+
         # Root node
-        if self.parent_path is None:
+        if not parts:
             return "$" if path_format == "jsonpath" else ""
-
-        # Walk back collecting all segments
-        segments: list[str | int] = []
-        current = self
-        while current.parent_path is not None:
-            # Add in reverse order (key first, then field) because we'll reverse the list
-            # This ensures field comes before key in the final path
-            if current.parent_key is not None:
-                segments.append(current.parent_key)
-            if current.parent_field:
-                # Convert Python field name to YAML name for output
-                parent_class = type(current.parent_path.node)
-                yaml_name = get_yaml_field_name(parent_class, current.parent_field)
-                segments.append(yaml_name)
-            current = current.parent_path
-
-        segments.reverse()  # Root to leaf order
 
         if path_format == "jsonpath":
             # RFC 9535 Normalized JSONPath: $['field'][index]['key']
             result = ["$"]
-            for segment in segments:
-                if isinstance(segment, int):
+            for part in parts:
+                if isinstance(part, int):
                     # Array index: $[0]
-                    result.append(f"[{segment}]")
+                    result.append(f"[{part}]")
                 else:
                     # Member name: $['field']
                     # Escape single quotes in the string
-                    escaped = str(segment).replace("'", "\\'")
+                    escaped = str(part).replace("'", "\\'")
                     result.append(f"['{escaped}']")
             return "".join(result)
 
         # RFC 6901 JSON Pointer
-        return JsonPointer.from_parts(segments).path
+        return JsonPointer.from_parts(parts).path
+
+    def to_parts(self) -> list[str | int]:
+        """
+        Return path as a list of paths (field names, keys, and array indices).
+
+        Can be used with JsonPointer.from_parts() for conversion.
+
+        Returns:
+            List of paths from root to this node.
+            Empty list for root node.
+
+        Examples:
+            [] (root)
+            ["info"]
+            ["paths", "/users", "get"]
+            ["paths", "/users", "get", "parameters", 0]
+            ["components", "schemas", "User", "properties", "name"]
+        """
+        if self.parent_path is None:
+            return []
+
+        parts: list[str | int] = []
+        current = self
+        while current.parent_path is not None:
+            if current.parent_key is not None:
+                parts.append(current.parent_key)
+            if current.parent_field:
+                parent_class = type(current.parent_path.node)
+                yaml_name = get_yaml_field_name(parent_class, current.parent_field)
+                parts.append(yaml_name)
+            current = current.parent_path
+
+        parts.reverse()
+        return parts
 
     def get_root(self) -> Any:
         """
