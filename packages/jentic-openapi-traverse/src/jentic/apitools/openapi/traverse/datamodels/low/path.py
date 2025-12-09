@@ -143,12 +143,12 @@ class NodePath:
 
     def to_parts(self) -> list[str | int]:
         """
-        Return path as a list of paths (field names, keys, and array indices).
+        Return path as a list of path parts (field names, keys, and array indices).
 
         Can be used with JsonPointer.from_parts() for conversion.
 
         Returns:
-            List of paths from root to this node.
+            List of path parts from root to this node.
             Empty list for root node.
 
         Examples:
