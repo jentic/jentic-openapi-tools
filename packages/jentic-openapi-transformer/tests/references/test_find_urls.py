@@ -470,3 +470,288 @@ class TestFindRelativeUrls:
 
         relative_urls = find_relative_urls(doc)
         assert len(relative_urls) == 0
+
+
+class TestFindAbsoluteHttpUrlsRefsOnly:
+    """Tests for find_absolute_http_urls function with refs_only=True."""
+
+    def test_find_absolute_http_urls_simple_refs_only(self):
+        """Test finding absolute HTTP/HTTPS URLs with refs_only=True - should find none."""
+        doc = {
+            "openapi": "3.1.0",
+            "info": {
+                "title": "Test",
+                "version": "1.0.0",
+                "contact": {"url": "https://example.com/contact"},
+                "license": {"url": "https://opensource.org/licenses/MIT"},
+            },
+            "externalDocs": {"url": "https://docs.example.com/api"},
+        }
+
+        absolute_urls = find_absolute_http_urls(doc, refs_only=True)
+
+        # Should find none because there are no $ref fields
+        assert len(absolute_urls) == 0
+
+    def test_find_absolute_http_urls_with_refs_only(self):
+        """Test finding absolute HTTP URLs in $ref fields only."""
+        doc = {
+            "openapi": "3.0.3",
+            "info": {
+                "title": "Test",
+                "version": "1.0.0",
+                "contact": {
+                    "url": "https://example.com/contact"  # URL field - should be ignored
+                },
+            },
+            "paths": {
+                "/test": {
+                    "get": {
+                        "responses": {
+                            "200": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "https://schemas.example.com/User.json"  # $ref with HTTP
+                                        }
+                                    }
+                                }
+                            },
+                            "404": {
+                                "$ref": "https://api.example.com/common.json#/NotFound"  # $ref with HTTP
+                            },
+                        }
+                    }
+                }
+            },
+            "components": {
+                "examples": {
+                    "example1": {
+                        "externalValue": "https://api.example.com/examples/test.json"  # URL field - should be ignored
+                    }
+                }
+            },
+        }
+
+        absolute_urls = find_absolute_http_urls(doc, refs_only=True)
+
+        # Should only find the $ref fields with absolute HTTP URLs
+        assert len(absolute_urls) == 2
+
+        values = [url[2] for url in absolute_urls]
+        assert "https://schemas.example.com/User.json" in values
+        assert "https://api.example.com/common.json#/NotFound" in values
+
+        # Should not include URL fields that are not $ref
+        assert "https://example.com/contact" not in values
+        assert "https://api.example.com/examples/test.json" not in values
+
+    def test_find_absolute_http_urls_ignore_non_http_refs_only(self):
+        """Test that non-HTTP absolute $refs are ignored with refs_only=True."""
+        doc = {
+            "openapi": "3.1.0",
+            "info": {
+                "title": "Test",
+                "version": "1.0.0",
+                "contact": {
+                    "url": "https://example.com/contact"  # URL field - should be ignored
+                },
+            },
+            "components": {
+                "schemas": {
+                    "FileSchema": {
+                        "$ref": "file:///usr/share/schemas/schema.json"  # file:// $ref - should be ignored
+                    },
+                    "HttpSchema": {
+                        "$ref": "https://api.example.com/schema.json"  # HTTP $ref - should be found
+                    },
+                    "FtpSchema": {
+                        "$ref": "ftp://files.example.com/schema.json"  # FTP $ref - should be ignored
+                    },
+                }
+            },
+        }
+
+        absolute_urls = find_absolute_http_urls(doc, refs_only=True)
+
+        # Should only find HTTP/HTTPS $refs
+        assert len(absolute_urls) == 1
+        assert absolute_urls[0][2] == "https://api.example.com/schema.json"
+
+    def test_find_absolute_http_urls_mixed_refs_only(self):
+        """Test finding absolute HTTP $refs while ignoring relative and fragment-only $refs."""
+        doc = {
+            "openapi": "3.1.0",
+            "info": {"title": "Test", "version": "1.0.0"},
+            "components": {
+                "schemas": {
+                    "LocalRef": {
+                        "$ref": "#/components/schemas/Base"  # fragment-only - should be ignored
+                    },
+                    "RelativeRef": {
+                        "$ref": "./schemas/User.json"  # relative - should be ignored
+                    },
+                    "HttpRef": {
+                        "$ref": "https://api.example.com/schemas/Item.json"  # HTTP - should be found
+                    },
+                }
+            },
+        }
+
+        absolute_urls = find_absolute_http_urls(doc, refs_only=True)
+
+        assert len(absolute_urls) == 1
+        assert absolute_urls[0][2] == "https://api.example.com/schemas/Item.json"
+
+
+class TestFindRelativeUrlsRefsOnly:
+    """Tests for find_relative_urls function with refs_only=True."""
+
+    def test_find_relative_refs_simple_refs_only(self):
+        """Test finding relative $ref URLs with refs_only=True."""
+        doc = {
+            "openapi": "3.1.0",
+            "info": {"title": "Test", "version": "1.0.0"},
+            "paths": {
+                "/test": {
+                    "get": {
+                        "responses": {
+                            "200": {
+                                "content": {
+                                    "application/json": {"schema": {"$ref": "./schemas.json#/User"}}
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+        }
+
+        relative_urls = find_relative_urls(doc, refs_only=True)
+
+        assert len(relative_urls) == 1
+        path, key, value = relative_urls[0]
+        assert key == "$ref"
+        assert value == "./schemas.json#/User"
+
+    def test_find_refs_ignore_other_url_fields_refs_only(self):
+        """Test that with refs_only=True, only $ref fields are found."""
+        doc = {
+            "openapi": "3.0.3",
+            "info": {
+                "title": "Test",
+                "version": "1.0.0",
+                "contact": {
+                    "url": "/contact"  # URL field - should be ignored
+                },
+            },
+            "externalDocs": {
+                "url": "docs/api.html"  # URL field - should be ignored
+            },
+            "components": {
+                "schemas": {
+                    "User": {
+                        "$ref": "./user-schema.json#/User"  # $ref - should be found
+                    }
+                },
+                "examples": {
+                    "example1": {
+                        "externalValue": "../examples/test.json"  # URL field - should be ignored
+                    }
+                },
+            },
+        }
+
+        relative_urls = find_relative_urls(doc, refs_only=True)
+
+        # Should only find the $ref field
+        assert len(relative_urls) == 1
+        assert relative_urls[0][1] == "$ref"
+        assert relative_urls[0][2] == "./user-schema.json#/User"
+
+    def test_ignore_fragment_only_refs_refs_only(self):
+        """Test that fragment-only $ref URLs are ignored with refs_only=True."""
+        doc = {
+            "openapi": "3.1.0",
+            "info": {"title": "Test", "version": "1.0.0"},
+            "paths": {
+                "/test": {
+                    "get": {
+                        "responses": {
+                            "200": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/User"  # fragment-only
+                                        }
+                                    }
+                                }
+                            },
+                            "404": {
+                                "$ref": "./common.json#/NotFound"  # relative
+                            },
+                        }
+                    }
+                }
+            },
+        }
+
+        relative_urls = find_relative_urls(doc, refs_only=True)
+
+        assert len(relative_urls) == 1
+        _, key, value = relative_urls[0]
+        assert key == "$ref"
+        assert value == "./common.json#/NotFound"
+
+    def test_no_refs_in_document_refs_only(self):
+        """Test document with no $ref fields using refs_only=True."""
+        doc = {
+            "openapi": "3.1.0",
+            "info": {
+                "title": "Test",
+                "version": "1.0.0",
+                "contact": {
+                    "url": "./contact.html"  # URL field but not $ref
+                },
+            },
+            "externalDocs": {
+                "url": "docs/api.html"  # URL field but not $ref
+            },
+        }
+
+        relative_urls = find_relative_urls(doc, refs_only=True)
+        assert len(relative_urls) == 0
+
+    def test_multiple_refs_various_types_refs_only(self):
+        """Test finding multiple $ref fields with various reference types."""
+        doc = {
+            "openapi": "3.1.0",
+            "info": {"title": "Test", "version": "1.0.0"},
+            "components": {
+                "schemas": {
+                    "User": {
+                        "$ref": "./schemas/user.json"  # relative
+                    },
+                    "Item": {
+                        "$ref": "../common/item.json#/Item"  # relative with parent dir
+                    },
+                    "Base": {
+                        "$ref": "/schemas/base.json"  # root-relative
+                    },
+                    "Local": {
+                        "$ref": "#/components/schemas/LocalDef"  # fragment-only - should be ignored
+                    },
+                }
+            },
+        }
+
+        relative_urls = find_relative_urls(doc, refs_only=True)
+
+        # Should find 3 relative $refs (not the fragment-only one)
+        assert len(relative_urls) == 3
+
+        values = [url[2] for url in relative_urls]
+        assert "./schemas/user.json" in values
+        assert "../common/item.json#/Item" in values
+        assert "/schemas/base.json" in values
+        assert "#/components/schemas/LocalDef" not in values
