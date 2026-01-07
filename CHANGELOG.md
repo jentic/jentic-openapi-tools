@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.32 (2026-01-07)
+
+### Features
+
+- Update @redocly/cli and disable it's telemetry
+  ([`d32a02d`](https://github.com/jentic/jentic-openapi-tools/commit/d32a02d29558e063048bfd189eb21a22ab851ffc))
+
+
 ## v1.0.0-alpha.31 (2025-12-09)
 
 ### Features
