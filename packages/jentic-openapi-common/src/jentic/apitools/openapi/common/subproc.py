@@ -3,7 +3,7 @@
 import subprocess
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import IO, Any
+from typing import IO, Any, Mapping
 
 
 __all__ = ["run_subprocess", "SubprocessExecutionResult", "SubprocessExecutionError"]
@@ -58,6 +58,7 @@ def run_subprocess(
     encoding: str = "utf-8",
     errors: str = "strict",
     cwd: str | None = None,
+    env: Mapping[str, str] | None = None,
     stdout: int | IO[Any] | None = None,
     stderr: int | IO[Any] | None = None,
 ) -> SubprocessExecutionResult:
@@ -79,6 +80,8 @@ def run_subprocess(
         Error handler for text decoding.
     cwd : str | None
         Working directory for the subprocess.
+    env : Mapping[str, str] | None
+        These are used instead of the default behavior of inheriting the current process’ environment
     stdout : int | IO[Any] | None
         Optional stdout destination. Can be subprocess.PIPE (default), subprocess.DEVNULL,
         an open file object, or None. When redirected to a file, result.stdout will be empty.
@@ -105,6 +108,7 @@ def run_subprocess(
                 errors=errors,
                 timeout=timeout,
                 cwd=cwd,
+                env=env,
             )
         else:
             # Use explicit stdout/stderr with defaults to PIPE if not specified
@@ -119,6 +123,7 @@ def run_subprocess(
                 errors=errors,
                 timeout=timeout,
                 cwd=cwd,
+                env=env,
             )
     except subprocess.TimeoutExpired as e:
         timeout_stdout = (

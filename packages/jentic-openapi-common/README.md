@@ -227,6 +227,12 @@ except SubprocessExecutionError as e:
 # Custom encoding
 result = run_subprocess(["python", "-c", "print('ñ')"], encoding="utf-8")
 print(result.stdout)  # "ñ\n"
+
+# Custom environment variables (replaces inherited environment)
+import os
+custom_env = {**os.environ, "MY_VAR": "value"}
+result = run_subprocess(["printenv", "MY_VAR"], env=custom_env)
+print(result.stdout.strip())  # "value"
 ```
 
 ### Version Detection

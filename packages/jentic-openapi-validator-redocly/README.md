@@ -1,6 +1,8 @@
 # jentic-openapi-validator-redocly
 
-A [Redocly](https://redocly.com/docs/cli/) validator backend for the Jentic OpenAPI Tools ecosystem. This package provides OpenAPI document validation using Redocly CLI with comprehensive error reporting and flexible configuration options.
+A [Redocly](https://redocly.com/docs/cli/) validator backend for the Jentic OpenAPI Tools ecosystem. This package
+provides OpenAPI document validation using Redocly CLI with comprehensive error reporting and flexible configuration
+options.
 
 ## Features
 
@@ -17,13 +19,14 @@ pip install jentic-openapi-validator-redocly
 ```
 
 **Prerequisites:**
+
 - Node.js and npm (for Redocly CLI)
 - Python 3.11+
 
 The Redocly CLI will be automatically downloaded via npx on first use, or you can install it globally:
 
 ```bash
-npm install -g @redocly/cli
+npm install -g @redocly/cli@2.14.3
 ```
 
 ## Quick Start
@@ -69,7 +72,7 @@ print(f"Document is valid: {result.valid}")
 validator = RedoclyValidatorBackend(redocly_path="/usr/local/bin/redocly")
 
 # Use specific version via npx
-validator = RedoclyValidatorBackend(redocly_path="npx --yes @redocly/cli@2.11.1")
+validator = RedoclyValidatorBackend(redocly_path="npx --yes @redocly/cli@2.14.3")
 ```
 
 ### Custom Rulesets
@@ -140,13 +143,15 @@ validator = RedoclyValidatorBackend(
 ```
 
 **Security Benefits:**
+
 - Prevents path traversal attacks (`../../etc/passwd`)
 - Restricts access to allowed directories only (when `allowed_base_dir` is set)
 - Validates file extensions (`.yaml`, `.yml`, `.json`) - **always enforced**, even when `allowed_base_dir=None`
 - Checks symlinks don't escape boundaries (when `allowed_base_dir` is set)
 - Validates both document and ruleset paths
 
-**Note:** File extension validation (`.yaml`, `.yml`, `.json`) is always performed for filesystem paths, regardless of whether `allowed_base_dir` is set. When `allowed_base_dir=None`, only the base directory containment check is skipped.
+**Note:** File extension validation (`.yaml`, `.yml`, `.json`) is always performed for filesystem paths, regardless of
+whether `allowed_base_dir` is set. When `allowed_base_dir=None`, only the base directory containment check is skipped.
 
 ## Advanced Usage
 
@@ -221,7 +226,8 @@ result = validator.validate("file:///path/to/openapi.yaml")
 
 ### Integration Tests
 
-The integration tests require Redocly CLI to be available. They will be automatically skipped if Redocly is not installed.
+The integration tests require Redocly CLI to be available. They will be automatically skipped if Redocly is not
+installed.
 
 **Run the integration test:**
 
@@ -236,36 +242,44 @@ uv run --package jentic-openapi-validator-redocly pytest packages/jentic-openapi
 ```python
 class RedoclyValidatorBackend(BaseValidatorBackend):
     def __init__(
-        self,
-        redocly_path: str = "npx --yes @redocly/cli@2.11.1",
-        ruleset_path: str | None = None,
-        timeout: float = 600.0,
-        allowed_base_dir: str | Path | None = None,
+            self,
+            redocly_path: str = "npx --yes @redocly/cli@2.14.3",
+            ruleset_path: str | None = None,
+            timeout: float = 600.0,
+            allowed_base_dir: str | Path | None = None,
     ) -> None
 ```
 
 **Parameters:**
+
 - `redocly_path`: Path to Redocly CLI executable
 - `ruleset_path`: Path to a custom ruleset file (optional)
 - `timeout`: Maximum execution time in seconds
-- `allowed_base_dir`: Optional base directory for path security validation. When set, all document and ruleset paths are validated to be within this directory, providing defense against path traversal attacks. When `None` (default), only file extension validation is performed (no base directory containment check). Recommended for web services or untrusted input (optional)
+- `allowed_base_dir`: Optional base directory for path security validation. When set, all document and ruleset paths are
+  validated to be within this directory, providing defense against path traversal attacks. When `None` (default), only
+  file extension validation is performed (no base directory containment check). Recommended for web services or
+  untrusted input (optional)
 
 **Methods:**
 
 - `accepts() -> list[Literal["uri", "dict"]]`: Returns supported document format identifiers
-- `validate(document: str | dict, *, base_url: str | None = None, target: str | None = None) -> ValidationResult`: Validates an OpenAPI document
+- `validate(document: str | dict, *, base_url: str | None = None, target: str | None = None) -> ValidationResult`:
+  Validates an OpenAPI document
 
 **Exceptions:**
+
 - `FileNotFoundError`: Custom ruleset file doesn't exist
 - `RuntimeError`: Redocly execution fails
 - `SubprocessExecutionError`: Redocly times out or fails to start
 - `TypeError`: Unsupported document type
-- `PathTraversalError`: Document or ruleset path attempts to escape allowed_base_dir (only when `allowed_base_dir` is set)
+- `PathTraversalError`: Document or ruleset path attempts to escape allowed_base_dir (only when `allowed_base_dir` is
+  set)
 - `InvalidExtensionError`: Document or ruleset path has disallowed file extension (always checked for filesystem paths)
 
 ## Exit Codes
 
 Redocly CLI uses the following exit codes:
+
 - **0**: No validation errors found
 - **1**: Validation errors found (document has issues)
 - **2+**: Command-line or configuration errors

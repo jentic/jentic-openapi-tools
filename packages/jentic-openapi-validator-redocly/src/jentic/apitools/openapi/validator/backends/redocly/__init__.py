@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import shlex
 import tempfile
 from collections.abc import Sequence
@@ -33,7 +34,7 @@ ruleset_file = rulesets_files_dir.joinpath("redocly.yaml")
 class RedoclyValidatorBackend(BaseValidatorBackend):
     def __init__(
         self,
-        redocly_path: str = "npx --yes @redocly/cli@2.11.1",
+        redocly_path: str = "npx --yes @redocly/cli@2.14.3",
         ruleset_path: str | None = None,
         timeout: float = 600.0,
         allowed_base_dir: str | Path | None = None,
@@ -43,7 +44,7 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
         Initialize the RedoclyValidatorBackend.
 
         Args:
-            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@2.11.1").
+            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@2.14.3").
                 Uses shell-safe parsing to handle quoted arguments properly.
             ruleset_path: Path to a custom ruleset file. If None, uses bundled default ruleset.
             timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 600.0)
@@ -162,10 +163,19 @@ class RedoclyValidatorBackend(BaseValidatorBackend):
                         str(self.max_problems),
                         validated_doc_path,
                     ]
+                    env = os.environ.copy()
+                    env.update(
+                        {
+                            "REDOCLY_TELEMETRY": "off",
+                            "REDOCLY_SUPPRESS_UPDATE_NOTICE": "true",
+                        }
+                    )
 
                     # Open the temp output file for writing and redirect stdout to it
                     with open(output_path, "w", encoding="utf-8") as output_file:
-                        result = run_subprocess(cmd, timeout=self.timeout, stdout=output_file)
+                        result = run_subprocess(
+                            cmd, env=env, timeout=self.timeout, stdout=output_file
+                        )
 
                 if result is None:
                     raise RuntimeError("Redocly validation failed - no result returned")
