@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.33 (2026-01-09)
+
+### Bug Fixes
+
+- **validator**: Fix openapi_spec validator backend to provide proper codes
+  ([#178](https://github.com/jentic/jentic-openapi-tools/pull/178),
+  [`c9999c0`](https://github.com/jentic/jentic-openapi-tools/commit/c9999c0e745c8298d6a49e763ed87075b500d4ab))
+
+
 ## v1.0.0-alpha.32 (2026-01-07)
 
 ### Features
