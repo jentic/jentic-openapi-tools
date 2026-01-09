@@ -141,7 +141,7 @@ def test_duplicate_operation_id_code():
     # Find the duplicate operationId diagnostic
     duplicate_diag = None
     for diag in res.diagnostics:
-        if "operationId" in diag.message.lower() or "operation" in diag.message.lower():
+        if "operationid" in diag.message.lower() or "operation id" in diag.message.lower():
             duplicate_diag = diag
             break
 

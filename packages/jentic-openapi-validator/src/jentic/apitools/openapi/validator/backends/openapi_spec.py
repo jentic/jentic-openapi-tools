@@ -57,8 +57,10 @@ class OpenAPISpecValidatorBackend(BaseValidatorBackend):
                 # objects that are truthy but stringify to '<unset>'. We must check the
                 # string representation to detect this.
                 code: str
-                validator_str = str(error.validator) if error.validator else ""
-                validator_value_str = str(error.validator_value) if error.validator_value else ""
+                validator_str = str(error.validator) if error.validator is not None else ""
+                validator_value_str = (
+                    str(error.validator_value) if error.validator_value is not None else ""
+                )
 
                 if validator_str and validator_str != "<unset>":
                     code = validator_str
