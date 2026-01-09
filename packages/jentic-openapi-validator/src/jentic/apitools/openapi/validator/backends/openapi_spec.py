@@ -52,13 +52,30 @@ class OpenAPISpecValidatorBackend(BaseValidatorBackend):
         diagnostics: list[JenticDiagnostic] = []
         try:
             for error in validator.iter_errors():
+                # Determine a meaningful code for the diagnostic.
+                # Note: error.validator and error.validator_value can be <unset> sentinel
+                # objects that are truthy but stringify to '<unset>'. We must check the
+                # string representation to detect this.
+                code: str
+                validator_str = str(error.validator) if error.validator is not None else ""
+                validator_value_str = (
+                    str(error.validator_value) if error.validator_value is not None else ""
+                )
+
+                if validator_str and validator_str != "<unset>":
+                    code = validator_str
+                elif validator_value_str and validator_value_str != "<unset>":
+                    code = validator_value_str
+                else:
+                    code = "osv-validation-error"
+
                 diagnostic = JenticDiagnostic(
                     range=lsp.Range(
                         start=lsp.Position(line=0, character=0),
                         end=lsp.Position(line=0, character=0),
                     ),
                     severity=lsp.DiagnosticSeverity.Error,
-                    code=f"{error.validator or str(error.validator_value)}",
+                    code=code,
                     source="openapi-spec-validator",
                     message=error.message,
                 )
