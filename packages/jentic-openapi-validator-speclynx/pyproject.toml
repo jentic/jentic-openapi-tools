@@ -23,6 +23,9 @@ package = true
 namespace = true
 module-name = "jentic.apitools.openapi.validator.backends.speclynx"
 module-root = "src/"
+# Only include .tgz tarball, exclude source files
+source-exclude = ["resources/*.mjs", "resources/*.json", "resources/plugins"]
+wheel-exclude = ["resources/*.mjs", "resources/*.json", "resources/plugins"]
 
 [tool.uv.sources]
 jentic-openapi-common = { workspace = true }
@@ -34,13 +37,8 @@ build-backend = "uv_build"
 
 [tool.poe.tasks]
 [tool.poe.tasks."speclynx:pack"]
-shell = "npm run pack"
+shell = "npm pack src/jentic/apitools/openapi/validator/backends/speclynx/resources --pack-destination src/jentic/apitools/openapi/validator/backends/speclynx/resources"
 
 
 [project.entry-points."jentic.apitools.openapi.validator.backends"]
 speclynx = "jentic.apitools.openapi.validator.backends.speclynx:SpeclynxValidatorBackend"
-
-[tool.setuptools.package-data]
-"jentic.apitools.openapi.validator.backends.speclynx" = [
-    "resources/jentic-openapi-validator-speclynx-*.tgz"
-]

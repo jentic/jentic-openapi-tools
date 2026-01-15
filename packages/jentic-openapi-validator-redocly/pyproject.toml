@@ -24,6 +24,9 @@ package = true
 namespace = true
 module-name = "jentic.apitools.openapi.validator.backends.redocly"
 module-root = "src/"
+# Include ruleset files for Redocly validation
+source-include = ["rulesets/*.yaml", "rulesets/*.yml"]
+wheel-include = ["rulesets/*.yaml", "rulesets/*.yml"]
 
 [tool.uv.sources]
 jentic-openapi-common = { workspace = true }
@@ -35,6 +38,3 @@ build-backend = "uv_build"
 
 [project.entry-points."jentic.apitools.openapi.validator.backends"]
 redocly = "jentic.apitools.openapi.validator.backends.redocly:RedoclyValidatorBackend"
-
-[tool.setuptools.package-data]
-"jentic.apitools.openapi.validator.backends.redocly" = ["rulesets/*.yaml", "rulesets/*.yml"]

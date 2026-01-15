@@ -4,9 +4,6 @@
   "description": "OpenAPI validator using SpecLynx for jentic-openapi-tools",
   "private": true,
   "type": "module",
-  "scripts": {
-    "pack": "cd src/jentic/apitools/openapi/validator/backends/speclynx/resources && npm pack"
-  },
   "bin": {
     "speclynx": "./speclynx.mjs"
   },

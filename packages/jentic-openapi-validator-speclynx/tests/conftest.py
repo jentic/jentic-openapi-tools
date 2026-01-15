@@ -46,32 +46,32 @@ def plugins_dir(fixtures_dir: Path) -> Path:
 
 @pytest.fixture
 def speclynx_validator() -> SpeclynxValidatorBackend:
-    """A default ApidomValidator instance."""
+    """A default SpeclynxValidatorBackend instance."""
     return SpeclynxValidatorBackend()
 
 
 @pytest.fixture
 def speclynx_validator_with_short_timeout() -> SpeclynxValidatorBackend:
-    """An ApidomValidator instance with a short timeout for testing."""
+    """A SpeclynxValidatorBackend instance with a short timeout for testing."""
     return SpeclynxValidatorBackend(timeout=1.0)
 
 
 @pytest.fixture
 def speclynx_validator_with_long_timeout() -> SpeclynxValidatorBackend:
-    """An ApidomValidator instance with a long timeout."""
+    """A SpeclynxValidatorBackend instance with a long timeout."""
     return SpeclynxValidatorBackend(timeout=120.0)
 
 
 @pytest.fixture
 def speclynx_validator_with_plugins(plugins_dir: Path) -> SpeclynxValidatorBackend:
-    """A SpeclynxValidator instance with test plugins enabled."""
+    """A SpeclynxValidatorBackend instance with test plugins enabled."""
     return SpeclynxValidatorBackend(plugins_dir=plugins_dir)
 
 
 def pytest_configure(config):
     """Configure pytest markers."""
     config.addinivalue_line(
-        "markers", "requires_speclynx_cli: mark test as requiring ApiDOM CLI to be available"
+        "markers", "requires_speclynx_cli: mark test as requiring SpecLynx CLI to be available"
     )
 
 
@@ -90,7 +90,7 @@ def _is_node_available() -> bool:
 
 
 def pytest_runtest_setup(item):
-    """Skip tests that require ApiDOM CLI when it's not available."""
+    """Skip tests that require SpecLynx CLI when it's not available."""
     if item.get_closest_marker("requires_speclynx_cli"):
         if not _is_node_available():
             pytest.skip("Node.js is not available")

@@ -13,7 +13,7 @@ from jentic.apitools.openapi.validator.backends.speclynx import (
 
 @pytest.mark.requires_speclynx_cli
 class TestSpeclynxValidatorIntegration:
-    """Integration tests that require ApiDOM CLI to be available."""
+    """Integration tests that require SpecLynx CLI to be available."""
 
     def test_validate_valid_openapi_document(self, speclynx_validator, valid_openapi_path):
         """Test validation of a valid OpenAPI document."""
