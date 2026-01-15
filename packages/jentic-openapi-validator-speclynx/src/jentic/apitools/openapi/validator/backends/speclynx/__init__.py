@@ -25,10 +25,11 @@ __all__ = ["SpeclynxValidatorBackend"]
 
 logger = logging.getLogger(__name__)
 
+_TARBALL_NAME = "jentic-openapi-validator-speclynx-0.1.0.tgz"
+_DEFAULT_SPECLYNX_PATH = f"npx --yes {_TARBALL_NAME}"
+
 resources_dir = files("jentic.apitools.openapi.validator.backends.speclynx.resources")
-
-
-_DEFAULT_SPECLYNX_PATH = "npx --yes jentic-openapi-validator-speclynx-0.1.0.tgz"
+tarball_file = resources_dir.joinpath(_TARBALL_NAME)
 
 
 class SpeclynxValidatorBackend(BaseValidatorBackend):
@@ -154,7 +155,8 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
 
                 # npx with bundled tarball requires cwd set to resources directory
                 if self.speclynx_path == _DEFAULT_SPECLYNX_PATH:
-                    with as_file(resources_dir) as resources_path:
+                    with as_file(tarball_file) as tarball_path:
+                        resources_path = tarball_path.parent
                         result = run_subprocess(cmd, timeout=self.timeout, cwd=str(resources_path))
                 else:
                     result = run_subprocess(cmd, timeout=self.timeout)
