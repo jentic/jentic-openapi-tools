@@ -26,6 +26,8 @@ module-root = "src/"
 # Only include .tgz tarball, exclude source files
 source-exclude = ["resources/*.mjs", "resources/*.json", "resources/plugins"]
 wheel-exclude = ["resources/*.mjs", "resources/*.json", "resources/plugins"]
+source-include = ["resources/*.tgz"]
+wheel-include = ["resources/*.tgz"]
 
 [tool.uv.sources]
 jentic-openapi-common = { workspace = true }
