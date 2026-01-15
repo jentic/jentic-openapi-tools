@@ -1,0 +1,50 @@
+{
+  "name": "@jentic/openapi-validator-speclynx",
+  "version": "0.1.0",
+  "description": "OpenAPI validator using SpecLynx for jentic-openapi-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pack": "cd src/jentic/apitools/openapi/validator/backends/speclynx/resources && npm pack"
+  },
+  "bin": {
+    "speclynx": "./speclynx.mjs"
+  },
+  "dependencies": {
+    "commander": "^14.0.2",
+    "vscode-languageserver-types": "^3.17.5",
+    "@speclynx/apidom-core": "2.0.1",
+    "@speclynx/apidom-datamodel": "2.0.1",
+    "@speclynx/apidom-error": "2.0.1",
+    "@speclynx/apidom-json-path": "2.0.1",
+    "@speclynx/apidom-json-pointer": "2.0.1",
+    "@speclynx/apidom-json-pointer-relative": "2.0.1",
+    "@speclynx/apidom-ns-arazzo-1": "2.0.1",
+    "@speclynx/apidom-ns-asyncapi-2": "2.0.1",
+    "@speclynx/apidom-ns-json-schema-2019-09": "2.0.1",
+    "@speclynx/apidom-ns-json-schema-2020-12": "2.0.1",
+    "@speclynx/apidom-ns-json-schema-draft-4": "2.0.1",
+    "@speclynx/apidom-ns-json-schema-draft-6": "2.0.1",
+    "@speclynx/apidom-ns-json-schema-draft-7": "2.0.1",
+    "@speclynx/apidom-ns-openapi-2": "2.0.1",
+    "@speclynx/apidom-ns-openapi-3-0": "2.0.1",
+    "@speclynx/apidom-ns-openapi-3-1": "2.0.1",
+    "@speclynx/apidom-parser": "2.0.1",
+    "@speclynx/apidom-parser-adapter-arazzo-json-1": "2.0.1",
+    "@speclynx/apidom-parser-adapter-arazzo-yaml-1": "2.0.1",
+    "@speclynx/apidom-parser-adapter-asyncapi-json-2": "2.0.1",
+    "@speclynx/apidom-parser-adapter-asyncapi-yaml-2": "2.0.1",
+    "@speclynx/apidom-parser-adapter-json": "2.0.1",
+    "@speclynx/apidom-parser-adapter-json-schema-json-2020-12": "2.0.1",
+    "@speclynx/apidom-parser-adapter-json-schema-yaml-2020-12": "2.0.1",
+    "@speclynx/apidom-parser-adapter-openapi-json-2": "2.0.1",
+    "@speclynx/apidom-parser-adapter-openapi-json-3-0": "2.0.1",
+    "@speclynx/apidom-parser-adapter-openapi-json-3-1": "2.0.1",
+    "@speclynx/apidom-parser-adapter-openapi-yaml-2": "2.0.1",
+    "@speclynx/apidom-parser-adapter-openapi-yaml-3-0": "2.0.1",
+    "@speclynx/apidom-parser-adapter-openapi-yaml-3-1": "2.0.1",
+    "@speclynx/apidom-parser-adapter-yaml-1-2": "2.0.1",
+    "@speclynx/apidom-reference": "2.0.1",
+    "@speclynx/apidom-traverse": "2.0.1"
+  }
+}

@@ -54,6 +54,7 @@ The monorepo contains these namespace packages under `jentic.apitools.openapi.*`
 | `jentic-openapi-validator` | Document validation core |
 | `jentic-openapi-validator-spectral` | Spectral validation backend |
 | `jentic-openapi-validator-redocly` | Redocly validation backend |
+| `jentic-openapi-validator-speclynx` | SpecLynx ApiDOM validation backend |
 
 ### Plugin-Based Backend System
 
@@ -103,6 +104,7 @@ OpenAPIValidator.list_backends()
 ```
 common ← datamodels ← parser ← validator ← validator-spectral
                   ↑         ↘            ↖ validator-redocly
+                  │                      ↖ validator-speclynx
                   └─ traverse ← transformer ← transformer-redocly
 ```
 
@@ -169,6 +171,7 @@ if not result.valid:
 | `openapi-spec` | Python lib | dict | `openapi_spec_validator` wrapper |
 | `spectral` | External CLI | uri, dict | Requires Node.js |
 | `redocly` | External CLI | uri, dict | Requires Node.js |
+| `speclynx` | External CLI | uri, dict | Requires Node.js, uses SpecLynx ApiDOM |
 
 ## Bundler/Transformer
 

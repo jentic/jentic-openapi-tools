@@ -15,7 +15,8 @@ dependencies = [
   "jentic-openapi-traverse~=1.0.0-alpha.33",
   "jentic-openapi-validator~=1.0.0-alpha.33",
   "jentic-openapi-validator-redocly~=1.0.0-alpha.33",
-  "jentic-openapi-validator-spectral~=1.0.0-alpha.33"
+  "jentic-openapi-validator-spectral~=1.0.0-alpha.33",
+  "jentic-openapi-validator-speclynx~=1.0.0-alpha.33"
 ]
 
 [project.urls]
@@ -69,6 +70,7 @@ jentic-openapi-traverse = { workspace = true }
 jentic-openapi-validator = { workspace = true }
 jentic-openapi-validator-redocly = { workspace = true }
 jentic-openapi-validator-spectral = { workspace = true }
+jentic-openapi-validator-speclynx = { workspace = true }
 
 [build-system]
 requires = ["setuptools~=75.8.0"]
@@ -91,6 +93,7 @@ src = [
   "packages/jentic-openapi-validator/src",
   "packages/jentic-openapi-validator-spectral/src",
   "packages/jentic-openapi-validator-redocly/src",
+  "packages/jentic-openapi-validator-speclynx/src",
 ]
 
 [tool.ruff.lint]
@@ -137,6 +140,7 @@ version_toml = [
     "packages/jentic-openapi-validator/pyproject.toml:project.version",
     "packages/jentic-openapi-validator-spectral/pyproject.toml:project.version",
     "packages/jentic-openapi-validator-redocly/pyproject.toml:project.version",
+    "packages/jentic-openapi-validator-speclynx/pyproject.toml:project.version",
 ]
 
 # Commit author for version commits

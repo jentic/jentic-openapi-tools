@@ -125,10 +125,12 @@ jobs:
           echo "version=$RELEASED_VERSION" >> $GITHUB_OUTPUT
           echo "Released version: $RELEASED_VERSION"
 
-      - name: Build packages
-        run: |
-          echo "📦 Building all packages..."
-          uv build --all-packages
+      - name: Build speclynx npm package
+        run: uv run poe speclynx:pack
+        working-directory: packages/jentic-openapi-validator-speclynx
+
+      - name: Build all packages
+        run: uv build --all-packages
 
       - name: Show build artifacts
         run: |

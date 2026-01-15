@@ -1,0 +1,46 @@
+[project]
+name = "jentic-openapi-validator-speclynx"
+version = "1.0.0-alpha.33"
+description = "Jentic OpenAPI SpecLynx Validator Backend"
+readme = "README.md"
+authors = [{ name = "Jentic", email = "hello@jentic.com" }]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.11"
+dependencies = [
+    "jentic-openapi-common~=1.0.0-alpha.33",
+    "jentic-openapi-validator~=1.0.0-alpha.33",
+    "lsprotocol~=2025.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/jentic/jentic-openapi-tools"
+
+[tool.uv]
+package = true
+
+[tool.uv.build-backend]
+namespace = true
+module-name = "jentic.apitools.openapi.validator.backends.speclynx"
+module-root = "src/"
+
+[tool.uv.sources]
+jentic-openapi-common = { workspace = true }
+jentic-openapi-validator = { workspace = true }
+
+[build-system]
+requires = ["uv_build~=0.8.15"]
+build-backend = "uv_build"
+
+[tool.poe.tasks]
+[tool.poe.tasks."speclynx:pack"]
+shell = "npm run pack"
+
+
+[project.entry-points."jentic.apitools.openapi.validator.backends"]
+speclynx = "jentic.apitools.openapi.validator.backends.speclynx:SpeclynxValidatorBackend"
+
+[tool.setuptools.package-data]
+"jentic.apitools.openapi.validator.backends.speclynx" = [
+    "resources/jentic-openapi-validator-speclynx-*.tgz"
+]

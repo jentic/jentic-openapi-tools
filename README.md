@@ -113,6 +113,7 @@ This monorepo contains the following packages:
 | **[jentic-openapi-validator](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator)** | OpenAPI document validation with pluggable backends |
 | **[jentic-openapi-validator-redocly](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator-redocly)** | Redocly-based validation backend |
 | **[jentic-openapi-validator-spectral](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator-spectral)** | Spectral-based validation backend |
+| **[jentic-openapi-validator-speclynx](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator-speclynx)** | SpecLynx ApiDOM-based validation backend |
 
 Each package has its own detailed README with comprehensive API documentation and examples.
 
