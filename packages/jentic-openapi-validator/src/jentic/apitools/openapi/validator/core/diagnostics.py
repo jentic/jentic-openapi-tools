@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import TypeAlias
 
-from lsprotocol.types import Diagnostic
+from lsprotocol.types import Diagnostic, DiagnosticSeverity
 
 
 __all__ = ["JenticDiagnostic", "ValidationResult", "DataFieldValue"]
@@ -61,7 +61,7 @@ class ValidationResult:
 
     Attributes:
         diagnostics: List of all diagnostics from validation
-        valid: True if no diagnostics were found, False otherwise (computed automatically)
+        valid: True if no Error-severity diagnostics were found, False otherwise (computed automatically)
     """
 
     diagnostics: list[JenticDiagnostic] = field(default_factory=list)
@@ -69,14 +69,14 @@ class ValidationResult:
 
     def __post_init__(self):
         """Compute the valid attribute after initialization."""
-        self.valid = len(self.diagnostics) == 0
+        self.valid = not any(d.severity == DiagnosticSeverity.Error for d in self.diagnostics)
 
     def __bool__(self) -> bool:
         """
         Allow ValidationResult to be used in boolean context.
 
         Returns:
-            True if validation passed (no diagnostics), False otherwise
+            True if validation passed (no Error-severity diagnostics), False otherwise
 
         Example:
             >>> result = validator.validate(document)
