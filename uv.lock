@@ -13,6 +13,7 @@ members = [
     "jentic-openapi-traverse",
     "jentic-openapi-validator",
     "jentic-openapi-validator-redocly",
+    "jentic-openapi-validator-speclynx",
     "jentic-openapi-validator-spectral",
 ]
 
@@ -330,6 +331,7 @@ dependencies = [
     { name = "jentic-openapi-traverse" },
     { name = "jentic-openapi-validator" },
     { name = "jentic-openapi-validator-redocly" },
+    { name = "jentic-openapi-validator-speclynx" },
     { name = "jentic-openapi-validator-spectral" },
 ]
 
@@ -353,6 +355,7 @@ requires-dist = [
     { name = "jentic-openapi-traverse", editable = "packages/jentic-openapi-traverse" },
     { name = "jentic-openapi-validator", editable = "packages/jentic-openapi-validator" },
     { name = "jentic-openapi-validator-redocly", editable = "packages/jentic-openapi-validator-redocly" },
+    { name = "jentic-openapi-validator-speclynx", editable = "packages/jentic-openapi-validator-speclynx" },
     { name = "jentic-openapi-validator-spectral", editable = "packages/jentic-openapi-validator-spectral" },
 ]
 
@@ -472,6 +475,23 @@ requires-dist = [
     { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
     { name = "jentic-openapi-validator", editable = "packages/jentic-openapi-validator" },
     { name = "jsonpointer", specifier = "~=3.0.0" },
+    { name = "lsprotocol", specifier = "~=2025.0.0" },
+]
+
+[[package]]
+name = "jentic-openapi-validator-speclynx"
+version = "1.0.0a33"
+source = { editable = "packages/jentic-openapi-validator-speclynx" }
+dependencies = [
+    { name = "jentic-openapi-common" },
+    { name = "jentic-openapi-validator" },
+    { name = "lsprotocol" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "jentic-openapi-common", editable = "packages/jentic-openapi-common" },
+    { name = "jentic-openapi-validator", editable = "packages/jentic-openapi-validator" },
     { name = "lsprotocol", specifier = "~=2025.0.0" },
 ]
 

@@ -23,6 +23,9 @@ package = true
 namespace = true
 module-name = "jentic.apitools.openapi.validator.backends.spectral"
 module-root = "src/"
+# Include ruleset files for Spectral validation
+source-include = ["rulesets/*.yaml", "rulesets/*.yml", "rulesets/*.mjs"]
+wheel-include = ["rulesets/*.yaml", "rulesets/*.yml", "rulesets/*.mjs"]
 
 [tool.uv.sources]
 jentic-openapi-common = { workspace = true }
@@ -34,6 +37,3 @@ build-backend = "uv_build"
 
 [project.entry-points."jentic.apitools.openapi.validator.backends"]
 spectral = "jentic.apitools.openapi.validator.backends.spectral:SpectralValidatorBackend"
-
-[tool.setuptools.package-data]
-"jentic.apitools.openapi.validator.backends.spectral" = ["rulesets/*.yaml", "rulesets/*.yml", "rulesets/*.mjs"]

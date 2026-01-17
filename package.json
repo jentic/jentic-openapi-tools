@@ -3,9 +3,13 @@
   "version": "0.1.0",
   "description": "Workspace root for Jentic OpenAPI Tools",
   "private": true,
+  "scripts": {
+    "postinstall": "npm pack packages/jentic-openapi-validator-speclynx/src/jentic/apitools/openapi/validator/backends/speclynx/resources --pack-destination packages/jentic-openapi-validator-speclynx/src/jentic/apitools/openapi/validator/backends/speclynx/resources"
+  },
   "workspaces": [
     "packages/jentic-openapi-validator-spectral",
     "packages/jentic-openapi-validator-redocly",
+    "packages/jentic-openapi-validator-speclynx",
     "packages/jentic-openapi-transformer-redocly"
   ],
   "engines": {

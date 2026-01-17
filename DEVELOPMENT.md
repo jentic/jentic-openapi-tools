@@ -14,6 +14,7 @@ This is a Python monorepo managed with [uv](https://docs.astral.sh/uv/) containi
 - `jentic-openapi-validator` - OpenAPI document validation
 - `jentic-openapi-validator-redocly` - Redocly-based validation backend
 - `jentic-openapi-validator-spectral` - Spectral-based validation backend
+- `jentic-openapi-validator-speclynx` - SpecLynx ApiDOM-based validation backend
 
 ## Initial Setup
 
@@ -69,6 +70,7 @@ uv run --package jentic-openapi-transformer-redocly pytest packages/jentic-opena
 uv run --package jentic-openapi-validator pytest packages/jentic-openapi-validator/tests -q
 uv run --package jentic-openapi-validator-redocly pytest packages/jentic-openapi-validator-redocly/tests -q
 uv run --package jentic-openapi-validator-spectral pytest packages/jentic-openapi-validator-spectral/tests -q
+uv run --package jentic-openapi-validator-speclynx pytest packages/jentic-openapi-validator-speclynx/tests -q
 ```
 
 Run a single test suite:
@@ -112,6 +114,7 @@ uv build --package jentic-openapi-transformer-redocly
 uv build --package jentic-openapi-validator
 uv build --package jentic-openapi-validator-redocly
 uv build --package jentic-openapi-validator-spectral
+uv build --package jentic-openapi-validator-speclynx
 ```
 
 ### Commits
@@ -138,6 +141,7 @@ dependencies = [
     "jentic-openapi-validator @ git+https://github.com/jentic/jentic-openapi-tools.git#subdirectory=packages/jentic-openapi-validator",
     "jentic-openapi-validator-redocly @ git+https://github.com/jentic/jentic-openapi-tools.git#subdirectory=packages/jentic-openapi-validator-redocly",
     "jentic-openapi-validator-spectral @ git+https://github.com/jentic/jentic-openapi-tools.git#subdirectory=packages/jentic-openapi-validator-spectral",
+    "jentic-openapi-validator-speclynx @ git+https://github.com/jentic/jentic-openapi-tools.git#subdirectory=packages/jentic-openapi-validator-speclynx",
 ]
 ```
 
@@ -157,6 +161,7 @@ dependencies = [
     "jentic-openapi-validator @ file:///path/to/jentic-openapi-tools/packages/jentic-openapi-validator",
     "jentic-openapi-validator-redocly @ file:///path/to/jentic-openapi-tools/packages/jentic-openapi-validator-redocly",
     "jentic-openapi-validator-spectral @ file:///path/to/jentic-openapi-tools/packages/jentic-openapi-validator-spectral",
+    "jentic-openapi-validator-speclynx @ file:///path/to/jentic-openapi-tools/packages/jentic-openapi-validator-speclynx",
 ]
 ```
 
@@ -174,6 +179,7 @@ pip install -e /path/to/jentic-openapi-tools/packages/jentic-openapi-transformer
 pip install -e /path/to/jentic-openapi-tools/packages/jentic-openapi-validator
 pip install -e /path/to/jentic-openapi-tools/packages/jentic-openapi-validator-redocly
 pip install -e /path/to/jentic-openapi-tools/packages/jentic-openapi-validator-spectral
+pip install -e /path/to/jentic-openapi-tools/packages/jentic-openapi-validator-speclynx
 ```
 
 To uninstall an editable package:

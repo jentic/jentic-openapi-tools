@@ -1,0 +1,120 @@
+/**
+ * Example SpecLynx validation plugin
+ *
+ * This is a sample plugin that demonstrates how to create custom validation rules
+ * using the ApiDOM visitor pattern.
+ *
+ * Plugin structure:
+ * - Must export a default function that accepts a diagnostics array parameter
+ * - Returns an object with pre/post hooks and a visitor property
+ * - The visitor contains methods named after ApiDOM element types
+ * - Each visitor method receives a path object with information about the current element
+ *
+ * @param {Array} diagnostics - Array to collect validation diagnostics
+ */
+
+import { toValue } from '@speclynx/apidom-core';
+import { DiagnosticSeverity } from 'vscode-languageserver-types';
+
+export default ({diagnostics}) => () => ({
+    pre() {
+        console.log('Pre-validation hook');
+    },
+    post() {
+        console.log('Post-validation hook');
+    },
+    visitor: {
+        /**
+         * Visit all InfoElement nodes in the OpenAPI document
+         * @param {Object} path - Contains information about the current element
+         */
+        InfoElement(path) {
+            const info = path.node;
+
+            // Example validation: Check if info.title exists
+            if (!info.get('title')) {
+                diagnostics.push({
+                    severity: DiagnosticSeverity.Error,
+                    message: 'OpenAPI document is missing info.title',
+                    code: 'missing-info-title',
+                    range: getRange(info),
+                    data: {path: ['info', 'title']}
+                });
+            }
+
+            // Example validation: Check if info.version exists
+            if (!info.get('version')) {
+                diagnostics.push({
+                    severity: DiagnosticSeverity.Warning,
+                    message: 'OpenAPI document is missing info.version',
+                    code: 'missing-info-version',
+                    range: getRange(info),
+                    data: {path: ['info', 'version']}
+                });
+            }
+        },
+
+        /**
+         * Visit all OperationElement nodes (HTTP operations like GET, POST, etc.)
+         * @param {Object} path - Contains information about the current element
+         */
+        OperationElement(path) {
+            const operation = path.node;
+
+            // Example validation: Check if operation has a summary
+            if (!operation.get('summary')) {
+                diagnostics.push({
+                    severity: DiagnosticSeverity.Warning,
+                    message: 'Operation is missing a summary',
+                    code: 'missing-operation-summary',
+                    range: getRange(operation),
+                    data: { path: [] } // Would need to be computed from path object
+                });
+            }
+        },
+
+        /**
+         * Visit all SchemaElement nodes (JSON Schema definitions)
+         * @param {Object} path - Contains information about the current element
+         */
+        SchemaElement(path) {
+            const schema = path.node;
+
+            // Example validation: Check for schemas without descriptions
+            if (!schema.get('description') && schema.get('type')) {
+                diagnostics.push({
+                    severity: DiagnosticSeverity.Information,
+                    message: `Schema of type "${toValue(schema.get('type'))}" has no description`,
+                    code: 'schema-missing-description',
+                    range: getRange(schema),
+                    data: { path: [] } // Would need to be computed from path object
+                });
+            }
+        }
+    }
+});
+
+/**
+ * Extract LSP range from ApiDOM element
+ * @param {Object} element - ApiDOM element with source position properties
+ * @returns {Object} LSP range object with start/end positions
+ */
+function getRange(element) {
+    if (!element) {
+        return {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 0 }
+        };
+    }
+
+    return {
+        start: {
+            line: element.startLine ?? 0,
+            character: element.startCharacter ?? 0
+        },
+        end: {
+            line: element.endLine ?? element.startLine ?? 0,
+            character: element.endCharacter ?? element.startCharacter ?? 0
+        }
+    };
+}
