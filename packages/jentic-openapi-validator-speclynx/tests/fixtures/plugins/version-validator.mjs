@@ -17,7 +17,7 @@ export default ({diagnostics}) => () => ({
                     message: 'info.version must be a string',
                     code: 'invalid-info-version-type',
                     range: getRange(version),
-                    data: {path: ['info', 'version']}
+                    data: {path: path.getPathKeys()}
                 });
             }
         }

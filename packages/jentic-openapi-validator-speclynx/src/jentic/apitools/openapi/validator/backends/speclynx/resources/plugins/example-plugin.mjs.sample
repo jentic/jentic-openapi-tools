@@ -5,12 +5,14 @@
  * using the ApiDOM visitor pattern.
  *
  * Plugin structure:
- * - Must export a default function that accepts a diagnostics array parameter
+ * - Must export a default function that accepts a context object with:
+ *   - diagnostics: Array to collect validation diagnostics
  * - Returns an object with pre/post hooks and a visitor property
  * - The visitor contains methods named after ApiDOM element types
  * - Each visitor method receives a path object with information about the current element
  *
- * @param {Array} diagnostics - Array to collect validation diagnostics
+ * @param {Object} context - Plugin context
+ * @param {Array} context.diagnostics - Array to collect validation diagnostics
  */
 
 import { toValue } from '@speclynx/apidom-core';
@@ -38,7 +40,7 @@ export default ({diagnostics}) => () => ({
                     message: 'OpenAPI document is missing info.title',
                     code: 'missing-info-title',
                     range: getRange(info),
-                    data: {path: ['info', 'title']}
+                    data: {path: path.getPathKeys()}
                 });
             }
 
@@ -49,7 +51,7 @@ export default ({diagnostics}) => () => ({
                     message: 'OpenAPI document is missing info.version',
                     code: 'missing-info-version',
                     range: getRange(info),
-                    data: {path: ['info', 'version']}
+                    data: {path: path.getPathKeys()}
                 });
             }
         },
@@ -68,7 +70,7 @@ export default ({diagnostics}) => () => ({
                     message: 'Operation is missing a summary',
                     code: 'missing-operation-summary',
                     range: getRange(operation),
-                    data: { path: [] } // Would need to be computed from path object
+                    data: {path: path.getPathKeys()}
                 });
             }
         },
@@ -87,7 +89,7 @@ export default ({diagnostics}) => () => ({
                     message: `Schema of type "${toValue(schema.get('type'))}" has no description`,
                     code: 'schema-missing-description',
                     range: getRange(schema),
-                    data: { path: [] } // Would need to be computed from path object
+                    data: {path: path.getPathKeys()}
                 });
             }
         }
