@@ -67,7 +67,15 @@ class TestSpeclynxValidatorIntegration:
         assert result.valid is False
         assert len(result.diagnostics) > 0
         # Check that the error message indicates the document is not recognized as OpenAPI 3.x
-        assert any("openapi 3" in d.message.lower() for d in result.diagnostics)
+        openapi_error = next(
+            (d for d in result.diagnostics if "openapi 3" in d.message.lower()), None
+        )
+        assert openapi_error is not None
+        # Verify the path data is set from getPathKeys()
+        # ParseResultElement is the root, so path should be empty list
+        assert openapi_error.data is not None
+        assert "path" in openapi_error.data
+        assert openapi_error.data["path"] == []
 
     def test_validate_swagger_2_0_dict_produces_error(self, speclynx_validator):
         """Test that Swagger 2.0 dict documents produce error diagnostics."""

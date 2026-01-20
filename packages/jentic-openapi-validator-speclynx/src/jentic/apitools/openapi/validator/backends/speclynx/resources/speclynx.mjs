@@ -115,11 +115,14 @@ async function validate(document, cliOptions) {
 
     // Parse the document
     const parseResult = await parse(document);
+    const diagnostics = [];
 
     // Run validation plugins
-    const diagnostics = [];
+    // When parseResult.api exists, traverse it (paths are relative to document root)
+    // When it doesn't exist (e.g., Swagger 2.0), traverse parseResult so ParseResultElement visitor runs
+    const elementToTraverse = parseResult.api ?? parseResult;
     const dispatchRefractorPluginsAsync = promisify(dispatchRefractorPlugins);
-    await dispatchRefractorPluginsAsync(parseResult, plugins.map(plugin => plugin({diagnostics})));
+    await dispatchRefractorPluginsAsync(elementToTraverse, plugins.map(plugin => plugin({diagnostics})));
 
     // Check if there are any errors or warnings
     const hasErrors = diagnostics.some(d => d.severity === DiagnosticSeverity.Error);
