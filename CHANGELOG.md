@@ -2,6 +2,75 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.34 (2026-01-20)
+
+### Bug Fixes
+
+- **security**: Update undici to non vulnerable version
+  ([#189](https://github.com/jentic/jentic-openapi-tools/pull/189),
+  [`f0e8bf8`](https://github.com/jentic/jentic-openapi-tools/commit/f0e8bf87a3f74037fb976ee593dfd0bac476bae5))
+
+- **validator**: Fix when ValidatorResult reports true or false
+  ([#187](https://github.com/jentic/jentic-openapi-tools/pull/187),
+  [`c70f776`](https://github.com/jentic/jentic-openapi-tools/commit/c70f7765dd0e10bfe5abdd13f9b3797663e36bf6))
+
+- **validator-speclynx**: Fix generation of diagnostic paths
+  ([#193](https://github.com/jentic/jentic-openapi-tools/pull/193),
+  [`c14be98`](https://github.com/jentic/jentic-openapi-tools/commit/c14be9853a469015bd70155364756758d3a53daa))
+
+### Chores
+
+- **deps**: Bump filelock from 3.20.0 to 3.20.3
+  ([#180](https://github.com/jentic/jentic-openapi-tools/pull/180),
+  [`b372c8e`](https://github.com/jentic/jentic-openapi-tools/commit/b372c8ed150805265d48a9fa1ec67934ded3d455))
+
+- **deps**: Bump urllib3 from 2.5.0 to 2.6.3
+  ([#188](https://github.com/jentic/jentic-openapi-tools/pull/188),
+  [`b406afe`](https://github.com/jentic/jentic-openapi-tools/commit/b406afe883bf589ab8b59c089d718792168b131d))
+
+- **deps**: Bump virtualenv from 20.35.3 to 20.36.1
+  ([#179](https://github.com/jentic/jentic-openapi-tools/pull/179),
+  [`b0ea4b0`](https://github.com/jentic/jentic-openapi-tools/commit/b0ea4b061743b4c98e80c0c4dac567fa1c90a08c))
+
+- **deps-dev**: Bump poethepoet from 0.37.0 to 0.40.0
+  ([#192](https://github.com/jentic/jentic-openapi-tools/pull/192),
+  [`56f1115`](https://github.com/jentic/jentic-openapi-tools/commit/56f111557a2c0baa1329ee951980f61857fecc2d))
+
+- **deps-dev**: Bump pre-commit from 4.3.0 to 4.5.1
+  ([#183](https://github.com/jentic/jentic-openapi-tools/pull/183),
+  [`4e313e8`](https://github.com/jentic/jentic-openapi-tools/commit/4e313e8d413aeade2cf73beb57c25f2537cde408))
+
+- **deps-dev**: Bump pyright from 1.1.407 to 1.1.408
+  ([#182](https://github.com/jentic/jentic-openapi-tools/pull/182),
+  [`da265e7`](https://github.com/jentic/jentic-openapi-tools/commit/da265e70a4a7d8b4c9a7d0f9e3b5f10551898bd0))
+
+- **deps-dev**: Bump pytest from 8.4.2 to 9.0.2
+  ([#181](https://github.com/jentic/jentic-openapi-tools/pull/181),
+  [`c2e8afa`](https://github.com/jentic/jentic-openapi-tools/commit/c2e8afa25873a74adc7da06987f281b5f5c9b38b))
+
+- **deps-dev**: Bump python-semantic-release from 10.4.1 to 10.5.3
+  ([#190](https://github.com/jentic/jentic-openapi-tools/pull/190),
+  [`336681b`](https://github.com/jentic/jentic-openapi-tools/commit/336681b12a0a4e8a4ba1ae86f806eb9192458f3c))
+
+- **deps-dev**: Bump ruff from 0.14.1 to 0.14.11
+  ([#185](https://github.com/jentic/jentic-openapi-tools/pull/185),
+  [`b7ecdea`](https://github.com/jentic/jentic-openapi-tools/commit/b7ecdeae5292cffe42abbacf9c2c68e8a2240798))
+
+- **deps-dev**: Bump ruff from 0.14.11 to 0.14.13
+  ([#191](https://github.com/jentic/jentic-openapi-tools/pull/191),
+  [`34bc2fd`](https://github.com/jentic/jentic-openapi-tools/commit/34bc2fdfbf3d08283bd72df1d926483e983ab13a))
+
+- **deps-dev**: Update setuptools requirement
+  ([#184](https://github.com/jentic/jentic-openapi-tools/pull/184),
+  [`8b88118`](https://github.com/jentic/jentic-openapi-tools/commit/8b8811863c90ca7c6a90164c697ac3d596e1d994))
+
+### Features
+
+- **validator**: Add SpecLynx validator backend
+  ([#186](https://github.com/jentic/jentic-openapi-tools/pull/186),
+  [`06bbdcb`](https://github.com/jentic/jentic-openapi-tools/commit/06bbdcbadc6e949803bd58a2c9b986f93c102902))
+
+
 ## v1.0.0-alpha.33 (2026-01-09)
 
 ### Bug Fixes
