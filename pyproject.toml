@@ -73,7 +73,7 @@ jentic-openapi-validator-spectral = { workspace = true }
 jentic-openapi-validator-speclynx = { workspace = true }
 
 [build-system]
-requires = ["setuptools>=75.8,<80.10"]
+requires = ["setuptools>=75.8,<80.11"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
