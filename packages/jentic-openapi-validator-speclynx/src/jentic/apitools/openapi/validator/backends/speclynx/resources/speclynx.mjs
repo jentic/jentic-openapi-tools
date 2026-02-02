@@ -4,7 +4,7 @@ import {readdir, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL, fileURLToPath} from 'node:url';
 import {Command} from 'commander';
-import {DiagnosticSeverity} from 'vscode-languageserver-types';
+import {Diagnostic, DiagnosticSeverity, Range} from 'vscode-languageserver-types';
 import {dispatchRefractorPlugins} from '@speclynx/apidom-core';
 import {parse, options} from '@speclynx/apidom-reference';
 import FileResolver from '@speclynx/apidom-reference/resolve/resolvers/file';
@@ -121,13 +121,15 @@ async function validate(document, cliOptions) {
         parseResult = await parse(document);
     } catch (error) {
         // Convert parse errors (e.g., empty file, invalid syntax) to diagnostics
-        diagnostics.push({
-            severity: DiagnosticSeverity.Error,
-            message: error.message || 'Failed to parse document',
-            code: 'parse-error',
-            range: {start: {line: 0, character: 0}, end: {line: 0, character: 0}},
-            data: {path: []}
-        });
+        const diagnostic = Diagnostic.create(
+            Range.create(0, 0, 0, 0),
+            error.message || 'Failed to parse document',
+            DiagnosticSeverity.Error,
+            'parse-error',
+            'speclynx-validator'
+        );
+        diagnostic.data = {path: []};
+        diagnostics.push(diagnostic);
         return {valid: false, diagnostics};
     }
 
