@@ -208,7 +208,7 @@ def redocly_cli_available() -> bool:
     """Check if Redocly CLI is available on the system."""
     try:
         result = subprocess.run(
-            ["npx", "--yes", "@redocly/cli@^2.14.3", "--version"], capture_output=True, timeout=10
+            ["npx", "--yes", "@redocly/cli@2.15.1", "--version"], capture_output=True, timeout=10
         )
         return result.returncode == 0
     except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -227,7 +227,7 @@ def pytest_runtest_setup(item):
     if item.get_closest_marker("requires_redocly_cli"):
         try:
             result = subprocess.run(
-                ["npx", "--yes", "@redocly/cli@^2.14.3", "--version"],
+                ["npx", "--yes", "@redocly/cli@2.15.1", "--version"],
                 capture_output=True,
                 timeout=10,
             )

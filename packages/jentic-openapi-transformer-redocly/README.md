@@ -26,7 +26,7 @@ pip install jentic-openapi-transformer-redocly
 The Redocly CLI will be automatically downloaded via npx on first use, or you can install it globally:
 
 ```bash
-npm install -g @redocly/cli@2.14.3
+npm install -g @redocly/cli@2.15.1
 ```
 
 ## Quick Start
@@ -126,7 +126,7 @@ uv run --package jentic-openapi-transformer-redocly pytest packages/jentic-opena
 class RedoclyBundlerBackend(BaseBundlerBackend):
     def __init__(
             self,
-            redocly_path: str = "npx --yes @redocly/cli@2.14.3",
+            redocly_path: str = "npx --yes @redocly/cli@2.15.1",
             timeout: float = 600.0,
             allowed_base_dir: str | Path | None = None,
     ) -> None

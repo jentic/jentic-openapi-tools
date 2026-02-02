@@ -86,7 +86,7 @@ def pytest_runtest_setup(item):
     if item.get_closest_marker("requires_redocly_cli"):
         try:
             result = subprocess.run(
-                ["npx", "--yes", "@redocly/cli@2.14.3", "--version"],
+                ["npx", "--yes", "@redocly/cli@V2.15.1", "--version"],
                 capture_output=True,
                 timeout=10,
             )

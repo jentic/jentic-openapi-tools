@@ -18,7 +18,7 @@ __all__ = ["RedoclyBundlerBackend"]
 class RedoclyBundlerBackend(BaseBundlerBackend):
     def __init__(
         self,
-        redocly_path: str = "npx --yes @redocly/cli@2.14.3",
+        redocly_path: str = "npx --yes @redocly/cli@2.15.1",
         timeout: float = 600.0,
         allowed_base_dir: str | Path | None = None,
     ):
@@ -26,7 +26,7 @@ class RedoclyBundlerBackend(BaseBundlerBackend):
         Initialize the RedoclyBundler.
 
         Args:
-            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@2.14.3").
+            redocly_path: Path to the redocly CLI executable (default: "npx --yes @redocly/cli@2.15.1").
                 Uses shell-safe parsing to handle quoted arguments properly.
             timeout: Maximum time in seconds to wait for Redocly CLI execution (default: 600.0)
             allowed_base_dir: Optional base directory for path security validation.
