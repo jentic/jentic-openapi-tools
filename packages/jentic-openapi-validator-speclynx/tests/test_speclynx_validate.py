@@ -123,6 +123,53 @@ class TestSpeclynxValidatorIntegration:
         # Custom plugin should detect integer version
         assert any("version" in d.message.lower() for d in result.diagnostics)
 
+    def test_validate_empty_document_produces_error(self, speclynx_validator, tmp_path):
+        """Test that empty documents produce validation errors.
+
+        With allowEmpty: true in the parser configuration, empty documents
+        parse successfully but result in an empty ParseResult (no api element).
+        The openapi-document.mjs plugin then detects this and produces an
+        'invalid-openapi-document' diagnostic.
+        """
+        empty_file = tmp_path / "empty.json"
+        empty_file.write_text("")
+
+        result = speclynx_validator.validate(str(empty_file))
+        assert result.valid is False
+        assert len(result.diagnostics) == 1
+        diagnostic = result.diagnostics[0]
+        # Empty documents are detected by the openapi-document plugin
+        assert diagnostic.code == "invalid-openapi-document"
+        assert "openapi 3" in diagnostic.message.lower()
+        # Path should be empty list (root of ParseResultElement)
+        assert diagnostic.data["path"] == []
+
+    def test_validate_invalid_syntax_produces_invalid_document_error(
+        self, speclynx_validator, tmp_path
+    ):
+        """Test that syntactically invalid documents are detected as invalid OpenAPI.
+
+        With the permissive parser configuration (allowEmpty: true, strict: false),
+        malformed JSON/YAML is often parsed successfully by the YAML parser (which
+        treats it as a string or simple value). The openapi-document.mjs plugin then
+        detects that the result is not a valid OpenAPI document.
+
+        Note: The 'parse-error' code is reserved for cases where all parsers fail
+        and throw an exception (e.g., file read errors, encoding issues). In practice,
+        the permissive YAML parser handles most malformed input gracefully.
+        """
+        invalid_json_file = tmp_path / "invalid.json"
+        invalid_json_file.write_text("{invalid json syntax")
+
+        result = speclynx_validator.validate(str(invalid_json_file))
+        assert result.valid is False
+        assert len(result.diagnostics) == 1
+        diagnostic = result.diagnostics[0]
+        # Invalid syntax is parsed by YAML and caught by openapi-document plugin
+        assert diagnostic.code == "invalid-openapi-document"
+        assert diagnostic.source == "speclynx-validator"
+        assert "openapi 3" in diagnostic.message.lower()
+
 
 class TestSpeclynxValidatorUnit:
     """Unit tests that don't require external dependencies."""

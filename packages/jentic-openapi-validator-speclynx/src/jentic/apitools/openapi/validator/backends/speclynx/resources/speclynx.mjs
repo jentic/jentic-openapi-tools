@@ -4,7 +4,7 @@ import {readdir, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL, fileURLToPath} from 'node:url';
 import {Command} from 'commander';
-import {DiagnosticSeverity} from 'vscode-languageserver-types';
+import {Diagnostic, DiagnosticSeverity, Range} from 'vscode-languageserver-types';
 import {dispatchRefractorPlugins} from '@speclynx/apidom-core';
 import {parse, options} from '@speclynx/apidom-reference';
 import FileResolver from '@speclynx/apidom-reference/resolve/resolvers/file';
@@ -45,12 +45,12 @@ function configureOptions(cliOptions) {
     ];
 
     options.parse.parsers = [
-        new OpenAPIJSON3_0Parser({allowEmpty: true, sourceMap: true}),
-        new OpenAPIYAML3_0Parser({allowEmpty: true, sourceMap: true}),
-        new OpenAPIJSON3_1Parser({allowEmpty: true, sourceMap: true}),
-        new OpenAPIYAML3_1Parser({allowEmpty: true, sourceMap: true}),
-        new JSONParser({allowEmpty: true, sourceMap: true}),
-        new YAMLParser({allowEmpty: true, sourceMap: true}),
+        new OpenAPIJSON3_0Parser({allowEmpty: true, sourceMap: true, strict: false}),
+        new OpenAPIYAML3_0Parser({allowEmpty: true, sourceMap: true, strict: false}),
+        new OpenAPIJSON3_1Parser({allowEmpty: true, sourceMap: true, strict: false}),
+        new OpenAPIYAML3_1Parser({allowEmpty: true, sourceMap: true, strict: false}),
+        new JSONParser({allowEmpty: true, sourceMap: true, strict: false}),
+        new YAMLParser({allowEmpty: true, sourceMap: true, strict: false}),
         new BinaryParser({allowEmpty: true})
     ];
 
@@ -113,9 +113,25 @@ async function validate(document, cliOptions) {
         plugins = [...defaultPlugins, ...customPlugins];
     }
 
-    // Parse the document
-    const parseResult = await parse(document);
     const diagnostics = [];
+
+    // Parse the document - convert parse errors to diagnostics
+    let parseResult;
+    try {
+        parseResult = await parse(document);
+    } catch (error) {
+        // Convert parse errors (e.g., empty file, invalid syntax) to diagnostics
+        const diagnostic = Diagnostic.create(
+            Range.create(0, 0, 0, 0),
+            error.message || 'Failed to parse document',
+            DiagnosticSeverity.Error,
+            'parse-error',
+            'speclynx-validator'
+        );
+        diagnostic.data = {path: []};
+        diagnostics.push(diagnostic);
+        return {valid: false, diagnostics};
+    }
 
     // Run validation plugins
     // When parseResult.api exists, traverse it (paths are relative to document root)
