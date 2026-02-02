@@ -141,35 +141,3 @@ def test_accepts_uri_and_dict():
     assert "dict" in accepted
     assert "uri" in accepted
     assert "text" not in accepted
-
-
-def test_validate_server_trailing_slash_produces_warning():
-    """Test that server URLs with trailing slashes produce a warning diagnostic.
-
-    Server URLs should not end with a trailing slash as it can cause
-    issues when concatenating with paths.
-    """
-    val = OpenAPIValidator(backends=["default"])
-    doc = {
-        "openapi": "3.1.0",
-        "info": {"title": "Test API", "version": "1.0.0"},
-        "paths": {},
-        "servers": [{"url": "https://api.example.com/"}],
-    }
-    result = val.validate(doc)
-
-    # Check if there's a diagnostic about trailing slash
-    trailing_slash_diag = next(
-        (
-            d
-            for d in result.diagnostics
-            if "trailing" in d.message.lower() or "trailing" in str(d.code or "").lower()
-        ),
-        None,
-    )
-    # Note: This test documents current behavior - the default backend may not have this rule yet
-    if trailing_slash_diag is not None:
-        assert trailing_slash_diag is not None, "Expected trailing slash diagnostic"
-    else:
-        # If no trailing slash rule exists, document this for future implementation
-        print("Note: default backend does not currently check for server trailing slashes")
