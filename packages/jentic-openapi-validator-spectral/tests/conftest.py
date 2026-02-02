@@ -80,7 +80,7 @@ def pytest_runtest_setup(item):
     if item.get_closest_marker("requires_spectral_cli"):
         try:
             result = subprocess.run(
-                ["npx", "--yes", "@stoplight/spectral-cli@^6.15.0", "--version"],
+                ["npx", "--yes", "@stoplight/spectral-cli@6.15.0", "--version"],
                 capture_output=True,
                 timeout=10,
             )

@@ -1,6 +1,8 @@
 # jentic-openapi-validator-spectral
 
-A [Spectral](https://github.com/stoplightio/spectral) validator backend for the Jentic OpenAPI Tools ecosystem. This package provides OpenAPI document validation using Stoplight's Spectral CLI with comprehensive error reporting and flexible configuration options.
+A [Spectral](https://github.com/stoplightio/spectral) validator backend for the Jentic OpenAPI Tools ecosystem. This
+package provides OpenAPI document validation using Stoplight's Spectral CLI with comprehensive error reporting and
+flexible configuration options.
 
 ## Features
 
@@ -17,6 +19,7 @@ pip install jentic-openapi-validator-spectral
 ```
 
 **Prerequisites:**
+
 - Node.js and npm (for Spectral CLI)
 - Python 3.11+
 
@@ -69,7 +72,7 @@ print(f"Document is valid: {result.valid}")
 validator = SpectralValidatorBackend(spectral_path="/usr/local/bin/spectral")
 
 # Use specific version via npx
-validator = SpectralValidatorBackend(spectral_path="npx --yes @stoplight/spectral-cli@^6.15.0")
+validator = SpectralValidatorBackend(spectral_path="npx --yes @stoplight/spectral-cli@6.15.0")
 ```
 
 ### Custom Rulesets
@@ -140,13 +143,15 @@ validator = SpectralValidatorBackend(
 ```
 
 **Security Benefits:**
+
 - Prevents path traversal attacks (`../../etc/passwd`)
 - Restricts access to allowed directories only (when `allowed_base_dir` is set)
 - Validates file extensions (`.yaml`, `.yml`, `.json`) - **always enforced**, even when `allowed_base_dir=None`
 - Checks symlinks don't escape boundaries (when `allowed_base_dir` is set)
 - Validates both document and ruleset paths
 
-**Note:** File extension validation (`.yaml`, `.yml`, `.json`) is always performed for filesystem paths, regardless of whether `allowed_base_dir` is set. When `allowed_base_dir=None`, only the base directory containment check is skipped.
+**Note:** File extension validation (`.yaml`, `.yml`, `.json`) is always performed for filesystem paths, regardless of
+whether `allowed_base_dir` is set. When `allowed_base_dir=None`, only the base directory containment check is skipped.
 
 ## Advanced Usage
 
@@ -196,7 +201,7 @@ Create a custom Spectral ruleset file:
 
 ```yaml
 # custom-rules.yaml
-extends: ["spectral:oas"]
+extends: [ "spectral:oas" ]
 
 rules:
   info-contact: error
@@ -225,7 +230,8 @@ result = validator.validate("file:///path/to/openapi.yaml")
 
 ### Integration Tests
 
-The integration tests require Spectral CLI to be available. They will be automatically skipped if Spectral is not installed.
+The integration tests require Spectral CLI to be available. They will be automatically skipped if Spectral is not
+installed.
 
 **Run the integration test:**
 
@@ -240,19 +246,23 @@ uv run --package jentic-openapi-validator-spectral pytest packages/jentic-openap
 ```python
 class SpectralValidatorBackend(BaseValidatorBackend):
     def __init__(
-        self,
-        spectral_path: str = "npx --yes @stoplight/spectral-cli@^6.15.0",
-        ruleset_path: str | None = None,
-        timeout: float = 600.0,
-        allowed_base_dir: str | Path | None = None,
+            self,
+            spectral_path: str = "npx --yes @stoplight/spectral-cli@6.15.0",
+            ruleset_path: str | None = None,
+            timeout: float = 600.0,
+            allowed_base_dir: str | Path | None = None,
     ) -> None
 ```
 
 **Parameters:**
+
 - `spectral_path`: Path to Spectral CLI executable
 - `ruleset_path`: Path to a custom ruleset file (optional)
 - `timeout`: Maximum execution time in seconds
-- `allowed_base_dir`: Optional base directory for path security validation. When set, all document and ruleset paths are validated to be within this directory, providing defense against path traversal attacks. When `None` (default), only file extension validation is performed (no base directory containment check). Recommended for web services or untrusted input (optional)
+- `allowed_base_dir`: Optional base directory for path security validation. When set, all document and ruleset paths are
+  validated to be within this directory, providing defense against path traversal attacks. When `None` (default), only
+  file extension validation is performed (no base directory containment check). Recommended for web services or
+  untrusted input (optional)
 
 **Methods:**
 
@@ -260,9 +270,11 @@ class SpectralValidatorBackend(BaseValidatorBackend):
 - `validate(document: str | dict) -> ValidationResult`: Validates an OpenAPI document
 
 **Exceptions:**
+
 - `FileNotFoundError`: Custom ruleset file doesn't exist
 - `RuntimeError`: Spectral execution fails
 - `SubprocessExecutionError`: Spectral times out or fails to start
 - `TypeError`: Unsupported document type
-- `PathTraversalError`: Document or ruleset path attempts to escape allowed_base_dir (only when `allowed_base_dir` is set)
+- `PathTraversalError`: Document or ruleset path attempts to escape allowed_base_dir (only when `allowed_base_dir` is
+  set)
 - `InvalidExtensionError`: Document or ruleset path has disallowed file extension (always checked for filesystem paths)

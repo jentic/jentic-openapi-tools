@@ -4,6 +4,6 @@
   "description": "OpenAPI validator using Spectral for jentic-openapi-tools",
   "private": true,
   "dependencies": {
-    "@stoplight/spectral-cli": "^6.15.0"
+    "@stoplight/spectral-cli": "6.15.0"
   }
 }

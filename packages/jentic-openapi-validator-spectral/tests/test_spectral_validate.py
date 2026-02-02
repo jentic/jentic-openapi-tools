@@ -50,7 +50,7 @@ class TestSpectralValidatorUnit:
     def test_initialization_with_defaults(self):
         """Test SpectralValidator initialization with default values."""
         validator = SpectralValidatorBackend()
-        assert validator.spectral_path == "npx --yes @stoplight/spectral-cli@^6.15.0"
+        assert validator.spectral_path == "npx --yes @stoplight/spectral-cli@6.15.0"
         assert validator.ruleset_path is None
         assert validator.timeout == 600.0
 
@@ -68,7 +68,7 @@ class TestSpectralValidatorUnit:
         """Test SpectralValidator with custom timeout."""
         validator = SpectralValidatorBackend(timeout=60.0)
         assert validator.timeout == 60.0
-        assert validator.spectral_path == "npx --yes @stoplight/spectral-cli@^6.15.0"  # default
+        assert validator.spectral_path == "npx --yes @stoplight/spectral-cli@6.15.0"  # default
         assert validator.ruleset_path is None  # default
 
     def test_initialization_with_all_custom_parameters(self, custom_ruleset_path):
