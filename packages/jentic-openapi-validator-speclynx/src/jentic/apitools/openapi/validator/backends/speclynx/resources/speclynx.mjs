@@ -45,13 +45,13 @@ function configureOptions(cliOptions) {
     ];
 
     options.parse.parsers = [
-        new OpenAPIJSON3_0Parser({allowEmpty: true, sourceMap: true}),
-        new OpenAPIYAML3_0Parser({allowEmpty: true, sourceMap: true}),
-        new OpenAPIJSON3_1Parser({allowEmpty: true, sourceMap: true}),
-        new OpenAPIYAML3_1Parser({allowEmpty: true, sourceMap: true}),
-        new JSONParser({allowEmpty: true, sourceMap: true}),
-        new YAMLParser({allowEmpty: true, sourceMap: true}),
-        new BinaryParser({allowEmpty: true})
+        new OpenAPIJSON3_0Parser({allowEmpty: false, sourceMap: true, strict: false}),
+        new OpenAPIYAML3_0Parser({allowEmpty: false, sourceMap: true, strict: false}),
+        new OpenAPIJSON3_1Parser({allowEmpty: false, sourceMap: true, strict: false}),
+        new OpenAPIYAML3_1Parser({allowEmpty: false, sourceMap: true, strict: false}),
+        new JSONParser({allowEmpty: false, sourceMap: true, strict: false}),
+        new YAMLParser({allowEmpty: false, sourceMap: true, strict: false}),
+        new BinaryParser({allowEmpty: false, sourceMap: true, strict: false})
     ];
 
     options.resolve.strategies = [
