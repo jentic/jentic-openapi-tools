@@ -32,6 +32,7 @@ export default {
   extends: [oasRuleset],
   rules: {
     'oas3-schema': 'error',
+    'oas3-server-trailing-slash': 'warn',
 
     // --- MEDIA EXAMPLES ---
     // Override to skip XML media type validation using custom wrapper function
