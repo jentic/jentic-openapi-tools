@@ -123,6 +123,27 @@ class TestSpeclynxValidatorIntegration:
         # Custom plugin should detect integer version
         assert any("version" in d.message.lower() for d in result.diagnostics)
 
+    def test_validate_empty_document_produces_error(self, speclynx_validator, tmp_path):
+        """Test that empty documents produce validation errors.
+
+        With allowEmpty: true in the parser configuration, empty documents
+        parse successfully but result in an empty ParseResult (no api element).
+        The openapi-document.mjs plugin then detects this and produces an
+        'invalid-openapi-document' diagnostic.
+        """
+        empty_file = tmp_path / "empty.json"
+        empty_file.write_text("")
+
+        result = speclynx_validator.validate(str(empty_file))
+        assert result.valid is False
+        assert len(result.diagnostics) == 1
+        diagnostic = result.diagnostics[0]
+        # Empty documents are detected by the openapi-document plugin
+        assert diagnostic.code == "invalid-openapi-document"
+        assert "openapi 3" in diagnostic.message.lower()
+        # Path should be empty list (root of ParseResultElement)
+        assert diagnostic.data["path"] == []
+
 
 class TestSpeclynxValidatorUnit:
     """Unit tests that don't require external dependencies."""

@@ -45,13 +45,13 @@ function configureOptions(cliOptions) {
     ];
 
     options.parse.parsers = [
-        new OpenAPIJSON3_0Parser({allowEmpty: false, sourceMap: true, strict: false}),
-        new OpenAPIYAML3_0Parser({allowEmpty: false, sourceMap: true, strict: false}),
-        new OpenAPIJSON3_1Parser({allowEmpty: false, sourceMap: true, strict: false}),
-        new OpenAPIYAML3_1Parser({allowEmpty: false, sourceMap: true, strict: false}),
-        new JSONParser({allowEmpty: false, sourceMap: true, strict: false}),
-        new YAMLParser({allowEmpty: false, sourceMap: true, strict: false}),
-        new BinaryParser({allowEmpty: false, sourceMap: true, strict: false})
+        new OpenAPIJSON3_0Parser({allowEmpty: true, sourceMap: true, strict: false}),
+        new OpenAPIYAML3_0Parser({allowEmpty: true, sourceMap: true, strict: false}),
+        new OpenAPIJSON3_1Parser({allowEmpty: true, sourceMap: true, strict: false}),
+        new OpenAPIYAML3_1Parser({allowEmpty: true, sourceMap: true, strict: false}),
+        new JSONParser({allowEmpty: true, sourceMap: true, strict: false}),
+        new YAMLParser({allowEmpty: true, sourceMap: true, strict: false}),
+        new BinaryParser({allowEmpty: true})
     ];
 
     options.resolve.strategies = [
@@ -113,9 +113,23 @@ async function validate(document, cliOptions) {
         plugins = [...defaultPlugins, ...customPlugins];
     }
 
-    // Parse the document
-    const parseResult = await parse(document);
     const diagnostics = [];
+
+    // Parse the document - convert parse errors to diagnostics
+    let parseResult;
+    try {
+        parseResult = await parse(document);
+    } catch (error) {
+        // Convert parse errors (e.g., empty file, invalid syntax) to diagnostics
+        diagnostics.push({
+            severity: DiagnosticSeverity.Error,
+            message: error.message || 'Failed to parse document',
+            code: 'parse-error',
+            range: {start: {line: 0, character: 0}, end: {line: 0, character: 0}},
+            data: {path: []}
+        });
+        return {valid: false, diagnostics};
+    }
 
     // Run validation plugins
     // When parseResult.api exists, traverse it (paths are relative to document root)
