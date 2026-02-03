@@ -1,10 +1,10 @@
 """Pytest configuration and fixtures for jentic-openapi-validator-spectral tests."""
 
-import subprocess
 from pathlib import Path
 
 import pytest
 
+from jentic.apitools.openapi.common.subproc import SubprocessExecutionError, run_subprocess
 from jentic.apitools.openapi.validator.backends.spectral import SpectralValidatorBackend
 
 
@@ -79,12 +79,11 @@ def pytest_runtest_setup(item):
     """Skip tests that require Spectral CLI when it's not available."""
     if item.get_closest_marker("requires_spectral_cli"):
         try:
-            result = subprocess.run(
+            result = run_subprocess(
                 ["npx", "--yes", "@stoplight/spectral-cli@6.15.0", "--version"],
-                capture_output=True,
-                timeout=10,
+                timeout=10.0,
             )
             if result.returncode != 0:
                 pytest.skip("Spectral CLI not available")
-        except (subprocess.TimeoutExpired, FileNotFoundError):
+        except SubprocessExecutionError:
             pytest.skip("Spectral CLI not available")

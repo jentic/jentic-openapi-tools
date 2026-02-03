@@ -1,10 +1,10 @@
 """Pytest configuration and fixtures for jentic-openapi-validator-redocly tests."""
 
-import subprocess
 from pathlib import Path
 
 import pytest
 
+from jentic.apitools.openapi.common.subproc import SubprocessExecutionError, run_subprocess
 from jentic.apitools.openapi.validator.backends.redocly import RedoclyValidatorBackend
 
 
@@ -85,12 +85,11 @@ def pytest_runtest_setup(item):
     """Skip tests that require Redocly CLI when it's not available."""
     if item.get_closest_marker("requires_redocly_cli"):
         try:
-            result = subprocess.run(
+            result = run_subprocess(
                 ["npx", "--yes", "@redocly/cli@2.15.1", "--version"],
-                capture_output=True,
-                timeout=10,
+                timeout=10.0,
             )
             if result.returncode != 0:
                 pytest.skip("Redocly CLI not available")
-        except (subprocess.TimeoutExpired, FileNotFoundError):
+        except SubprocessExecutionError:
             pytest.skip("Redocly CLI not available")
