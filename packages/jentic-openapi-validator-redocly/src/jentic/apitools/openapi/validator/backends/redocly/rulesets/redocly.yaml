@@ -1,3 +1,6 @@
 extends:
 - spec
 - recommended
+
+rules:
+  no-server-trailing-slash: warn

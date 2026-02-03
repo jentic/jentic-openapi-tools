@@ -1,6 +1,7 @@
 import os
 
 import pytest
+from lsprotocol.types import DiagnosticSeverity
 
 from jentic.apitools.openapi.common.path_security import (
     InvalidExtensionError,
@@ -55,6 +56,27 @@ class TestRedoclyValidatorIntegration:
             result.diagnostics[0].message
             == "Operation object should contain `summary` field. [path: paths./test.get.summary]"
         )
+
+    def test_validate_server_trailing_slash_produces_warning(self, redocly_validator):
+        """Test that server URLs with trailing slashes produce a warning diagnostic.
+
+        The no-server-trailing-slash rule is explicitly set to 'warn' severity
+        in the ruleset to ensure consistent behavior across validator backends.
+        """
+        document = {
+            "openapi": "3.0.0",
+            "info": {"title": "Test API", "version": "1.0.0"},
+            "servers": [{"url": "https://api.example.com/"}],
+            "paths": {},
+        }
+        result = redocly_validator.validate(document)
+        # Find the trailing slash diagnostic
+        trailing_slash_diag = next(
+            (d for d in result.diagnostics if d.code == "no-server-trailing-slash"), None
+        )
+        assert trailing_slash_diag is not None, "Expected no-server-trailing-slash diagnostic"
+        assert trailing_slash_diag.severity == DiagnosticSeverity.Warning
+        assert "trailing slash" in trailing_slash_diag.message.lower()
 
 
 class TestRedoclyValidatorUnit:

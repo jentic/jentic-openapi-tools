@@ -1,6 +1,7 @@
 # Jentic OpenAPI Tools
 
-A comprehensive Python toolkit for parsing, validating, and transforming OpenAPI documents with pluggable backend architecture.
+A comprehensive Python toolkit for parsing, validating, and transforming OpenAPI documents with pluggable backend
+architecture.
 
 [![Discord](https://img.shields.io/badge/JOIN%20OUR%20DISCORD-COMMUNITY-7289DA?style=plastic&logo=discord&logoColor=white)](https://discord.gg/yrxmDZWMqB)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-3.0-40c463.svg)](https://github.com/jentic/jentic-openapi-tools/blob/HEAD/CODE_OF_CONDUCT.md)
@@ -10,7 +11,8 @@ A comprehensive Python toolkit for parsing, validating, and transforming OpenAPI
 
 ## Features
 
-- **Pluggable Backend Architecture** - Support for multiple parsing, validation, and transformation strategies via entry points
+- **Pluggable Backend Architecture** - Support for multiple parsing, validation, and transformation strategies via entry
+  points
 - **Type Safety** - Full type hints with comprehensive type checking throughout
 - **Multiple Input Formats** - Accept OpenAPI documents from file URIs, JSON/YAML strings, or Python dictionaries
 - **Flexible Output Types** - Return results as dictionaries, strings, or custom types
@@ -35,8 +37,9 @@ pip install jentic-openapi-transformer
 ```
 
 **Prerequisites:**
+
 - Python 3.11 or higher
-- Node.js and npm (required for Redocly and Spectral backends)
+- Node.js >=20.19.0 and npm (required for Redocly and Spectral backends)
 
 ## Quick Start
 
@@ -101,26 +104,28 @@ print(result["info"]["title"])
 
 This monorepo contains the following packages:
 
-| Package | Description |
-|---------|-------------|
-| **[jentic-openapi-tools](https://github.com/jentic/jentic-openapi-tools/tree/HEAD)** | Meta-package that installs all workspace packages |
-| **[jentic-openapi-common](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-common)** | Common utilities and shared functionality |
-| **[jentic-openapi-datamodels](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-datamodels)** | OpenAPI data models and structures |
-| **[jentic-openapi-parser](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-parser)** | OpenAPI document parsing with pluggable backends |
-| **[jentic-openapi-traverse](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-traverse)** | OpenAPI document traversal utilities |
-| **[jentic-openapi-transformer](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-transformer)** | OpenAPI document transformation and bundling |
-| **[jentic-openapi-transformer-redocly](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-transformer-redocly)** | Redocly-based transformation backend |
-| **[jentic-openapi-validator](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator)** | OpenAPI document validation with pluggable backends |
-| **[jentic-openapi-validator-redocly](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator-redocly)** | Redocly-based validation backend |
-| **[jentic-openapi-validator-spectral](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator-spectral)** | Spectral-based validation backend |
-| **[jentic-openapi-validator-speclynx](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator-speclynx)** | SpecLynx ApiDOM-based validation backend |
+| Package                                                                                                                                        | Description                                         |
+|------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
+| **[jentic-openapi-tools](https://github.com/jentic/jentic-openapi-tools/tree/HEAD)**                                                           | Meta-package that installs all workspace packages   |
+| **[jentic-openapi-common](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-common)**                           | Common utilities and shared functionality           |
+| **[jentic-openapi-datamodels](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-datamodels)**                   | OpenAPI data models and structures                  |
+| **[jentic-openapi-parser](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-parser)**                           | OpenAPI document parsing with pluggable backends    |
+| **[jentic-openapi-traverse](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-traverse)**                       | OpenAPI document traversal utilities                |
+| **[jentic-openapi-transformer](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-transformer)**                 | OpenAPI document transformation and bundling        |
+| **[jentic-openapi-transformer-redocly](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-transformer-redocly)** | Redocly-based transformation backend                |
+| **[jentic-openapi-validator](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator)**                     | OpenAPI document validation with pluggable backends |
+| **[jentic-openapi-validator-redocly](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator-redocly)**     | Redocly-based validation backend                    |
+| **[jentic-openapi-validator-spectral](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator-spectral)**   | Spectral-based validation backend                   |
+| **[jentic-openapi-validator-speclynx](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator-speclynx)**   | SpecLynx ApiDOM-based validation backend            |
 
 Each package has its own detailed README with comprehensive API documentation and examples.
 
 ## Documentation
 
-- **[Development Guide](https://github.com/jentic/jentic-openapi-tools/blob/HEAD/DEVELOPMENT.md)** - Setup instructions, testing, and development workflows
-- **[Contributing Guidelines](https://github.com/jentic/jentic-openapi-tools/blob/HEAD/CONTRIBUTING.md)** - How to contribute to the project
+- **[Development Guide](https://github.com/jentic/jentic-openapi-tools/blob/HEAD/DEVELOPMENT.md)** - Setup instructions,
+  testing, and development workflows
+- **[Contributing Guidelines](https://github.com/jentic/jentic-openapi-tools/blob/HEAD/CONTRIBUTING.md)** - How to
+  contribute to the project
 - **Package READMEs** - See individual package directories for detailed API documentation
 
 ## Architecture
@@ -132,6 +137,7 @@ The Jentic OpenAPI Tools follow a modular architecture with a plugin-based backe
 - **Entry Points** - Backends register themselves via Python entry points for automatic discovery
 
 This design allows you to:
+
 - Start with default backends and add advanced ones as needed
 - Implement custom backends for specific requirements
 - Use multiple backends simultaneously for comprehensive validation
