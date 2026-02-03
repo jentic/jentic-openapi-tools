@@ -1,6 +1,6 @@
 [project]
 name = "jentic-openapi-validator-speclynx"
-version = "1.0.0-alpha.34"
+version = "1.0.0-alpha.35"
 description = "Jentic OpenAPI SpecLynx Validator Backend"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
@@ -8,8 +8,8 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
-    "jentic-openapi-common~=1.0.0-alpha.34",
-    "jentic-openapi-validator~=1.0.0-alpha.34",
+    "jentic-openapi-common~=1.0.0-alpha.35",
+    "jentic-openapi-validator~=1.0.0-alpha.35",
     "lsprotocol~=2025.0.0",
 ]
 

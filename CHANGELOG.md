@@ -2,6 +2,37 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.35 (2026-02-03)
+
+### Bug Fixes
+
+- **validator-redocly**: Assign WARNING severity to no-server-trailing-slash diag
+  ([#200](https://github.com/jentic/jentic-openapi-tools/pull/200),
+  [`d5840aa`](https://github.com/jentic/jentic-openapi-tools/commit/d5840aa71795ce1657cef3d45fa726e56ea950a7))
+
+- **validator-speclynx**: Fix regression in speclynx validator backend
+  ([#197](https://github.com/jentic/jentic-openapi-tools/pull/197),
+  [`35f8521`](https://github.com/jentic/jentic-openapi-tools/commit/35f85216cec7414b12238d8688f44e037162a8ad))
+
+### Chores
+
+- **deps**: Pin @redocly/cli to v2.15.1
+  ([#198](https://github.com/jentic/jentic-openapi-tools/pull/198),
+  [`16ed232`](https://github.com/jentic/jentic-openapi-tools/commit/16ed232b1ceeed54a67c3785895a47735cb35f5b))
+
+- **deps**: Pin @stoplight/spectral-cli to v6.15.0
+  ([#199](https://github.com/jentic/jentic-openapi-tools/pull/199),
+  [`0828504`](https://github.com/jentic/jentic-openapi-tools/commit/082850460f34599312fd02a5611542bf69d6a381))
+
+- **deps-dev**: Bump ruff from 0.14.13 to 0.14.14
+  ([#195](https://github.com/jentic/jentic-openapi-tools/pull/195),
+  [`4dfbbbd`](https://github.com/jentic/jentic-openapi-tools/commit/4dfbbbdadd3c239f8e2721ce7f2fa2afdcd54ff4))
+
+- **deps-dev**: Update setuptools requirement
+  ([#194](https://github.com/jentic/jentic-openapi-tools/pull/194),
+  [`c9808f9`](https://github.com/jentic/jentic-openapi-tools/commit/c9808f985f5c53af698d63002f381afe9bb1ee8d))
+
+
 ## v1.0.0-alpha.34 (2026-01-20)
 
 ### Bug Fixes
