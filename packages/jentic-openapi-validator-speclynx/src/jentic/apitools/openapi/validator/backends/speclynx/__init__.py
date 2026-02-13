@@ -64,6 +64,7 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                   @speclynx/apidom-datamodel, @speclynx/apidom-json-path, @speclynx/apidom-json-pointer,
                   @speclynx/apidom-traverse, and @speclynx/apidom-reference
                 - diagnostics: Array to collect validation diagnostics
+                - parseResult: The full ApiDOM parse result for accessing document metadata
                 See resources/plugins/example-plugin.mjs.sample for plugin format.
         """
         self.speclynx_path = speclynx_path
