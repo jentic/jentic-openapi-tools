@@ -1,6 +1,6 @@
 [project]
 name = "jentic-openapi-traverse"
-version = "1.0.0-alpha.38"
+version = "1.0.0-alpha.39"
 description = "Jentic OpenAPI Traversal Utilities"
 readme = "README.md"
 authors = [{ name = "Jentic", email = "hello@jentic.com" }]
@@ -8,7 +8,7 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = [
-    "jentic-openapi-datamodels~=1.0.0-alpha.38",
+    "jentic-openapi-datamodels~=1.0.0-alpha.39",
     "jsonpointer~=3.0.0"
 ]
 

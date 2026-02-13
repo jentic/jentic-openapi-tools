@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.39 (2026-02-13)
+
+### Features
+
+- **validator-speclynx**: Expose parse result via toolbox
+  ([#209](https://github.com/jentic/jentic-openapi-tools/pull/209),
+  [`6884151`](https://github.com/jentic/jentic-openapi-tools/commit/6884151000dc3a61f461e536246fb822cde5c296))
+
+
 ## v1.0.0-alpha.38 (2026-02-13)
 
 ### Chores
