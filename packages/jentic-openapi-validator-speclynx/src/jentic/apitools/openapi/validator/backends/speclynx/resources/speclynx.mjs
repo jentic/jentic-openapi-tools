@@ -5,7 +5,7 @@ import path from 'node:path';
 import {pathToFileURL, fileURLToPath} from 'node:url';
 import {Command} from 'commander';
 import {Diagnostic, DiagnosticSeverity, Range} from 'vscode-languageserver-types';
-import {dispatchRefractorPlugins} from '@speclynx/apidom-core';
+import {dispatchRefractorPlugins, createToolbox as createToolboxBase} from '@speclynx/apidom-core';
 import {parse, options} from '@speclynx/apidom-reference';
 import FileResolver from '@speclynx/apidom-reference/resolve/resolvers/file';
 import HTTPResolverAxios from '@speclynx/apidom-reference/resolve/resolvers/http-axios';
@@ -133,12 +133,22 @@ async function validate(document, cliOptions) {
         return {valid: false, diagnostics};
     }
 
+    // Toolbox creation
+    const createToolbox = ((deps) => () => ({deps, ...createToolboxBase()}))(
+        await (async () => ({
+            'vscode-languageserver-types': await import('vscode-languageserver-types'),
+            '@speclynx/apidom-reference': await import('@speclynx/apidom-reference'),
+        }))()
+    );
+
     // Run validation plugins
     // When parseResult.api exists, traverse it (paths are relative to document root)
     // When it doesn't exist (e.g., Swagger 2.0), traverse parseResult so ParseResultElement visitor runs
     const elementToTraverse = parseResult.api ?? parseResult;
     const dispatchRefractorPluginsAsync = promisify(dispatchRefractorPlugins);
-    await dispatchRefractorPluginsAsync(elementToTraverse, plugins.map(plugin => plugin({diagnostics})));
+    await dispatchRefractorPluginsAsync(elementToTraverse, plugins.map(plugin => plugin({diagnostics})), {
+        toolboxCreator: createToolbox,
+    });
 
     // Check if there are any errors or warnings
     const hasErrors = diagnostics.some(d => d.severity === DiagnosticSeverity.Error);

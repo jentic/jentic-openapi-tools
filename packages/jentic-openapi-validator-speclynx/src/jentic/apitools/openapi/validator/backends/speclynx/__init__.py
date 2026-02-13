@@ -220,9 +220,10 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                 code=issue.get("code"),
                 source="speclynx-validator",
             )
+            issue_data = issue.get("data", {})
+            diagnostic.data.update(issue_data)  # type: ignore[union-attr]
             diagnostic.set_target(target)
-            if "data" in issue and "path" in issue["data"]:
-                diagnostic.set_path(issue["data"]["path"])
+            diagnostic.set_path(issue_data.get("path"))
             diagnostics.append(diagnostic)
 
         return ValidationResult(diagnostics=diagnostics)
