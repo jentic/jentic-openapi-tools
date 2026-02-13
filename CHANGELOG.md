@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.40 (2026-02-13)
+
+### Features
+
+- **validator-speclynx**: Expose OpenAPI namespaces via toolbox
+  ([#210](https://github.com/jentic/jentic-openapi-tools/pull/210),
+  [`6749982`](https://github.com/jentic/jentic-openapi-tools/commit/6749982911441e0c00938f801bb1396399198b03))
+
+
 ## v1.0.0-alpha.39 (2026-02-13)
 
 ### Features
