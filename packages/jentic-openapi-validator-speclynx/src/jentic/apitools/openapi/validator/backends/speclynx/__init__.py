@@ -60,7 +60,9 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                 When specified, custom plugins are merged with the built-in plugins (both are loaded).
                 If None (default), only the built-in plugins directory is used (which is empty by default).
                 Plugins must export a function that receives a toolbox object with:
-                - deps: External dependencies (vscode-languageserver-types, @speclynx/apidom-reference)
+                - deps: External dependencies including vscode-languageserver-types, @speclynx/apidom-core,
+                  @speclynx/apidom-datamodel, @speclynx/apidom-json-path, @speclynx/apidom-json-pointer,
+                  @speclynx/apidom-traverse, and @speclynx/apidom-reference
                 - diagnostics: Array to collect validation diagnostics
                 See resources/plugins/example-plugin.mjs.sample for plugin format.
         """

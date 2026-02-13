@@ -8,7 +8,9 @@
  * When traversing parseResult.api (valid documents), ParseResultElement is not visited.
  *
  * Plugin receives toolbox with:
- * - deps: External dependencies (vscode-languageserver-types, @speclynx/apidom-reference)
+ * - deps: External dependencies including vscode-languageserver-types, @speclynx/apidom-core,
+ *   @speclynx/apidom-datamodel, @speclynx/apidom-json-path, @speclynx/apidom-json-pointer,
+ *   @speclynx/apidom-traverse, and @speclynx/apidom-reference
  * - diagnostics: Array to collect validation diagnostics
  */
 

@@ -7,10 +7,12 @@
  * Plugin structure:
  * - Must export a default function that accepts a toolbox object with:
  *   - diagnostics: Array to collect validation diagnostics
- *   - deps: External dependencies (vscode-languageserver-types, @speclynx/apidom-reference)
+ *   - deps: External dependencies (vscode-languageserver-types, @speclynx/apidom-core, etc.)
  * - Returns an object with pre/post hooks and a visitor property
  * - The visitor contains methods named after ApiDOM element types
- * - Each visitor method receives the element being visited
+ * - Each visitor method receives a path object with information about the current element
+ *   - path.node: The actual ApiDOM element being visited
+ *   - path.getPathKeys(): Returns the JSON path to the element
  *
  * @param {Object} toolbox - Plugin toolbox
  * @param {Array} toolbox.diagnostics - Array to collect validation diagnostics
