@@ -140,7 +140,7 @@ async function validate(document, cliOptions) {
         return {valid: false, diagnostics};
     }
 
-    // Toolbox creation - provides deps and diagnostics to plugins
+    // Toolbox creation - provides deps, diagnostics, and parseResult to plugins
     const createToolbox = () => ({
         deps: {
             'vscode-languageserver-types': vscodeLanguageServerTypes,
@@ -152,6 +152,7 @@ async function validate(document, cliOptions) {
             '@speclynx/apidom-reference': apidomReference,
         },
         diagnostics,
+        parseResult,
         ...createToolboxBase()
     });
 

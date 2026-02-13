@@ -197,13 +197,13 @@ if "dict" in validator.accepts():
 ## Custom Plugins
 
 Create custom validation plugins as ES modules (`.mjs` files). Plugins use the ApiDOM visitor pattern and receive
-a toolbox with dependencies and diagnostics array:
+a toolbox with dependencies, diagnostics array, and parse result:
 
 ```javascript
 // custom-plugin.mjs
 
 export default (toolbox) => {
-    const {diagnostics, deps} = toolbox;
+    const {diagnostics, deps, parseResult} = toolbox;
     const {DiagnosticSeverity} = deps['vscode-languageserver-types'];
     const {toValue} = deps['@speclynx/apidom-core'];
 
