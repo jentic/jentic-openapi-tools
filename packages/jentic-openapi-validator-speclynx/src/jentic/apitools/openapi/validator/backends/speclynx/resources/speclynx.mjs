@@ -12,6 +12,8 @@ import * as apidomDatamodel from '@speclynx/apidom-datamodel';
 import * as apidomJsonPath from '@speclynx/apidom-json-path';
 import * as apidomJsonPointer from '@speclynx/apidom-json-pointer';
 import * as apidomTraverse from '@speclynx/apidom-traverse';
+import * as apidomNsOpenApi3_0 from '@speclynx/apidom-ns-openapi-3-0';
+import * as apidomNsOpenApi3_1 from '@speclynx/apidom-ns-openapi-3-1';
 import * as apidomReference from '@speclynx/apidom-reference';
 import {parse, options} from '@speclynx/apidom-reference';
 import FileResolver from '@speclynx/apidom-reference/resolve/resolvers/file';
@@ -149,6 +151,8 @@ async function validate(document, cliOptions) {
             '@speclynx/apidom-json-path': apidomJsonPath,
             '@speclynx/apidom-json-pointer': apidomJsonPointer,
             '@speclynx/apidom-traverse': apidomTraverse,
+            '@speclynx/apidom-ns-openapi-3-0': apidomNsOpenApi3_0,
+            '@speclynx/apidom-ns-openapi-3-1': apidomNsOpenApi3_1,
             '@speclynx/apidom-reference': apidomReference,
         },
         diagnostics,

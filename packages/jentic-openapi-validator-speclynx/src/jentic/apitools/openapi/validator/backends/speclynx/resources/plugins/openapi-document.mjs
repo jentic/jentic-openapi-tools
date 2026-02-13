@@ -10,7 +10,8 @@
  * Plugin receives toolbox with:
  * - deps: External dependencies including vscode-languageserver-types, @speclynx/apidom-core,
  *   @speclynx/apidom-datamodel, @speclynx/apidom-json-path, @speclynx/apidom-json-pointer,
- *   @speclynx/apidom-traverse, and @speclynx/apidom-reference
+ *   @speclynx/apidom-traverse, @speclynx/apidom-ns-openapi-3-0, @speclynx/apidom-ns-openapi-3-1,
+ *   and @speclynx/apidom-reference
  * - diagnostics: Array to collect validation diagnostics
  * - parseResult: The full ApiDOM parse result for accessing document metadata
  */

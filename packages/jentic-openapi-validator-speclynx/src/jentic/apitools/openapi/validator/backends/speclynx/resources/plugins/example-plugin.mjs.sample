@@ -6,7 +6,10 @@
  *
  * Plugin structure:
  * - Must export a default function that accepts a toolbox object with:
- *   - deps: External dependencies (vscode-languageserver-types, @speclynx/apidom-core, etc.)
+ *   - deps: External dependencies (vscode-languageserver-types, @speclynx/apidom-core,
+ *     @speclynx/apidom-datamodel, @speclynx/apidom-json-path, @speclynx/apidom-json-pointer,
+ *     @speclynx/apidom-traverse, @speclynx/apidom-ns-openapi-3-0, @speclynx/apidom-ns-openapi-3-1,
+ *     @speclynx/apidom-reference)
  *   - diagnostics: Array to collect validation diagnostics
  *   - parseResult: The full ApiDOM parse result for accessing document metadata
  * - Returns an object with pre/post hooks and a visitor property
