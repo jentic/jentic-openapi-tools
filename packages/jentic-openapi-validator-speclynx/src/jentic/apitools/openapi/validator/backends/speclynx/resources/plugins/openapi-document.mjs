@@ -7,28 +7,32 @@
  * Note: This visitor is only called when traversing parseResult (invalid documents).
  * When traversing parseResult.api (valid documents), ParseResultElement is not visited.
  *
- * @param {Object} context - Plugin context
- * @param {Array} context.diagnostics - Array to collect validation diagnostics
+ * Plugin receives toolbox with:
+ * - deps: External dependencies (vscode-languageserver-types, @speclynx/apidom-reference)
+ * - diagnostics: Array to collect validation diagnostics
  */
 
-import {DiagnosticSeverity, Diagnostic, Range} from 'vscode-languageserver-types';
+export default (toolbox) => {
+    const {diagnostics, deps} = toolbox;
+    const {DiagnosticSeverity, Diagnostic, Range} = deps['vscode-languageserver-types'];
 
-export default ({diagnostics}) => () => ({
-    visitor: {
-        ParseResultElement(path) {
-            const parseResult = path.node;
+    return {
+        visitor: {
+            ParseResultElement(path) {
+                const parseResult = path.node;
 
-            if (!parseResult.api) {
-                const diagnostic = Diagnostic.create(
-                    Range.create(0, 0, 0, 0),
-                    'Document is not recognized as a valid OpenAPI 3.x document',
-                    DiagnosticSeverity.Error,
-                    'invalid-openapi-document',
-                    'speclynx-validator'
-                );
-                diagnostic.data = {path: path.getPathKeys()};
-                diagnostics.push(diagnostic);
+                if (!parseResult.api) {
+                    const diagnostic = Diagnostic.create(
+                        Range.create(0, 0, 0, 0),
+                        'Document is not recognized as a valid OpenAPI 3.x document',
+                        DiagnosticSeverity.Error,
+                        'invalid-openapi-document',
+                        'speclynx-validator'
+                    );
+                    diagnostic.data = {path: path.getPathKeys()};
+                    diagnostics.push(diagnostic);
+                }
             }
         }
-    }
-});
+    };
+};

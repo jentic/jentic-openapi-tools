@@ -6,7 +6,12 @@ import {pathToFileURL, fileURLToPath} from 'node:url';
 import {Command} from 'commander';
 import * as vscodeLanguageServerTypes from 'vscode-languageserver-types';
 import {Diagnostic, DiagnosticSeverity, Range} from 'vscode-languageserver-types';
+import * as apidomCore from '@speclynx/apidom-core';
 import {dispatchRefractorPlugins, createToolbox as createToolboxBase} from '@speclynx/apidom-core';
+import * as apidomDatamodel from '@speclynx/apidom-datamodel';
+import * as apidomJsonPath from '@speclynx/apidom-json-path';
+import * as apidomJsonPointer from '@speclynx/apidom-json-pointer';
+import * as apidomTraverse from '@speclynx/apidom-traverse';
 import * as apidomReference from '@speclynx/apidom-reference';
 import {parse, options} from '@speclynx/apidom-reference';
 import FileResolver from '@speclynx/apidom-reference/resolve/resolvers/file';
@@ -135,12 +140,18 @@ async function validate(document, cliOptions) {
         return {valid: false, diagnostics};
     }
 
-    // Toolbox creation
+    // Toolbox creation - provides deps and diagnostics to plugins
     const createToolbox = () => ({
         deps: {
             'vscode-languageserver-types': vscodeLanguageServerTypes,
+            '@speclynx/apidom-core': apidomCore,
+            '@speclynx/apidom-datamodel': apidomDatamodel,
+            '@speclynx/apidom-json-path': apidomJsonPath,
+            '@speclynx/apidom-json-pointer': apidomJsonPointer,
+            '@speclynx/apidom-traverse': apidomTraverse,
             '@speclynx/apidom-reference': apidomReference,
         },
+        diagnostics,
         ...createToolboxBase()
     });
 
@@ -149,7 +160,7 @@ async function validate(document, cliOptions) {
     // When it doesn't exist (e.g., Swagger 2.0), traverse parseResult so ParseResultElement visitor runs
     const elementToTraverse = parseResult.api ?? parseResult;
     const dispatchRefractorPluginsAsync = promisify(dispatchRefractorPlugins);
-    await dispatchRefractorPluginsAsync(elementToTraverse, plugins.map(plugin => plugin({diagnostics})), {
+    await dispatchRefractorPluginsAsync(elementToTraverse, plugins, {
         toolboxCreator: createToolbox,
     });
 

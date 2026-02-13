@@ -59,6 +59,9 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                 Plugins are loaded automatically and used to validate the OpenAPI document.
                 When specified, custom plugins are merged with the built-in plugins (both are loaded).
                 If None (default), only the built-in plugins directory is used (which is empty by default).
+                Plugins must export a function that receives a toolbox object with:
+                - deps: External dependencies (vscode-languageserver-types, @speclynx/apidom-reference)
+                - diagnostics: Array to collect validation diagnostics
                 See resources/plugins/example-plugin.mjs.sample for plugin format.
         """
         self.speclynx_path = speclynx_path
