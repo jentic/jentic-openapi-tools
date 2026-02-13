@@ -123,6 +123,26 @@ class TestSpeclynxValidatorIntegration:
         # Custom plugin should detect integer version
         assert any("version" in d.message.lower() for d in result.diagnostics)
 
+    def test_parseresult_available_in_toolbox(self, speclynx_validator_with_plugins):
+        """Test that parseResult is available to plugins via toolbox.
+
+        The parseresult-check.mjs plugin emits an informational diagnostic
+        when parseResult.api is available, verifying the toolbox wiring.
+        """
+        document = {
+            "openapi": "3.0.0",
+            "info": {"title": "Test API", "version": "1.0.0"},
+            "paths": {},
+        }
+        result = speclynx_validator_with_plugins.validate(document)
+        assert result.valid is True
+        # The parseresult-check plugin should emit info diagnostic confirming parseResult.api exists
+        parseresult_diagnostic = next(
+            (d for d in result.diagnostics if d.code == "parseresult-api-available"), None
+        )
+        assert parseresult_diagnostic is not None, "parseResult should be available to plugins"
+        assert "parseResult.api is available" in parseresult_diagnostic.message
+
     def test_validate_empty_document_produces_error(self, speclynx_validator, tmp_path):
         """Test that empty documents produce validation errors.
 
