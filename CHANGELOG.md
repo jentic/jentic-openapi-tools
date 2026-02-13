@@ -2,6 +2,36 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.36 (2026-02-13)
+
+### Bug Fixes
+
+- **security**: Update SpecLynx ApiDOM & Redocly dependencies
+  ([`c78b964`](https://github.com/jentic/jentic-openapi-tools/commit/c78b9649b07f09143dd4a7b9ba020ead7d03a3be))
+
+### Chores
+
+- **deps**: Update @redocly/cli to v2.18.1
+  ([#205](https://github.com/jentic/jentic-openapi-tools/pull/205),
+  [`e1e1c73`](https://github.com/jentic/jentic-openapi-tools/commit/e1e1c733789762435a1605196c2ec6c89c17406f))
+
+- **deps**: Update SpecLynx Apidom to v2.11.0
+  ([#204](https://github.com/jentic/jentic-openapi-tools/pull/204),
+  [`931226c`](https://github.com/jentic/jentic-openapi-tools/commit/931226c8e96e159e363f1541277129ea1dc7219b))
+
+- **deps-dev**: Bump poethepoet from 0.40.0 to 0.41.0
+  ([#202](https://github.com/jentic/jentic-openapi-tools/pull/202),
+  [`8ca4211`](https://github.com/jentic/jentic-openapi-tools/commit/8ca42112875da24a645c42cf92674ef66ee2a5e0))
+
+- **deps-dev**: Bump ruff from 0.14.14 to 0.15.0
+  ([#201](https://github.com/jentic/jentic-openapi-tools/pull/201),
+  [`6d0464c`](https://github.com/jentic/jentic-openapi-tools/commit/6d0464cecb33f9f8d1b55f5aa4c66f03ab5398e4))
+
+- **deps-dev**: Update setuptools requirement
+  ([#203](https://github.com/jentic/jentic-openapi-tools/pull/203),
+  [`fc99ce1`](https://github.com/jentic/jentic-openapi-tools/commit/fc99ce1c490b73d7cd3610be43974427ce4d499b))
+
+
 ## v1.0.0-alpha.35 (2026-02-03)
 
 ### Bug Fixes
