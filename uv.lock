@@ -273,12 +273,12 @@ wheels = [
 
 [[package]]
 name = "jentic-openapi-common"
-version = "1.0.0a37"
+version = "1.0.0a38"
 source = { editable = "packages/jentic-openapi-common" }
 
 [[package]]
 name = "jentic-openapi-datamodels"
-version = "1.0.0a37"
+version = "1.0.0a38"
 source = { editable = "packages/jentic-openapi-datamodels" }
 dependencies = [
     { name = "ruamel-yaml" },
@@ -297,7 +297,7 @@ dev = [{ name = "jentic-openapi-parser", editable = "packages/jentic-openapi-par
 
 [[package]]
 name = "jentic-openapi-parser"
-version = "1.0.0a37"
+version = "1.0.0a38"
 source = { editable = "packages/jentic-openapi-parser" }
 dependencies = [
     { name = "attrs" },
@@ -320,7 +320,7 @@ requires-dist = [
 
 [[package]]
 name = "jentic-openapi-tools"
-version = "1.0.0a37"
+version = "1.0.0a38"
 source = { editable = "." }
 dependencies = [
     { name = "jentic-openapi-common" },
@@ -371,7 +371,7 @@ dev = [
 
 [[package]]
 name = "jentic-openapi-transformer"
-version = "1.0.0a37"
+version = "1.0.0a38"
 source = { editable = "packages/jentic-openapi-transformer" }
 dependencies = [
     { name = "jentic-openapi-common" },
@@ -395,7 +395,7 @@ provides-extras = ["redocly"]
 
 [[package]]
 name = "jentic-openapi-transformer-redocly"
-version = "1.0.0a37"
+version = "1.0.0a38"
 source = { editable = "packages/jentic-openapi-transformer-redocly" }
 dependencies = [
     { name = "jentic-openapi-common" },
@@ -410,7 +410,7 @@ requires-dist = [
 
 [[package]]
 name = "jentic-openapi-traverse"
-version = "1.0.0a37"
+version = "1.0.0a38"
 source = { editable = "packages/jentic-openapi-traverse" }
 dependencies = [
     { name = "jentic-openapi-datamodels" },
@@ -433,7 +433,7 @@ dev = [{ name = "jentic-openapi-parser", editable = "packages/jentic-openapi-par
 
 [[package]]
 name = "jentic-openapi-validator"
-version = "1.0.0a37"
+version = "1.0.0a38"
 source = { editable = "packages/jentic-openapi-validator" }
 dependencies = [
     { name = "jentic-openapi-parser" },
@@ -461,7 +461,7 @@ provides-extras = ["spectral", "redocly"]
 
 [[package]]
 name = "jentic-openapi-validator-redocly"
-version = "1.0.0a37"
+version = "1.0.0a38"
 source = { editable = "packages/jentic-openapi-validator-redocly" }
 dependencies = [
     { name = "jentic-openapi-common" },
@@ -480,7 +480,7 @@ requires-dist = [
 
 [[package]]
 name = "jentic-openapi-validator-speclynx"
-version = "1.0.0a37"
+version = "1.0.0a38"
 source = { editable = "packages/jentic-openapi-validator-speclynx" }
 dependencies = [
     { name = "jentic-openapi-common" },
@@ -497,7 +497,7 @@ requires-dist = [
 
 [[package]]
 name = "jentic-openapi-validator-spectral"
-version = "1.0.0a37"
+version = "1.0.0a38"
 source = { editable = "packages/jentic-openapi-validator-spectral" }
 dependencies = [
     { name = "jentic-openapi-common" },

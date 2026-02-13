@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.38 (2026-02-13)
+
+### Chores
+
+- **deps-dev**: Bump ruff from 0.15.0 to 0.15.1
+  ([#207](https://github.com/jentic/jentic-openapi-tools/pull/207),
+  [`59f422d`](https://github.com/jentic/jentic-openapi-tools/commit/59f422d9ff246cba5e8f0801f2ed206dc6516d34))
+
+### Features
+
+- **validator-speclynx**: Simplify plugins signature
+  ([#208](https://github.com/jentic/jentic-openapi-tools/pull/208),
+  [`2135d5b`](https://github.com/jentic/jentic-openapi-tools/commit/2135d5b97c52b9b53c0f5756034a11d7023c1529))
+
+
 ## v1.0.0-alpha.37 (2026-02-13)
 
 ### Features
