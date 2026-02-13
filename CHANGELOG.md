@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.37 (2026-02-13)
+
+### Features
+
+- **validator-speclynx**: Pass deps via toolbox
+  ([#206](https://github.com/jentic/jentic-openapi-tools/pull/206),
+  [`4aee863`](https://github.com/jentic/jentic-openapi-tools/commit/4aee86366c1e7ff0fa6d82847f2f3acc19747c90))
+
+
 ## v1.0.0-alpha.36 (2026-02-13)
 
 ### Bug Fixes
