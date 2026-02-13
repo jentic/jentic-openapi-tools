@@ -5,96 +5,103 @@
  * using the ApiDOM visitor pattern.
  *
  * Plugin structure:
- * - Must export a default function that accepts a context object with:
+ * - Must export a default function that accepts a toolbox object with:
  *   - diagnostics: Array to collect validation diagnostics
+ *   - deps: External dependencies (vscode-languageserver-types, @speclynx/apidom-core, etc.)
  * - Returns an object with pre/post hooks and a visitor property
  * - The visitor contains methods named after ApiDOM element types
  * - Each visitor method receives a path object with information about the current element
+ *   - path.node: The actual ApiDOM element being visited
+ *   - path.getPathKeys(): Returns the JSON path to the element
  *
- * @param {Object} context - Plugin context
- * @param {Array} context.diagnostics - Array to collect validation diagnostics
+ * @param {Object} toolbox - Plugin toolbox
+ * @param {Array} toolbox.diagnostics - Array to collect validation diagnostics
+ * @param {Object} toolbox.deps - External dependencies
  */
 
-import { toValue } from '@speclynx/apidom-core';
-import { DiagnosticSeverity } from 'vscode-languageserver-types';
+export default (toolbox) => {
+    const {diagnostics, deps} = toolbox;
+    const {DiagnosticSeverity} = deps['vscode-languageserver-types'];
+    const {toValue} = deps['@speclynx/apidom-core'];
 
-export default ({diagnostics}) => () => ({
-    pre() {
-        console.log('Pre-validation hook');
-    },
-    post() {
-        console.log('Post-validation hook');
-    },
-    visitor: {
-        /**
-         * Visit all InfoElement nodes in the OpenAPI document
-         * @param {Object} path - Contains information about the current element
-         */
-        InfoElement(path) {
-            const info = path.node;
-
-            // Example validation: Check if info.title exists
-            if (!info.get('title')) {
-                diagnostics.push({
-                    severity: DiagnosticSeverity.Error,
-                    message: 'OpenAPI document is missing info.title',
-                    code: 'missing-info-title',
-                    range: getRange(info),
-                    data: {path: path.getPathKeys()}
-                });
-            }
-
-            // Example validation: Check if info.version exists
-            if (!info.get('version')) {
-                diagnostics.push({
-                    severity: DiagnosticSeverity.Warning,
-                    message: 'OpenAPI document is missing info.version',
-                    code: 'missing-info-version',
-                    range: getRange(info),
-                    data: {path: path.getPathKeys()}
-                });
-            }
+    return {
+        pre() {
+            console.log('Pre-validation hook');
         },
-
-        /**
-         * Visit all OperationElement nodes (HTTP operations like GET, POST, etc.)
-         * @param {Object} path - Contains information about the current element
-         */
-        OperationElement(path) {
-            const operation = path.node;
-
-            // Example validation: Check if operation has a summary
-            if (!operation.get('summary')) {
-                diagnostics.push({
-                    severity: DiagnosticSeverity.Warning,
-                    message: 'Operation is missing a summary',
-                    code: 'missing-operation-summary',
-                    range: getRange(operation),
-                    data: {path: path.getPathKeys()}
-                });
-            }
+        post() {
+            console.log('Post-validation hook');
         },
+        visitor: {
+            /**
+             * Visit all InfoElement nodes in the OpenAPI document
+             * @param {Object} path - Contains information about the current element
+             */
+            InfoElement(path) {
+                const info = path.node;
 
-        /**
-         * Visit all SchemaElement nodes (JSON Schema definitions)
-         * @param {Object} path - Contains information about the current element
-         */
-        SchemaElement(path) {
-            const schema = path.node;
+                // Example validation: Check if info.title exists
+                if (!info.get('title')) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Error,
+                        message: 'OpenAPI document is missing info.title',
+                        code: 'missing-info-title',
+                        range: getRange(info),
+                        data: {path: path.getPathKeys()}
+                    });
+                }
 
-            // Example validation: Check for schemas without descriptions
-            if (!schema.get('description') && schema.get('type')) {
-                diagnostics.push({
-                    severity: DiagnosticSeverity.Information,
-                    message: `Schema of type "${toValue(schema.get('type'))}" has no description`,
-                    code: 'schema-missing-description',
-                    range: getRange(schema),
-                    data: {path: path.getPathKeys()}
-                });
+                // Example validation: Check if info.version exists
+                if (!info.get('version')) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        message: 'OpenAPI document is missing info.version',
+                        code: 'missing-info-version',
+                        range: getRange(info),
+                        data: {path: path.getPathKeys()}
+                    });
+                }
+            },
+
+            /**
+             * Visit all OperationElement nodes (HTTP operations like GET, POST, etc.)
+             * @param {Object} path - Contains information about the current element
+             */
+            OperationElement(path) {
+                const operation = path.node;
+
+                // Example validation: Check if operation has a summary
+                if (!operation.get('summary')) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        message: 'Operation is missing a summary',
+                        code: 'missing-operation-summary',
+                        range: getRange(operation),
+                        data: {path: path.getPathKeys()}
+                    });
+                }
+            },
+
+            /**
+             * Visit all SchemaElement nodes (JSON Schema definitions)
+             * @param {Object} path - Contains information about the current element
+             */
+            SchemaElement(path) {
+                const schema = path.node;
+
+                // Example validation: Check for schemas without descriptions
+                if (!schema.get('description') && schema.get('type')) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Information,
+                        message: `Schema of type "${toValue(schema.get('type'))}" has no description`,
+                        code: 'schema-missing-description',
+                        range: getRange(schema),
+                        data: {path: path.getPathKeys()}
+                    });
+                }
             }
         }
-    }
-});
+    };
+};
 
 /**
  * Extract LSP range from ApiDOM element

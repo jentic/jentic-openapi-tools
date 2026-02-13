@@ -1,28 +1,37 @@
 /**
  * Test plugin that validates info.version is a string
+ *
+ * Plugin receives toolbox with:
+ * - deps: External dependencies including vscode-languageserver-types, @speclynx/apidom-core,
+ *   @speclynx/apidom-datamodel, @speclynx/apidom-json-path, @speclynx/apidom-json-pointer,
+ *   @speclynx/apidom-traverse, and @speclynx/apidom-reference
+ * - diagnostics: Array to collect validation diagnostics
  */
 
-import {toValue} from '@speclynx/apidom-core';
-import {DiagnosticSeverity} from 'vscode-languageserver-types';
+export default (toolbox) => {
+    const {diagnostics, deps} = toolbox;
+    const {DiagnosticSeverity} = deps['vscode-languageserver-types'];
+    const {toValue} = deps['@speclynx/apidom-core'];
 
-export default ({diagnostics}) => () => ({
-    visitor: {
-        InfoElement(path) {
-            const info = path.node;
-            const version = info.get('version');
+    return {
+        visitor: {
+            InfoElement(path) {
+                const info = path.node;
+                const version = info.get('version');
 
-            if (version && typeof toValue(version) !== 'string') {
-                diagnostics.push({
-                    severity: DiagnosticSeverity.Error,
-                    message: 'info.version must be a string',
-                    code: 'invalid-info-version-type',
-                    range: getRange(version),
-                    data: {path: path.getPathKeys()}
-                });
+                if (version && typeof toValue(version) !== 'string') {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Error,
+                        message: 'info.version must be a string',
+                        code: 'invalid-info-version-type',
+                        range: getRange(version),
+                        data: {path: path.getPathKeys()}
+                    });
+                }
             }
         }
-    }
-});
+    };
+};
 
 function getRange(element) {
     if (!element) {

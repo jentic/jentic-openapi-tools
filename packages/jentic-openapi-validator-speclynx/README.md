@@ -196,38 +196,45 @@ if "dict" in validator.accepts():
 
 ## Custom Plugins
 
-Create custom validation plugins as ES modules (`.mjs` files). Plugins use the ApiDOM visitor pattern:
+Create custom validation plugins as ES modules (`.mjs` files). Plugins use the ApiDOM visitor pattern and receive
+a toolbox with dependencies and diagnostics array:
 
 ```javascript
 // custom-plugin.mjs
-import {toValue} from '@speclynx/apidom-core';
-import {DiagnosticSeverity} from 'vscode-languageserver-types';
 
-export default ({diagnostics}) => () => ({
-    pre() {
-    },
-    visitor: {
-        InfoElement(path) {
-            const info = path.node;
-            const version = info.get('version');
+export default (toolbox) => {
+    const {diagnostics, deps} = toolbox;
+    const {DiagnosticSeverity} = deps['vscode-languageserver-types'];
+    const {toValue} = deps['@speclynx/apidom-core'];
 
-            if (version && typeof toValue(version) !== 'string') {
-                diagnostics.push({
-                    severity: DiagnosticSeverity.Error,
-                    message: 'info.version must be a string',
-                    code: 'invalid-info-version-type',
-                    range: {
-                        start: {line: 0, character: 0},
-                        end: {line: 0, character: 0}
-                    },
-                    data: {path: ['info', 'version']}
-                });
+    return {
+        pre() {
+            // Called before traversal starts
+        },
+        visitor: {
+            InfoElement(path) {
+                const info = path.node;
+                const version = info.get('version');
+
+                if (version && typeof toValue(version) !== 'string') {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Error,
+                        message: 'info.version must be a string',
+                        code: 'invalid-info-version-type',
+                        range: {
+                            start: {line: 0, character: 0},
+                            end: {line: 0, character: 0}
+                        },
+                        data: {path: path.getPathKeys()}
+                    });
+                }
             }
-        }
-    },
-    post() {
-    },
-});
+        },
+        post() {
+            // Called after traversal completes
+        },
+    };
+};
 ```
 
 Use it with the validator:
