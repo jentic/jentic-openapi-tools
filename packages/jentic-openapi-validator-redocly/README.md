@@ -26,7 +26,7 @@ pip install jentic-openapi-validator-redocly
 The Redocly CLI will be automatically downloaded via npx on first use, or you can install it globally:
 
 ```bash
-npm install -g @redocly/cli@2.15.1
+npm install -g @redocly/cli@2.18.1
 ```
 
 ## Quick Start
@@ -72,7 +72,7 @@ print(f"Document is valid: {result.valid}")
 validator = RedoclyValidatorBackend(redocly_path="/usr/local/bin/redocly")
 
 # Use specific version via npx
-validator = RedoclyValidatorBackend(redocly_path="npx --yes @redocly/cli@2.15.1")
+validator = RedoclyValidatorBackend(redocly_path="npx --yes @redocly/cli@2.18.1")
 ```
 
 ### Custom Rulesets
@@ -243,7 +243,7 @@ uv run --package jentic-openapi-validator-redocly pytest packages/jentic-openapi
 class RedoclyValidatorBackend(BaseValidatorBackend):
     def __init__(
             self,
-            redocly_path: str = "npx --yes @redocly/cli@2.15.1",
+            redocly_path: str = "npx --yes @redocly/cli@2.18.1",
             ruleset_path: str | None = None,
             timeout: float = 600.0,
             allowed_base_dir: str | Path | None = None,
