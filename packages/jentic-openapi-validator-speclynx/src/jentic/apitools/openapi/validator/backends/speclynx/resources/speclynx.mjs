@@ -4,8 +4,10 @@ import {readdir, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL, fileURLToPath} from 'node:url';
 import {Command} from 'commander';
+import * as vscodeLanguageServerTypes from 'vscode-languageserver-types';
 import {Diagnostic, DiagnosticSeverity, Range} from 'vscode-languageserver-types';
 import {dispatchRefractorPlugins, createToolbox as createToolboxBase} from '@speclynx/apidom-core';
+import * as apidomReference from '@speclynx/apidom-reference';
 import {parse, options} from '@speclynx/apidom-reference';
 import FileResolver from '@speclynx/apidom-reference/resolve/resolvers/file';
 import HTTPResolverAxios from '@speclynx/apidom-reference/resolve/resolvers/http-axios';
@@ -134,12 +136,13 @@ async function validate(document, cliOptions) {
     }
 
     // Toolbox creation
-    const createToolbox = ((deps) => () => ({deps, ...createToolboxBase()}))(
-        await (async () => ({
-            'vscode-languageserver-types': await import('vscode-languageserver-types'),
-            '@speclynx/apidom-reference': await import('@speclynx/apidom-reference'),
-        }))()
-    );
+    const createToolbox = () => ({
+        deps: {
+            'vscode-languageserver-types': vscodeLanguageServerTypes,
+            '@speclynx/apidom-reference': apidomReference,
+        },
+        ...createToolboxBase()
+    });
 
     // Run validation plugins
     // When parseResult.api exists, traverse it (paths are relative to document root)
