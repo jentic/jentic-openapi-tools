@@ -6,7 +6,6 @@ from jentic.apitools.openapi.common.path_security import (
 )
 from jentic.apitools.openapi.common.subproc import SubprocessExecutionError
 from jentic.apitools.openapi.validator.backends.speclynx import (
-    _DEFAULT_SPECLYNX_PATH,
     SpeclynxValidatorBackend,
 )
 
@@ -197,7 +196,7 @@ class TestSpeclynxValidatorUnit:
     def test_initialization_with_defaults(self):
         """Test SpeclynxValidator initialization with default values."""
         validator = SpeclynxValidatorBackend()
-        assert validator.speclynx_path == _DEFAULT_SPECLYNX_PATH
+        assert validator.speclynx_path is None
         assert validator.timeout == 600.0
 
     def test_initialization_with_custom_speclynx_path(self):
