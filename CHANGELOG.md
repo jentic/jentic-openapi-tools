@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.41 (2026-02-18)
+
+### Bug Fixes
+
+- Update @redocly/cli to v2.19.0 - run on Node.js@24
+  ([#211](https://github.com/jentic/jentic-openapi-tools/pull/211),
+  [`a45d343`](https://github.com/jentic/jentic-openapi-tools/commit/a45d343d3cd06b694c90c53fa40453ea3001ba29))
+
+- **validator-speclynx**: Update @speclynx/apidom to v2.12.1, trim unused deps
+  ([#212](https://github.com/jentic/jentic-openapi-tools/pull/212),
+  [`807a1fe`](https://github.com/jentic/jentic-openapi-tools/commit/807a1fe4588c3056f184f0ea560418e316eee996))
+
+
 ## v1.0.0-alpha.40 (2026-02-13)
 
 ### Features
