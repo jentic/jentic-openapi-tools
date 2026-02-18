@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.42 (2026-02-18)
+
+### Bug Fixes
+
+- **validator-speclynx**: Add support for npm@11
+  ([#213](https://github.com/jentic/jentic-openapi-tools/pull/213),
+  [`f4b9e0f`](https://github.com/jentic/jentic-openapi-tools/commit/f4b9e0fd06d344fe30ca3a181144c69c0504c6c5))
+
+
 ## v1.0.0-alpha.41 (2026-02-18)
 
 ### Bug Fixes
