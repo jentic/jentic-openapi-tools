@@ -147,25 +147,26 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                 output_path = tmp_output.name
 
             try:
-                cmd = [
-                    *shlex.split(self.speclynx_path),
+                args = [
                     validated_doc_path,
                     "-o",
                     output_path,
                 ]
                 if base_url:
-                    cmd.extend(["--base-uri", base_url])
+                    args.extend(["--base-uri", base_url])
                 if self.plugins_dir:
-                    cmd.extend(["--plugins", str(self.plugins_dir)])
+                    args.extend(["--plugins", str(self.plugins_dir)])
                 if self.allowed_base_dir:
-                    cmd.extend(["--allowed-base-dir", str(self.allowed_base_dir)])
+                    args.extend(["--allowed-base-dir", str(self.allowed_base_dir)])
 
-                # npx with bundled tarball requires cwd set to resources directory
+                # npx with bundled tarball: pass absolute path so npm doesn't
+                # resolve the bare filename relative to its global prefix.
                 if self.speclynx_path == _DEFAULT_SPECLYNX_PATH:
                     with as_file(tarball_file) as tarball_path:
-                        resources_path = tarball_path.parent
-                        result = run_subprocess(cmd, timeout=self.timeout, cwd=str(resources_path))
+                        cmd = ["npx", "--yes", f"file:{tarball_path}", *args]
+                        result = run_subprocess(cmd, timeout=self.timeout)
                 else:
+                    cmd = [*shlex.split(self.speclynx_path), *args]
                     result = run_subprocess(cmd, timeout=self.timeout)
 
                 if result is None:
