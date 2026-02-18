@@ -162,7 +162,7 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                 # resolve the bare filename relative to its global prefix.
                 if self.speclynx_path is None:
                     with as_file(tarball_file) as tarball_path:
-                        cmd = ["npx", "--yes", f"file:{tarball_path}", *args]
+                        cmd = ["npx", "--yes", f"file:{tarball_path.as_posix()}", *args]
                         result = run_subprocess(cmd, timeout=self.timeout)
                 else:
                     cmd = [*shlex.split(self.speclynx_path), *args]
