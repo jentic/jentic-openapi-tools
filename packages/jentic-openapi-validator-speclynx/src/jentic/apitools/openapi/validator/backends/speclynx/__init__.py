@@ -26,7 +26,6 @@ __all__ = ["SpeclynxValidatorBackend"]
 logger = logging.getLogger(__name__)
 
 _TARBALL_NAME = "jentic-openapi-validator-speclynx-0.1.0.tgz"
-_DEFAULT_SPECLYNX_PATH = f"npx --yes {_TARBALL_NAME}"
 
 resources_dir = files("jentic.apitools.openapi.validator.backends.speclynx.resources")
 tarball_file = resources_dir.joinpath(_TARBALL_NAME)
@@ -35,7 +34,7 @@ tarball_file = resources_dir.joinpath(_TARBALL_NAME)
 class SpeclynxValidatorBackend(BaseValidatorBackend):
     def __init__(
         self,
-        speclynx_path: str = _DEFAULT_SPECLYNX_PATH,
+        speclynx_path: str | None = None,
         timeout: float = 600.0,
         allowed_base_dir: str | Path | None = None,
         plugins_dir: str | Path | None = None,
@@ -44,9 +43,9 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
         Initialize the SpeclynxValidatorBackend.
 
         Args:
-            speclynx_path: Path to the speclynx CLI executable (default: uses bundled npm tarball via npx).
-                Can be a custom path like "/usr/local/bin/speclynx" or an npx command.
-                Uses shell-safe parsing to handle quoted arguments properly.
+            speclynx_path: Path to the speclynx CLI executable. If None (default), uses the
+                bundled npm tarball via npx. Can be a custom path like "/usr/local/bin/speclynx"
+                or an npx command. Uses shell-safe parsing to handle quoted arguments properly.
             timeout: Maximum time in seconds to wait for validation execution (default: 600.0)
             allowed_base_dir: Optional base directory for path security validation.
                 When set, all document paths will be validated to ensure they
@@ -161,7 +160,7 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
 
                 # npx with bundled tarball: pass absolute path so npm doesn't
                 # resolve the bare filename relative to its global prefix.
-                if self.speclynx_path == _DEFAULT_SPECLYNX_PATH:
+                if self.speclynx_path is None:
                     with as_file(tarball_file) as tarball_path:
                         cmd = ["npx", "--yes", f"file:{tarball_path}", *args]
                         result = run_subprocess(cmd, timeout=self.timeout)
