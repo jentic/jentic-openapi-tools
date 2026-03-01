@@ -18,8 +18,8 @@ __all__ = [
 
 class RuamelASTParserBackend(BaseParserBackend):
     def __init__(self, typ: str = "rt", pure: bool = True):
-        self.yaml = YAML(typ=typ, pure=pure)
-        self.yaml.default_flow_style = False
+        self._typ = typ
+        self._pure = pure
 
     def parse(self, document: str, *, logger: logging.Logger | None = None) -> MappingNode:
         logger = logger or logging.getLogger(__name__)
@@ -49,7 +49,9 @@ class RuamelASTParserBackend(BaseParserBackend):
         if isinstance(text, bytes):
             text = text.decode()
 
-        node: MappingNode = self.yaml.compose(text)
+        yaml = YAML(typ=self._typ, pure=self._pure)
+        yaml.default_flow_style = False
+        node: MappingNode = yaml.compose(text)
         logger.debug("YAML document successfully parsed")
 
         if not isinstance(node, MappingNode):

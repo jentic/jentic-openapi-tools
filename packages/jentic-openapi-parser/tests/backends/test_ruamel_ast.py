@@ -109,9 +109,9 @@ def test_inheritance():
 
     assert isinstance(backend, BaseParserBackend)
 
-    # Should have yaml instance (via composition)
-    assert hasattr(backend, "yaml")
-    assert backend.yaml is not None
+    # Should have _typ instance (via composition)
+    assert hasattr(backend, "_typ")
+    assert backend._typ is not None
 
 
 # Source Location Tests

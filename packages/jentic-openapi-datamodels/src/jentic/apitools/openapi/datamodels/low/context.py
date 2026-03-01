@@ -18,4 +18,6 @@ class Context:
         yaml_constructor: The YAML constructor used to deserialize YAML nodes into Python objects
     """
 
-    yaml_constructor: RoundTripConstructor = field(default=YAML(typ="rt", pure=True).constructor)
+    yaml_constructor: RoundTripConstructor = field(
+        default_factory=lambda: YAML(typ="rt", pure=True).constructor
+    )
