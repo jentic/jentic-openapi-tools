@@ -83,7 +83,17 @@ async function loadPlugins(pluginsPath) {
 
     try {
         const files = await readdir(pluginsPath);
-        const mjsFiles = files.filter(file => file.endsWith('.mjs'));
+        const mjsFiles = files.filter(file => file.endsWith('.mjs')).sort((a, b) => {
+            const numA = parseInt(a, 10);
+            const numB = parseInt(b, 10);
+            const hasNumA = !Number.isNaN(numA);
+            const hasNumB = !Number.isNaN(numB);
+
+            if (hasNumA && hasNumB) return numA - numB || a.localeCompare(b);
+            if (hasNumA) return -1;
+            if (hasNumB) return 1;
+            return a.localeCompare(b);
+        });
 
         for (const file of mjsFiles) {
             const filePath = path.join(pluginsPath, file);
