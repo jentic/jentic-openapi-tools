@@ -1,4 +1,3 @@
-import dataclasses
 import json
 from datetime import date, datetime
 from decimal import Decimal
@@ -26,7 +25,6 @@ class CustomEncoder(json.JSONEncoder):
         - Decimal: Converted to float
         - Enum: Serialized using the enum value
         - attrs classes: Converted to dictionaries using attrs.asdict()
-        - dataclasses: Converted to dictionaries using dataclasses.asdict()
     """
 
     def default(self, o):
@@ -51,8 +49,6 @@ class CustomEncoder(json.JSONEncoder):
             return o.value
         if attrs.has(o):
             return attrs.asdict(cast(Any, o))
-        if dataclasses.is_dataclass(o) and not isinstance(o, type):
-            return dataclasses.asdict(o)
         return super().default(o)
 
 
@@ -66,7 +62,7 @@ def json_dumps(
     """Serialize data to a JSON string with extended type support.
 
     This function provides JSON serialization with automatic handling of
-    datetime, Path, UUID, Decimal, Enum, attrs, and dataclass instances.
+    datetime, Path, UUID, Decimal, Enum, and attrs-decorated classes.
     The output is UTF-8 compatible with sorted keys for consistency.
 
     Args:
