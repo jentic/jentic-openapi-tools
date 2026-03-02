@@ -18,8 +18,8 @@ __all__ = [
 
 class RuamelSafeParserBackend(BaseParserBackend):
     def __init__(self, typ: str = "safe", pure: bool = True):
-        self.yaml = YAML(typ=typ, pure=pure)
-        self.yaml.default_flow_style = False
+        self._typ = typ
+        self._pure = pure
 
     def parse(self, document: str, *, logger: logging.Logger | None = None) -> CommentedMap:
         logger = logger or logging.getLogger(__name__)
@@ -38,6 +38,17 @@ class RuamelSafeParserBackend(BaseParserBackend):
         """
         return ["uri", "text"]
 
+    def _create_yaml_parser(self) -> YAML:
+        """Create a fresh YAML parser instance.
+
+        A new instance is created per parse operation to avoid stale internal
+        state (constructor caches, resolver state) from previous parse calls
+        causing hangs or incorrect behavior with large documents.
+        """
+        yaml = YAML(typ=self._typ, pure=self._pure)
+        yaml.default_flow_style = False
+        return yaml
+
     def _parse_uri(self, uri: str, logger: logging.Logger) -> CommentedMap:
         logger.debug("Starting download of %s", uri)
         return self._parse_text(load_uri(uri, 5, 10, logger), logger)
@@ -49,7 +60,7 @@ class RuamelSafeParserBackend(BaseParserBackend):
         if isinstance(text, bytes):
             text = text.decode()
 
-        data: CommentedMap = self.yaml.load(text)
+        data: CommentedMap = self._create_yaml_parser().load(text)
         logger.debug("YAML document successfully parsed")
 
         if not isinstance(data, Mapping):

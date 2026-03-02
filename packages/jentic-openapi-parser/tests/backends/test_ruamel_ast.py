@@ -109,9 +109,9 @@ def test_inheritance():
 
     assert isinstance(backend, BaseParserBackend)
 
-    # Should have yaml instance (via composition)
-    assert hasattr(backend, "yaml")
-    assert backend.yaml is not None
+    # Should be able to parse (via composition)
+    result = backend.parse('{"openapi":"3.1.2","info":{"title":"Test","version":"1.0.0"}}')
+    assert isinstance(result, MappingNode)
 
 
 # Source Location Tests
