@@ -126,7 +126,7 @@ uv run --package jentic-openapi-transformer-redocly pytest packages/jentic-opena
 class RedoclyBundlerBackend(BaseBundlerBackend):
     def __init__(
             self,
-            redocly_path: str = "npx --yes @redocly/cli@2.19.0",
+            redocly_path: str = "npx --yes @redocly/cli@2.20.0",
             timeout: float = 600.0,
             allowed_base_dir: str | Path | None = None,
     ) -> None
