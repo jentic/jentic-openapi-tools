@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.44 (2026-03-02)
+
+### Features
+
+- **validator-speclynx**: Allow defining deterministic order
+  ([#224](https://github.com/jentic/jentic-openapi-tools/pull/224),
+  [`269a624`](https://github.com/jentic/jentic-openapi-tools/commit/269a624c3ed64ce35fd4a8f0d3c4a354b491c20f))
+
+
 ## v1.0.0-alpha.43 (2026-03-02)
 
 ### Bug Fixes
