@@ -38,6 +38,17 @@ class RuamelASTParserBackend(BaseParserBackend):
         """
         return ["uri", "text"]
 
+    def _create_yaml_parser(self) -> YAML:
+        """Create a fresh YAML parser instance.
+
+        A new instance is created per parse operation to avoid stale internal
+        state (constructor caches, resolver state) from previous parse calls
+        causing hangs or incorrect behavior with large documents.
+        """
+        yaml = YAML(typ=self._typ, pure=self._pure)
+        yaml.default_flow_style = False
+        return yaml
+
     def _parse_uri(self, uri: str, logger: logging.Logger) -> MappingNode:
         logger.debug("Starting download of %s", uri)
         return self._parse_text(load_uri(uri, 5, 10, logger), logger)
@@ -49,9 +60,7 @@ class RuamelASTParserBackend(BaseParserBackend):
         if isinstance(text, bytes):
             text = text.decode()
 
-        yaml = YAML(typ=self._typ, pure=self._pure)
-        yaml.default_flow_style = False
-        node: MappingNode = yaml.compose(text)
+        node: MappingNode = self._create_yaml_parser().compose(text)
         logger.debug("YAML document successfully parsed")
 
         if not isinstance(node, MappingNode):
