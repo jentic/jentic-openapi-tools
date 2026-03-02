@@ -2,6 +2,48 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.43 (2026-03-02)
+
+### Bug Fixes
+
+- **parser**: Avoid reusing underlying yaml parser instances
+  ([#220](https://github.com/jentic/jentic-openapi-tools/pull/220),
+  [`7788d7b`](https://github.com/jentic/jentic-openapi-tools/commit/7788d7b019f558483fbf601a15c56518e775314a))
+
+- **security**: Update JavaScript deps to latest versions
+  ([#223](https://github.com/jentic/jentic-openapi-tools/pull/223),
+  [`4b3418d`](https://github.com/jentic/jentic-openapi-tools/commit/4b3418d8f0e6f7dba194b0c0a27ab45a7369f0ae))
+
+### Chores
+
+- **deps-dev**: Bump poethepoet from 0.41.0 to 0.42.0
+  ([#215](https://github.com/jentic/jentic-openapi-tools/pull/215),
+  [`b61f8c8`](https://github.com/jentic/jentic-openapi-tools/commit/b61f8c8cb671b3715d437300c1b7179bf421230c))
+
+- **deps-dev**: Bump poethepoet from 0.42.0 to 0.42.1
+  ([#218](https://github.com/jentic/jentic-openapi-tools/pull/218),
+  [`df97561`](https://github.com/jentic/jentic-openapi-tools/commit/df9756133d7eb6f3ff9400e90e2e2f175a8bcece))
+
+- **deps-dev**: Bump ruff from 0.15.1 to 0.15.2
+  ([#214](https://github.com/jentic/jentic-openapi-tools/pull/214),
+  [`b79a57e`](https://github.com/jentic/jentic-openapi-tools/commit/b79a57ee61819a191aa2d326d0cff09101541552))
+
+- **deps-dev**: Bump ruff from 0.15.2 to 0.15.4
+  ([#219](https://github.com/jentic/jentic-openapi-tools/pull/219),
+  [`ee58a80`](https://github.com/jentic/jentic-openapi-tools/commit/ee58a80673c4d181139a2b4c1499625090fe7f14))
+
+### Continuous Integration
+
+- **release**: Use actions/attest@v4
+  ([`9292934`](https://github.com/jentic/jentic-openapi-tools/commit/9292934846897066ea098b500b4cc6eb718d0241))
+
+### Features
+
+- **parser**: Add dataclass serialization support to CustomEncoder
+  ([#222](https://github.com/jentic/jentic-openapi-tools/pull/222),
+  [`e28f99c`](https://github.com/jentic/jentic-openapi-tools/commit/e28f99c8778740638e0e2113a5883ba706dd4cba))
+
+
 ## v1.0.0-alpha.42 (2026-02-18)
 
 ### Bug Fixes
