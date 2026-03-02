@@ -142,6 +142,30 @@ class TestSpeclynxValidatorIntegration:
         assert parseresult_diagnostic is not None, "parseResult should be available to plugins"
         assert "parseResult.api is available" in parseresult_diagnostic.message
 
+    def test_plugins_load_in_numeric_prefix_order(self, speclynx_validator_with_ordered_plugins):
+        """Test that plugins are loaded in numeric prefix order.
+
+        Plugins with numeric prefixes (e.g., 01-first.mjs, 10-second.mjs) should
+        load in ascending numeric order, followed by non-prefixed plugins in
+        alphabetical order. Each test plugin emits an 'order:<filename>' diagnostic
+        so we can verify execution sequence.
+        """
+        document = {
+            "openapi": "3.0.0",
+            "info": {"title": "Test API", "version": "1.0.0"},
+            "paths": {},
+        }
+        result = speclynx_validator_with_ordered_plugins.validate(document)
+
+        # Collect order diagnostics from custom plugins (filter out default plugins)
+        order_messages = [d.message for d in result.diagnostics if d.code == "plugin-order"]
+
+        assert order_messages == [
+            "order:01-first",
+            "order:10-second",
+            "order:no-prefix",
+        ]
+
     def test_validate_empty_document_produces_error(self, speclynx_validator, tmp_path):
         """Test that empty documents produce validation errors.
 

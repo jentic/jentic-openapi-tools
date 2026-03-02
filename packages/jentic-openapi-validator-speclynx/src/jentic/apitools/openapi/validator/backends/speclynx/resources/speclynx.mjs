@@ -89,10 +89,10 @@ async function loadPlugins(pluginsPath) {
             const hasNumA = !Number.isNaN(numA);
             const hasNumB = !Number.isNaN(numB);
 
-            if (hasNumA && hasNumB) return numA - numB || a.localeCompare(b);
+            if (hasNumA && hasNumB) return numA - numB || a.localeCompare(b, 'en');
             if (hasNumA) return -1;
             if (hasNumB) return 1;
-            return a.localeCompare(b);
+            return a.localeCompare(b, 'en');
         });
 
         for (const file of mjsFiles) {

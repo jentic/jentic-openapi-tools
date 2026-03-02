@@ -68,6 +68,18 @@ def speclynx_validator_with_plugins(plugins_dir: Path) -> SpeclynxValidatorBacke
     return SpeclynxValidatorBackend(plugins_dir=plugins_dir)
 
 
+@pytest.fixture
+def ordered_plugins_dir(fixtures_dir: Path) -> Path:
+    """Path to the ordered plugins test directory."""
+    return fixtures_dir / "plugins-ordered"
+
+
+@pytest.fixture
+def speclynx_validator_with_ordered_plugins(ordered_plugins_dir: Path) -> SpeclynxValidatorBackend:
+    """A SpeclynxValidatorBackend instance with ordered test plugins enabled."""
+    return SpeclynxValidatorBackend(plugins_dir=ordered_plugins_dir)
+
+
 def pytest_configure(config):
     """Configure pytest markers."""
     config.addinivalue_line(
