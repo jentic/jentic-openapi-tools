@@ -70,7 +70,7 @@ class SpectralValidatorBackend(BaseValidatorBackend):
         return ["uri", "dict"]
 
     @staticmethod
-    def execution_type() -> str:
+    def execution_type() -> Literal["io"]:
         return "io"
 
     def validate(

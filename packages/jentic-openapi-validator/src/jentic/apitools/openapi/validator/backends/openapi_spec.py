@@ -100,6 +100,10 @@ class OpenAPISpecValidatorBackend(BaseValidatorBackend):
         return ValidationResult(diagnostics)
 
     @staticmethod
+    def execution_type() -> Literal["cpu"]:
+        return "cpu"
+
+    @staticmethod
     def accepts() -> Sequence[Literal["dict"]]:
         """Return the document formats this validator can accept.
 

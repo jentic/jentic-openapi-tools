@@ -241,6 +241,11 @@ def _validate_single_backend(
     This is a module-level function (not a method) for clarity and to keep
     validation logic separate from the orchestration class.
 
+    Note:
+        This function may be called from multiple threads concurrently
+        (via ThreadPoolExecutor for I/O backends). Backends must not mutate
+        the shared ``document_dict``; treat all document arguments as read-only.
+
     Args:
         backend: The validator backend to use
         document: The original document (URI or text)
