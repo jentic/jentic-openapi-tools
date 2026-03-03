@@ -45,6 +45,10 @@ def merge_visitors(*visitors) -> object:
         Uses method caching to avoid repeated __getattr__ overhead during
         traversal. Resolved closures are stored in self.__dict__ so Python's
         attribute lookup finds them directly on subsequent accesses.
+
+        Note: the cached implementor lists are resolved once per hook name.
+        Visitors must not dynamically add or remove visit_* methods after
+        the first traversal call; doing so would leave stale cached closures.
         """
 
         def __init__(self, visitors):
@@ -60,7 +64,7 @@ def merge_visitors(*visitors) -> object:
 
             # Fast negative cache check
             if name in self._absent_methods:
-                raise AttributeError(name)
+                raise AttributeError(f"'{self.__class__.__name__}' has no attribute '{name}'")
 
             is_leave_hook = name.startswith("visit_leave")
 
@@ -70,11 +74,10 @@ def merge_visitors(*visitors) -> object:
             ]
 
             if is_leave_hook:
-                # Leave hooks MUST always be callable (for skip-resume logic).
-                # When a visitor returned False from an enter/visit hook, the
-                # resume happens inside the leave closure when
-                # state.node is path.node. If hasattr returned False for the
-                # leave hook, resume would never trigger.
+                # Always synthesize a leave closure so skip-resume logic runs
+                # even when no visitor implements this leave hook. When a visitor
+                # returned False from an enter/visit hook, resume happens here
+                # when state.node is path.node.
                 method_map = {i: m for i, m in implementors}
                 num_visitors = len(self.visitors)
                 skipping_state = self._skipping_state
@@ -88,8 +91,13 @@ def merge_visitors(*visitors) -> object:
                                 result = method(path)
                                 if result is BREAK:
                                     skipping_state[i] = BREAK
-                        elif isinstance(state, NodePath) and state.node is path.node:
-                            skipping_state[i] = None
+                        elif state is not BREAK:
+                            if not isinstance(state, NodePath):
+                                raise TypeError(
+                                    f"Expected NodePath for skipping state, got {type(state).__name__}"
+                                )
+                            if state.node is path.node:
+                                skipping_state[i] = None
                     return None
 
                 self.__dict__[name] = merged_leave
@@ -98,7 +106,7 @@ def merge_visitors(*visitors) -> object:
                 # Enter/visit hooks: skip entirely if no visitor implements them
                 if not implementors:
                     self._absent_methods.add(name)
-                    raise AttributeError(name)
+                    raise AttributeError(f"'{self.__class__.__name__}' has no attribute '{name}'")
 
                 skipping_state = self._skipping_state
 
