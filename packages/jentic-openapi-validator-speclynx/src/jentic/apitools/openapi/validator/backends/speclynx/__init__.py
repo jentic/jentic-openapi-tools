@@ -83,6 +83,10 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
         """
         return ["uri", "dict"]
 
+    @staticmethod
+    def execution_type() -> str:
+        return "io"
+
     def validate(
         self, document: str | dict, *, base_url: str | None = None, target: str | None = None
     ) -> ValidationResult:

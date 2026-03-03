@@ -647,6 +647,60 @@ class TestEdgeCases:
         assert visitor.responses == 1
 
 
+class TestMethodCaching:
+    """Test that MergedVisitor caches resolved methods for performance."""
+
+    def test_cached_method_reused_on_second_call(self, simple_doc):
+        """Calling getattr twice for the same hook should return the same function object."""
+
+        class OpVisitor:
+            def visit_Operation(self, path):
+                pass
+
+        merged = merge_visitors(OpVisitor())
+        first = getattr(merged, "visit_Operation")
+        second = getattr(merged, "visit_Operation")
+        assert first is second
+
+    def test_absent_method_returns_false_for_hasattr(self, simple_doc):
+        """hasattr should return False when no visitor implements a non-leave hook."""
+
+        class OpVisitor:
+            def visit_Operation(self, path):
+                pass
+
+        merged = merge_visitors(OpVisitor())
+        assert not hasattr(merged, "visit_Nonexistent")
+        # Second call should also return False (negative cache)
+        assert not hasattr(merged, "visit_Nonexistent")
+
+    def test_leave_hook_resume_without_explicit_leave_method(self, multi_path_doc):
+        """A visitor that skips via visit_PathItem but has no visit_leave_PathItem
+        should still resume correctly after the skipped node is left."""
+
+        class SkipFirstPathItem:
+            def __init__(self):
+                self.path_items = 0
+                self.operations = 0
+
+            def visit_PathItem(self, path):
+                self.path_items += 1
+                if self.path_items == 1:
+                    return False  # Skip first PathItem's children
+
+            def visit_Operation(self, path):
+                self.operations += 1
+
+        visitor = SkipFirstPathItem()
+        merged = merge_visitors(visitor)
+        traverse(multi_path_doc, merged)
+
+        # Should see both PathItems (resumed after first skip)
+        assert visitor.path_items == 2
+        # Should only see the second Operation (first was skipped)
+        assert visitor.operations == 1
+
+
 class TestStateIndependence:
     """Test that visitor states are truly independent."""
 

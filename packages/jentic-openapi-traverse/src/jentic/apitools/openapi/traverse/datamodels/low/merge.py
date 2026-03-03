@@ -1,7 +1,7 @@
 """Visitor merging utilities (ApiDOM pattern)."""
 
 from .path import NodePath
-from .traversal import BREAK
+from .traversal import BREAK, _BreakType
 
 
 __all__ = ["merge_visitors"]
@@ -40,72 +40,79 @@ def merge_visitors(*visitors) -> object:
     """
 
     class MergedVisitor:
-        """Composite visitor with per-visitor state tracking (ApiDOM pattern)."""
+        """Composite visitor with per-visitor state tracking (ApiDOM pattern).
+
+        Uses method caching to avoid repeated __getattr__ overhead during
+        traversal. Resolved closures are stored in self.__dict__ so Python's
+        attribute lookup finds them directly on subsequent accesses.
+        """
 
         def __init__(self, visitors):
             self.visitors = visitors
             # State per visitor: None = active, NodePath = skipping, BREAK = stopped
-            self._skipping_state: list[NodePath | object | None] = [None] * len(visitors)
-
-        def _is_active(self, visitor_idx):
-            """Check if visitor is active (not skipping or stopped)."""
-            return self._skipping_state[visitor_idx] is None
-
-        def _is_skipping_node(self, visitor_idx, path):
-            """Check if we're leaving the exact node this visitor skipped."""
-            state = self._skipping_state[visitor_idx]
-            if state is None or state is BREAK:
-                return False
-            # At this point, state must be a NodePath
-            # Compare node identity (not equality)
-            assert isinstance(state, NodePath)
-            return state.node is path.node
+            self._skipping_state: list[NodePath | _BreakType | None] = [None] * len(visitors)
+            # Negative cache: hook names where no visitor has an implementation
+            self._absent_methods: set[str] = set()
 
         def __getattr__(self, name):
-            """
-            Dynamically handle visit_* method calls.
-
-            Maintains per-visitor state for skip/break control.
-
-            Args:
-                name: Method name being called
-
-            Returns:
-                Callable that merges visitor results with state tracking
-
-            Raises:
-                AttributeError: If not a visit_* method
-            """
             if not name.startswith("visit"):
                 raise AttributeError(f"'{self.__class__.__name__}' has no attribute '{name}'")
 
-            # Determine if this is a leave hook
+            # Fast negative cache check
+            if name in self._absent_methods:
+                raise AttributeError(name)
+
             is_leave_hook = name.startswith("visit_leave")
 
-            def merged_visit_method(path: NodePath):
-                for i, visitor in enumerate(self.visitors):
-                    if is_leave_hook:
-                        # Leave hook: only call if visitor is active
-                        if self._is_active(i) and hasattr(visitor, name):
-                            result = getattr(visitor, name)(path)
-                            if result is BREAK:
-                                self._skipping_state[i] = BREAK  # Stop this visitor
-                        # Resume visitor if leaving the skipped node (don't call leave hook)
-                        elif self._is_skipping_node(i, path):
-                            self._skipping_state[i] = None  # Resume for next nodes
-                    else:
-                        # Enter/visit hook: only call if visitor is active
-                        if self._is_active(i) and hasattr(visitor, name):
-                            result = getattr(visitor, name)(path)
+            # Resolve which visitors implement this method (once)
+            implementors = [
+                (i, getattr(v, name)) for i, v in enumerate(self.visitors) if hasattr(v, name)
+            ]
 
+            if is_leave_hook:
+                # Leave hooks MUST always be callable (for skip-resume logic).
+                # When a visitor returned False from an enter/visit hook, the
+                # resume happens inside the leave closure when
+                # state.node is path.node. If hasattr returned False for the
+                # leave hook, resume would never trigger.
+                method_map = {i: m for i, m in implementors}
+                num_visitors = len(self.visitors)
+                skipping_state = self._skipping_state
+
+                def merged_leave(path):
+                    for i in range(num_visitors):
+                        state = skipping_state[i]
+                        if state is None:
+                            method = method_map.get(i)
+                            if method is not None:
+                                result = method(path)
+                                if result is BREAK:
+                                    skipping_state[i] = BREAK
+                        elif isinstance(state, NodePath) and state.node is path.node:
+                            skipping_state[i] = None
+                    return None
+
+                self.__dict__[name] = merged_leave
+                return merged_leave
+            else:
+                # Enter/visit hooks: skip entirely if no visitor implements them
+                if not implementors:
+                    self._absent_methods.add(name)
+                    raise AttributeError(name)
+
+                skipping_state = self._skipping_state
+
+                def merged_enter(path):
+                    for i, method in implementors:
+                        if skipping_state[i] is None:
+                            result = method(path)
                             if result is BREAK:
-                                self._skipping_state[i] = BREAK  # Stop this visitor
+                                skipping_state[i] = BREAK
                             elif result is False:
-                                self._skipping_state[i] = path  # Skip descendants
+                                skipping_state[i] = path
+                    return None
 
-                # Never return BREAK or False - let traversal continue for all visitors
-                return None
-
-            return merged_visit_method
+                self.__dict__[name] = merged_enter
+                return merged_enter
 
     return MergedVisitor(visitors)

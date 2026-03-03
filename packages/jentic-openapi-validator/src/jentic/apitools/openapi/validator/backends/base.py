@@ -32,3 +32,18 @@ class BaseValidatorBackend(ABC):
             Sequence of format identifiers (e.g., "uri", "text", "dict")
         """
         ...
+
+    @staticmethod
+    def execution_type() -> str:
+        """Return the execution characteristic of this backend.
+
+        Used by the orchestrator to schedule backends optimally: I/O-bound
+        backends run in parallel threads (they release the GIL during
+        subprocess/network waits), while CPU-bound backends run sequentially
+        to avoid GIL contention and cache thrashing.
+
+        Returns:
+            "cpu" for pure-Python backends that hold the GIL (default).
+            "io" for backends that release the GIL (subprocess, network I/O).
+        """
+        return "cpu"
