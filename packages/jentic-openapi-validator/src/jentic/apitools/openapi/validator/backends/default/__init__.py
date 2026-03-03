@@ -78,6 +78,10 @@ class DefaultOpenAPIValidatorBackend(BaseValidatorBackend):
             raise TypeError(f"Unsupported document type: {type(document)!r}")
 
     @staticmethod
+    def execution_type() -> Literal["cpu"]:
+        return "cpu"
+
+    @staticmethod
     def accepts() -> list[Literal["uri", "dict"]]:
         """
         Return the document formats this validator accepts.
