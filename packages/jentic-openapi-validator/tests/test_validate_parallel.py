@@ -13,7 +13,7 @@ from jentic.apitools.openapi.validator.core.diagnostics import JenticDiagnostic,
 
 
 class SlowMockBackend(BaseValidatorBackend):
-    """Mock backend that simulates slow validation with configurable delay."""
+    """Mock CPU-bound backend that simulates slow validation with configurable delay."""
 
     def __init__(self, delay: float = 0.1, name: str = "mock"):
         self.delay = delay
@@ -32,6 +32,14 @@ class SlowMockBackend(BaseValidatorBackend):
         return ["dict", "text"]
 
 
+class SlowMockIOBackend(SlowMockBackend):
+    """Mock I/O-bound backend (simulates subprocess-based validators)."""
+
+    @staticmethod
+    def execution_type() -> str:
+        return "io"
+
+
 class MockBackendWithDiagnostics(BaseValidatorBackend):
     """Mock backend that returns specific diagnostics."""
 
@@ -46,6 +54,14 @@ class MockBackendWithDiagnostics(BaseValidatorBackend):
     @staticmethod
     def accepts() -> Sequence[str]:
         return ["dict", "text"]
+
+
+class MockIOBackendWithDiagnostics(MockBackendWithDiagnostics):
+    """Mock I/O-bound backend that returns specific diagnostics."""
+
+    @staticmethod
+    def execution_type() -> str:
+        return "io"
 
 
 def test_parallel_false_runs_sequentially(valid_openapi_dict):
@@ -67,22 +83,21 @@ def test_parallel_false_runs_sequentially(valid_openapi_dict):
     assert elapsed >= 0.09
 
 
-def test_parallel_true_runs_concurrently(valid_openapi_dict):
-    """Test that parallel=True runs backends concurrently and is faster than sequential."""
-    # Use longer delays to make timing differences more reliable
+def test_parallel_true_runs_io_backends_concurrently(valid_openapi_dict):
+    """Test that parallel=True runs I/O backends concurrently via ThreadPoolExecutor."""
     delay = 0.3
 
     # Run sequential first
     validator_seq = OpenAPIValidator(
-        backends=[SlowMockBackend(delay=delay), SlowMockBackend(delay=delay)]
+        backends=[SlowMockIOBackend(delay=delay), SlowMockIOBackend(delay=delay)]
     )
     start_time = time.time()
     result_seq = validator_seq.validate(valid_openapi_dict, parallel=False)
     sequential_time = time.time() - start_time
 
-    # Run parallel
+    # Run parallel — I/O backends go into ThreadPoolExecutor
     validator_par = OpenAPIValidator(
-        backends=[SlowMockBackend(delay=delay), SlowMockBackend(delay=delay)]
+        backends=[SlowMockIOBackend(delay=delay), SlowMockIOBackend(delay=delay)]
     )
     start_time = time.time()
     result_par = validator_par.validate(valid_openapi_dict, parallel=True)
@@ -91,8 +106,7 @@ def test_parallel_true_runs_concurrently(valid_openapi_dict):
     assert result_seq.valid
     assert result_par.valid
     # Parallel should be significantly faster than sequential (at least 1.3x faster)
-    # With 2 backends of 0.3s each: sequential ~0.6s, parallel ~0.3s + overhead
-    # Note: call_count won't be updated because ProcessPoolExecutor pickles backends
+    # With 2 I/O backends of 0.3s each: sequential ~0.6s, parallel ~0.3s + overhead
     assert parallel_time < sequential_time * 0.85, (
         f"Parallel ({parallel_time:.2f}s) should be faster than "
         f"sequential ({sequential_time:.2f}s) by factor of 0.85"
@@ -105,53 +119,53 @@ def test_parallel_single_backend_no_parallelization(valid_openapi_dict):
 
     validator = OpenAPIValidator(backends=[backend])
 
-    # Should not create ProcessPoolExecutor for single backend
+    # Should not create ThreadPoolExecutor for single backend
     with patch(
-        "jentic.apitools.openapi.validator.core.openapi_validator.ProcessPoolExecutor"
+        "jentic.apitools.openapi.validator.core.openapi_validator.ThreadPoolExecutor"
     ) as mock_executor:
         result = validator.validate(valid_openapi_dict, parallel=True)
 
     assert result.valid
     assert backend.call_count == 1
-    # ProcessPoolExecutor should not be created for single backend
+    # ThreadPoolExecutor should not be created for single backend
     mock_executor.assert_not_called()
 
 
 def test_parallel_aggregates_diagnostics(valid_openapi_dict):
-    """Test that parallel execution aggregates diagnostics from all backends."""
+    """Test that parallel execution aggregates diagnostics from mixed backend types."""
     from lsprotocol import types as lsp
 
     diag1 = JenticDiagnostic(
         range=lsp.Range(start=lsp.Position(0, 0), end=lsp.Position(0, 1)),
-        message="Error from backend 1",
+        message="Error from CPU backend",
         severity=lsp.DiagnosticSeverity.Error,
     )
     diag2 = JenticDiagnostic(
         range=lsp.Range(start=lsp.Position(1, 0), end=lsp.Position(1, 1)),
-        message="Error from backend 2",
+        message="Error from IO backend",
         severity=lsp.DiagnosticSeverity.Error,
     )
 
-    backend1 = MockBackendWithDiagnostics([diag1])
-    backend2 = MockBackendWithDiagnostics([diag2])
+    backend_cpu = MockBackendWithDiagnostics([diag1])
+    backend_io = MockIOBackendWithDiagnostics([diag2])
 
-    validator = OpenAPIValidator(backends=[backend1, backend2])
+    validator = OpenAPIValidator(backends=[backend_cpu, backend_io])
     result = validator.validate(valid_openapi_dict, parallel=True)
 
     assert len(result.diagnostics) == 2
     messages = [d.message for d in result.diagnostics]
-    assert "Error from backend 1" in messages
-    assert "Error from backend 2" in messages
+    assert "Error from CPU backend" in messages
+    assert "Error from IO backend" in messages
 
 
 def test_parallel_with_max_workers(valid_openapi_dict):
-    """Test that max_workers parameter limits concurrency."""
+    """Test that max_workers parameter limits concurrency for I/O backends."""
     delay = 0.2
     num_backends = 4
 
     # Run sequential first
     backends_seq: list[BaseValidatorBackend] = [
-        SlowMockBackend(delay=delay, name=f"backend{i}") for i in range(num_backends)
+        SlowMockIOBackend(delay=delay, name=f"backend{i}") for i in range(num_backends)
     ]
     validator_seq = OpenAPIValidator(backends=backends_seq)
     start_time = time.time()
@@ -160,22 +174,21 @@ def test_parallel_with_max_workers(valid_openapi_dict):
 
     # Run parallel with max_workers=2
     backends_par: list[BaseValidatorBackend] = [
-        SlowMockBackend(delay=delay, name=f"backend{i}") for i in range(num_backends)
+        SlowMockIOBackend(delay=delay, name=f"backend{i}") for i in range(num_backends)
     ]
     validator_par = OpenAPIValidator(backends=backends_par)
     start_time = time.time()
-    # With max_workers=2, should process 4 backends with 2 at a time
+    # With max_workers=2, should process 4 I/O backends with 2 at a time
     # This means 2 batches of 0.2s each = ~0.4s total
     result_par = validator_par.validate(valid_openapi_dict, parallel=True, max_workers=2)
     parallel_time = time.time() - start_time
 
     assert result_seq.valid
     assert result_par.valid
-    # With max_workers=2 and 4 backends:
+    # With max_workers=2 and 4 I/O backends:
     # - Sequential: 4 × delay = 4 × 0.2s = 0.8s
     # - Parallel: 2 batches × delay = 2 × 0.2s = ~0.4s + overhead
     # Parallel should be at least 1.3x faster (factor of ~0.77)
-    # Note: call_count won't be updated because ProcessPoolExecutor pickles backends
     assert parallel_time < sequential_time * 0.85, (
         f"Parallel with max_workers=2 ({parallel_time:.2f}s) should be faster than "
         f"sequential ({sequential_time:.2f}s) by factor of 0.85"
@@ -203,9 +216,9 @@ def test_parallel_with_string_document(valid_openapi_string):
     """Test parallel execution with string document input is faster than sequential."""
     delay = 0.15
 
-    # Run sequential first
+    # Run sequential first (I/O backends to get thread parallelism)
     validator_seq = OpenAPIValidator(
-        backends=[SlowMockBackend(delay=delay), SlowMockBackend(delay=delay)]
+        backends=[SlowMockIOBackend(delay=delay), SlowMockIOBackend(delay=delay)]
     )
     start_time = time.time()
     result_seq = validator_seq.validate(valid_openapi_string, parallel=False)
@@ -213,7 +226,7 @@ def test_parallel_with_string_document(valid_openapi_string):
 
     # Run parallel
     validator_par = OpenAPIValidator(
-        backends=[SlowMockBackend(delay=delay), SlowMockBackend(delay=delay)]
+        backends=[SlowMockIOBackend(delay=delay), SlowMockIOBackend(delay=delay)]
     )
     start_time = time.time()
     result_par = validator_par.validate(valid_openapi_string, parallel=True)
@@ -331,3 +344,115 @@ def test_parallel_with_all_backends_returns_diagnostics(tmp_path):
 
     # Both should return the same number of diagnostics (order may differ)
     assert len(result_seq.diagnostics) == len(result_par.diagnostics)
+
+
+# --- GIL-aware scheduling tests ---
+
+
+def test_execution_type_default_is_cpu():
+    """Test that BaseValidatorBackend.execution_type() defaults to 'cpu'."""
+    backend = SlowMockBackend()
+    assert backend.execution_type() == "cpu"
+    assert SlowMockBackend.execution_type() == "cpu"
+
+
+def test_execution_type_io_override():
+    """Test that I/O backends return 'io' from execution_type()."""
+    backend = SlowMockIOBackend()
+    assert backend.execution_type() == "io"
+    assert SlowMockIOBackend.execution_type() == "io"
+
+
+def test_all_cpu_backends_no_thread_pool(valid_openapi_dict):
+    """Test that all-CPU backends skip ThreadPoolExecutor even with parallel=True."""
+    backend1 = SlowMockBackend(delay=0.05, name="cpu1")
+    backend2 = SlowMockBackend(delay=0.05, name="cpu2")
+
+    validator = OpenAPIValidator(backends=[backend1, backend2])
+
+    with patch(
+        "jentic.apitools.openapi.validator.core.openapi_validator.ThreadPoolExecutor"
+    ) as mock_executor:
+        result = validator.validate(valid_openapi_dict, parallel=True)
+
+    assert result.valid
+    # All backends are CPU-bound, so ThreadPoolExecutor should not be created
+    mock_executor.assert_not_called()
+
+
+def test_cpu_backends_run_sequentially_when_parallel(valid_openapi_dict):
+    """Test that CPU backends run sequentially (not in threads) even with parallel=True."""
+    delay = 0.15
+    backend1 = SlowMockBackend(delay=delay, name="cpu1")
+    backend2 = SlowMockBackend(delay=delay, name="cpu2")
+
+    validator = OpenAPIValidator(backends=[backend1, backend2])
+
+    start_time = time.time()
+    result = validator.validate(valid_openapi_dict, parallel=True)
+    elapsed = time.time() - start_time
+
+    assert result.valid
+    # CPU backends run sequentially: should take at least 2 × delay
+    assert elapsed >= delay * 2 * 0.9, (
+        f"CPU backends should run sequentially ({elapsed:.2f}s < {delay * 2:.2f}s expected)"
+    )
+
+
+def test_mixed_backends_concurrent_execution(valid_openapi_dict):
+    """Test that mixed I/O and CPU backends overlap: CPU runs in main thread
+    while I/O runs in background threads."""
+    io_delay = 0.3
+    cpu_delay = 0.1
+
+    io_backend = SlowMockIOBackend(delay=io_delay, name="io1")
+    cpu_backend1 = SlowMockBackend(delay=cpu_delay, name="cpu1")
+    cpu_backend2 = SlowMockBackend(delay=cpu_delay, name="cpu2")
+
+    validator = OpenAPIValidator(backends=[io_backend, cpu_backend1, cpu_backend2])
+
+    start_time = time.time()
+    result = validator.validate(valid_openapi_dict, parallel=True)
+    elapsed = time.time() - start_time
+
+    assert result.valid
+    # I/O backend (0.3s) runs in a thread while CPU backends (0.1+0.1=0.2s)
+    # run sequentially in main thread. Total should be ~max(0.3, 0.2) = ~0.3s,
+    # not 0.3+0.1+0.1=0.5s (fully sequential)
+    fully_sequential = io_delay + cpu_delay * 2
+    assert elapsed < fully_sequential * 0.85, (
+        f"Mixed execution ({elapsed:.2f}s) should overlap I/O and CPU work, "
+        f"not be fully sequential ({fully_sequential:.2f}s)"
+    )
+
+
+def test_mixed_backends_aggregates_all_diagnostics(valid_openapi_dict):
+    """Test that mixed scheduling aggregates diagnostics from both I/O and CPU backends."""
+    from lsprotocol import types as lsp
+
+    diag_cpu1 = JenticDiagnostic(
+        range=lsp.Range(start=lsp.Position(0, 0), end=lsp.Position(0, 1)),
+        message="CPU error 1",
+        severity=lsp.DiagnosticSeverity.Error,
+    )
+    diag_cpu2 = JenticDiagnostic(
+        range=lsp.Range(start=lsp.Position(1, 0), end=lsp.Position(1, 1)),
+        message="CPU error 2",
+        severity=lsp.DiagnosticSeverity.Warning,
+    )
+    diag_io = JenticDiagnostic(
+        range=lsp.Range(start=lsp.Position(2, 0), end=lsp.Position(2, 1)),
+        message="IO error",
+        severity=lsp.DiagnosticSeverity.Error,
+    )
+
+    cpu1 = MockBackendWithDiagnostics([diag_cpu1])
+    cpu2 = MockBackendWithDiagnostics([diag_cpu2])
+    io1 = MockIOBackendWithDiagnostics([diag_io])
+
+    validator = OpenAPIValidator(backends=[cpu1, cpu2, io1])
+    result = validator.validate(valid_openapi_dict, parallel=True)
+
+    assert len(result.diagnostics) == 3
+    messages = {d.message for d in result.diagnostics}
+    assert messages == {"CPU error 1", "CPU error 2", "IO error"}

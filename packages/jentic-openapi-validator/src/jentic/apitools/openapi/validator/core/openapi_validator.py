@@ -2,7 +2,7 @@ import importlib.metadata
 import json
 import warnings
 from collections.abc import Sequence
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Type
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser
@@ -102,10 +102,13 @@ class OpenAPIValidator:
                 - Python dictionary
             base_url: Optional base URL for resolving relative references in the document
             target: Optional target identifier for validation context
-            parallel: If True and multiple backends are configured, run validation
-                in parallel using ProcessPoolExecutor. Defaults to False.
-            max_workers: Maximum number of worker processes for parallel execution.
-                If None, defaults to the number of processors on the machine.
+            parallel: If True and multiple backends are configured, run I/O-bound
+                backends in parallel via ThreadPoolExecutor while CPU-bound
+                backends run sequentially in the main thread. Backend type is
+                determined by each backend's execution_type() method.
+                Defaults to False.
+            max_workers: Maximum number of worker threads for I/O-bound backends.
+                If None, defaults to the ThreadPoolExecutor default.
                 Only used when parallel=True.
 
         Returns:
@@ -148,39 +151,40 @@ class OpenAPIValidator:
 
         diagnostics: list[JenticDiagnostic] = []
 
+        # Build the common arguments tuple for _validate_single_backend
+        validate_args = (document, document_dict, document_text, document_is_uri, base_url, target)
+
         # Run validation through all backends
         if parallel and len(self.backends) > 1:
-            # Parallel execution using ProcessPoolExecutor
-            with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                futures = [
-                    executor.submit(
-                        _validate_single_backend,
-                        backend,
-                        document,
-                        document_dict,
-                        document_text,
-                        document_is_uri,
-                        base_url,
-                        target,
-                    )
-                    for backend in self.backends
-                ]
-                for future in as_completed(futures):
-                    diagnostics.extend(future.result())
+            # Split backends by execution type to avoid GIL contention:
+            # - I/O backends (subprocess/network) release the GIL and benefit
+            #   from thread parallelism.
+            # - CPU backends (pure Python) hold the GIL; running them in
+            #   parallel threads causes contention and cache thrashing, so
+            #   they run sequentially in the main thread instead.
+            io_backends = [b for b in self.backends if b.execution_type() == "io"]
+            cpu_backends = [b for b in self.backends if b.execution_type() != "io"]
+            if io_backends:
+                with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                    futures = [
+                        executor.submit(_validate_single_backend, b, *validate_args)
+                        for b in io_backends
+                    ]
+                    # CPU backends run sequentially in the main thread while
+                    # I/O backends execute in background threads
+                    for b in cpu_backends:
+                        diagnostics.extend(_validate_single_backend(b, *validate_args))
+
+                    for future in as_completed(futures):
+                        diagnostics.extend(future.result())
+            else:
+                # All backends are CPU-bound: run sequentially (no GIL contention)
+                for b in cpu_backends:
+                    diagnostics.extend(_validate_single_backend(b, *validate_args))
         else:
-            # Sequential execution (default)
+            # Sequential execution (default, or single backend)
             for backend in self.backends:
-                diagnostics.extend(
-                    _validate_single_backend(
-                        backend,
-                        document,
-                        document_dict,
-                        document_text,
-                        document_is_uri,
-                        base_url,
-                        target,
-                    )
-                )
+                diagnostics.extend(_validate_single_backend(backend, *validate_args))
 
         return ValidationResult(diagnostics=diagnostics)
 
@@ -234,8 +238,8 @@ def _validate_single_backend(
     """
     Validate document with a single backend.
 
-    This is a module-level function (not a method) to ensure it's picklable
-    for use with ProcessPoolExecutor.
+    This is a module-level function (not a method) for clarity and to keep
+    validation logic separate from the orchestration class.
 
     Args:
         backend: The validator backend to use
