@@ -1,5 +1,6 @@
 """Tests for parallel validation execution."""
 
+import multiprocessing
 import textwrap
 import time
 from collections.abc import Sequence
@@ -40,6 +41,17 @@ class SlowMockIOBackend(SlowMockBackend):
         return "io"
 
 
+class SlowMockCPUHeavyBackend(SlowMockBackend):
+    """Mock cpu-heavy backend (simulates long-running pure-Python analysis).
+
+    Must be picklable for ProcessPoolExecutor with spawn.
+    """
+
+    @staticmethod
+    def execution_type() -> str:
+        return "cpu-heavy"
+
+
 class MockBackendWithDiagnostics(BaseValidatorBackend):
     """Mock backend that returns specific diagnostics."""
 
@@ -62,6 +74,36 @@ class MockIOBackendWithDiagnostics(MockBackendWithDiagnostics):
     @staticmethod
     def execution_type() -> str:
         return "io"
+
+
+class MockCPUHeavyBackendWithDiagnostics(MockBackendWithDiagnostics):
+    """Mock cpu-heavy backend that returns specific diagnostics.
+
+    Must be picklable for ProcessPoolExecutor with spawn.
+    """
+
+    @staticmethod
+    def execution_type() -> str:
+        return "cpu-heavy"
+
+
+@pytest.fixture
+def use_fork_for_process_pool():
+    """Patch multiprocessing.get_context in the orchestrator to return fork context.
+
+    ProcessPoolExecutor with spawn context requires child processes to import the
+    backend class for unpickling. Test-defined mock backend classes live in
+    non-installed test modules, so the spawned process fails to import them.
+    Using fork context shares memory with the parent, avoiding the import issue.
+
+    Yields the mock so tests can assert get_context was called with "spawn".
+    """
+    fork_context = multiprocessing.get_context("fork")
+    with patch(
+        "jentic.apitools.openapi.validator.core.openapi_validator.multiprocessing.get_context",
+        return_value=fork_context,
+    ) as mock_get_context:
+        yield mock_get_context
 
 
 def test_parallel_false_runs_sequentially(valid_openapi_dict):
@@ -456,3 +498,192 @@ def test_mixed_backends_aggregates_all_diagnostics(valid_openapi_dict):
     assert len(result.diagnostics) == 3
     messages = {d.message for d in result.diagnostics}
     assert messages == {"CPU error 1", "CPU error 2", "IO error"}
+
+
+# --- cpu-heavy (ProcessPoolExecutor) scheduling tests ---
+
+
+def test_execution_type_cpu_heavy_override():
+    """Test that cpu-heavy backends return 'cpu-heavy' from execution_type()."""
+    backend = SlowMockCPUHeavyBackend()
+    assert backend.execution_type() == "cpu-heavy"
+    assert SlowMockCPUHeavyBackend.execution_type() == "cpu-heavy"
+
+
+def test_no_process_pool_without_cpu_heavy_backends(valid_openapi_dict):
+    """Test that ProcessPoolExecutor is not created when no cpu-heavy backends are present."""
+    io_backend = SlowMockIOBackend(delay=0.05, name="io1")
+    cpu_backend = SlowMockBackend(delay=0.05, name="cpu1")
+
+    validator = OpenAPIValidator(backends=[io_backend, cpu_backend])
+
+    with patch(
+        "jentic.apitools.openapi.validator.core.openapi_validator.ProcessPoolExecutor"
+    ) as mock_process_exec:
+        result = validator.validate(valid_openapi_dict, parallel=True)
+
+    assert result.valid
+    mock_process_exec.assert_not_called()
+
+
+def test_all_cpu_backends_no_process_pool(valid_openapi_dict):
+    """Test that neither executor is created when all backends are fast CPU."""
+    backend1 = SlowMockBackend(delay=0.05, name="cpu1")
+    backend2 = SlowMockBackend(delay=0.05, name="cpu2")
+
+    validator = OpenAPIValidator(backends=[backend1, backend2])
+
+    with (
+        patch(
+            "jentic.apitools.openapi.validator.core.openapi_validator.ThreadPoolExecutor"
+        ) as mock_thread_exec,
+        patch(
+            "jentic.apitools.openapi.validator.core.openapi_validator.ProcessPoolExecutor"
+        ) as mock_process_exec,
+    ):
+        result = validator.validate(valid_openapi_dict, parallel=True)
+
+    assert result.valid
+    mock_thread_exec.assert_not_called()
+    mock_process_exec.assert_not_called()
+
+
+def test_cpu_heavy_backends_use_process_pool(valid_openapi_dict, use_fork_for_process_pool):
+    """Test that cpu-heavy backends are dispatched to ProcessPoolExecutor."""
+    heavy1 = SlowMockCPUHeavyBackend(delay=0.05, name="heavy1")
+    heavy2 = SlowMockCPUHeavyBackend(delay=0.05, name="heavy2")
+
+    validator = OpenAPIValidator(backends=[heavy1, heavy2])
+
+    # Verify ProcessPoolExecutor is created with correct kwargs
+    original_ppe = __import__(
+        "concurrent.futures", fromlist=["ProcessPoolExecutor"]
+    ).ProcessPoolExecutor
+
+    ppe_init_kwargs = {}
+
+    class SpyProcessPoolExecutor(original_ppe):
+        def __init__(self, *args, **kwargs):
+            ppe_init_kwargs.update(kwargs)
+            super().__init__(*args, **kwargs)
+
+    with patch(
+        "jentic.apitools.openapi.validator.core.openapi_validator.ProcessPoolExecutor",
+        SpyProcessPoolExecutor,
+    ):
+        result = validator.validate(valid_openapi_dict, parallel=True)
+
+    assert result.valid
+    assert ppe_init_kwargs.get("max_workers") == 2
+    assert ppe_init_kwargs.get("mp_context") is not None
+    # Verify the orchestrator requested "spawn" context (patched to fork for testability)
+    use_fork_for_process_pool.assert_called_once_with("spawn")
+
+
+def test_cpu_heavy_backends_run_concurrently(valid_openapi_dict, use_fork_for_process_pool):
+    """Test that cpu-heavy backends achieve true parallelism via ProcessPoolExecutor."""
+    delay = 1.5
+
+    # Sequential baseline
+    validator_seq = OpenAPIValidator(
+        backends=[
+            SlowMockCPUHeavyBackend(delay=delay),
+            SlowMockCPUHeavyBackend(delay=delay),
+        ]
+    )
+    start_time = time.time()
+    result_seq = validator_seq.validate(valid_openapi_dict, parallel=False)
+    sequential_time = time.time() - start_time
+
+    # Parallel execution — cpu-heavy backends go into ProcessPoolExecutor
+    validator_par = OpenAPIValidator(
+        backends=[
+            SlowMockCPUHeavyBackend(delay=delay),
+            SlowMockCPUHeavyBackend(delay=delay),
+        ]
+    )
+    start_time = time.time()
+    result_par = validator_par.validate(valid_openapi_dict, parallel=True)
+    parallel_time = time.time() - start_time
+
+    assert result_seq.valid
+    assert result_par.valid
+    # Sequential: ~3.0s (2 × 1.5s). Parallel: ~1.5s + spawn overhead (~1-2s).
+    # Parallel should still be faster than sequential.
+    assert parallel_time < sequential_time * 0.9, (
+        f"Parallel cpu-heavy ({parallel_time:.2f}s) should be faster than "
+        f"sequential ({sequential_time:.2f}s)"
+    )
+
+
+def test_three_tier_mixed_execution(valid_openapi_dict, use_fork_for_process_pool):
+    """Test that all three tiers (io, cpu, cpu-heavy) execute simultaneously."""
+    io_delay = 1.0
+    cpu_delay = 0.2
+    heavy_delay = 2.0
+
+    # Sequential baseline
+    validator_seq = OpenAPIValidator(
+        backends=[
+            SlowMockIOBackend(delay=io_delay, name="io1"),
+            SlowMockBackend(delay=cpu_delay, name="cpu1"),
+            SlowMockCPUHeavyBackend(delay=heavy_delay, name="heavy1"),
+        ]
+    )
+    start_time = time.time()
+    result_seq = validator_seq.validate(valid_openapi_dict, parallel=False)
+    sequential_time = time.time() - start_time
+
+    # Parallel — all three tiers execute simultaneously
+    validator_par = OpenAPIValidator(
+        backends=[
+            SlowMockIOBackend(delay=io_delay, name="io1"),
+            SlowMockBackend(delay=cpu_delay, name="cpu1"),
+            SlowMockCPUHeavyBackend(delay=heavy_delay, name="heavy1"),
+        ]
+    )
+    start_time = time.time()
+    result_par = validator_par.validate(valid_openapi_dict, parallel=True)
+    parallel_time = time.time() - start_time
+
+    assert result_seq.valid
+    assert result_par.valid
+    # Sequential: io + cpu + heavy = 1.0 + 0.2 + 2.0 = 3.2s
+    # Parallel: max(io, cpu, heavy + spawn) ≈ 2.0 + spawn_overhead
+    # Parallel should be noticeably faster than sequential
+    assert parallel_time < sequential_time * 0.9, (
+        f"Three-tier parallel ({parallel_time:.2f}s) should be faster than "
+        f"sequential ({sequential_time:.2f}s)"
+    )
+
+
+def test_three_tier_aggregates_all_diagnostics(valid_openapi_dict, use_fork_for_process_pool):
+    """Test that diagnostics from all three tiers are aggregated correctly."""
+    from lsprotocol import types as lsp
+
+    diag_cpu = JenticDiagnostic(
+        range=lsp.Range(start=lsp.Position(0, 0), end=lsp.Position(0, 1)),
+        message="CPU error",
+        severity=lsp.DiagnosticSeverity.Error,
+    )
+    diag_io = JenticDiagnostic(
+        range=lsp.Range(start=lsp.Position(1, 0), end=lsp.Position(1, 1)),
+        message="IO error",
+        severity=lsp.DiagnosticSeverity.Warning,
+    )
+    diag_heavy = JenticDiagnostic(
+        range=lsp.Range(start=lsp.Position(2, 0), end=lsp.Position(2, 1)),
+        message="CPU-heavy error",
+        severity=lsp.DiagnosticSeverity.Error,
+    )
+
+    cpu = MockBackendWithDiagnostics([diag_cpu])
+    io = MockIOBackendWithDiagnostics([diag_io])
+    heavy = MockCPUHeavyBackendWithDiagnostics([diag_heavy])
+
+    validator = OpenAPIValidator(backends=[cpu, io, heavy])
+    result = validator.validate(valid_openapi_dict, parallel=True)
+
+    assert len(result.diagnostics) == 3
+    messages = {d.message for d in result.diagnostics}
+    assert messages == {"CPU error", "IO error", "CPU-heavy error"}
