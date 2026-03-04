@@ -37,13 +37,19 @@ class BaseValidatorBackend(ABC):
     def execution_type() -> str:
         """Return the execution characteristic of this backend.
 
-        Used by the orchestrator to schedule backends optimally: I/O-bound
-        backends run in parallel threads (they release the GIL during
-        subprocess/network waits), while CPU-bound backends run sequentially
-        to avoid GIL contention and cache thrashing.
+        Used by the orchestrator to schedule backends optimally in three tiers:
+
+        - ``"cpu"`` (default): Fast pure-Python backends that hold the GIL.
+          Run sequentially in the main thread to avoid GIL contention and
+          cache thrashing.
+        - ``"io"``: Backends that release the GIL during subprocess or network
+          waits. Run in parallel via ``ThreadPoolExecutor``.
+        - ``"cpu-heavy"``: Long-running pure-Python backends (tens of seconds
+          or more). Run in separate processes via ``ProcessPoolExecutor`` with
+          the ``spawn`` start method to achieve true multi-core parallelism
+          without GIL contention.
 
         Returns:
-            "cpu" for pure-Python backends that hold the GIL (default).
-            "io" for backends that release the GIL (subprocess, network I/O).
+            ``"cpu"``, ``"io"``, or ``"cpu-heavy"``.
         """
         return "cpu"

@@ -1,8 +1,10 @@
 import importlib.metadata
 import json
+import multiprocessing
 import warnings
 from collections.abc import Sequence
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from contextlib import ExitStack
 from typing import Type
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser
@@ -102,14 +104,18 @@ class OpenAPIValidator:
                 - Python dictionary
             base_url: Optional base URL for resolving relative references in the document
             target: Optional target identifier for validation context
-            parallel: If True and multiple backends are configured, run I/O-bound
-                backends in parallel via ThreadPoolExecutor while CPU-bound
-                backends run sequentially in the main thread. Backend type is
-                determined by each backend's execution_type() method.
-                Defaults to False.
+            parallel: If True and multiple backends are configured, schedule
+                backends in three tiers based on each backend's
+                ``execution_type()`` method:
+                - ``"io"`` backends run in parallel via ``ThreadPoolExecutor``.
+                - ``"cpu"`` backends run sequentially in the main thread.
+                - ``"cpu-heavy"`` backends run in separate processes via
+                  ``ProcessPoolExecutor`` (``spawn`` start method).
+                All three tiers execute simultaneously. Defaults to False.
             max_workers: Maximum number of worker threads for I/O-bound backends.
                 If None, defaults to the ThreadPoolExecutor default.
-                Only used when parallel=True.
+                Only used when parallel=True. The process pool for cpu-heavy
+                backends sizes itself to the number of cpu-heavy backends.
 
         Returns:
             ValidationResult containing aggregated diagnostics from all backends.
@@ -156,29 +162,48 @@ class OpenAPIValidator:
 
         # Run validation through all backends
         if parallel and len(self.backends) > 1:
-            # Split backends by execution type to avoid GIL contention:
-            # - I/O backends (subprocess/network) release the GIL and benefit
-            #   from thread parallelism.
-            # - CPU backends (pure Python) hold the GIL; running them in
-            #   parallel threads causes contention and cache thrashing, so
-            #   they run sequentially in the main thread instead.
+            # Three-tier scheduling based on execution_type():
+            # - "io": release the GIL (subprocess/network) → ThreadPoolExecutor
+            # - "cpu": fast pure Python → sequential in main thread
+            # - "cpu-heavy": long-running pure Python → ProcessPoolExecutor (spawn)
             io_backends = [b for b in self.backends if b.execution_type() == "io"]
-            cpu_backends = [b for b in self.backends if b.execution_type() != "io"]
-            if io_backends:
-                with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                    futures = [
-                        executor.submit(_validate_single_backend, b, *validate_args)
-                        for b in io_backends
-                    ]
-                    # CPU backends run sequentially in the main thread while
-                    # I/O backends execute in background threads
+            cpu_backends = [b for b in self.backends if b.execution_type() == "cpu"]
+            cpu_heavy_backends = [b for b in self.backends if b.execution_type() == "cpu-heavy"]
+
+            if io_backends or cpu_heavy_backends:
+                with ExitStack() as stack:
+                    futures: list = []
+
+                    if io_backends:
+                        thread_exec = stack.enter_context(
+                            ThreadPoolExecutor(max_workers=max_workers)
+                        )
+                        futures.extend(
+                            thread_exec.submit(_validate_single_backend, b, *validate_args)
+                            for b in io_backends
+                        )
+
+                    if cpu_heavy_backends:
+                        process_exec = stack.enter_context(
+                            ProcessPoolExecutor(
+                                max_workers=len(cpu_heavy_backends),
+                                mp_context=multiprocessing.get_context("spawn"),
+                            )
+                        )
+                        futures.extend(
+                            process_exec.submit(_validate_single_backend, b, *validate_args)
+                            for b in cpu_heavy_backends
+                        )
+
+                    # Fast CPU backends run sequentially in the main thread
+                    # while I/O and heavy CPU backends execute in background
                     for b in cpu_backends:
                         diagnostics.extend(_validate_single_backend(b, *validate_args))
 
                     for future in as_completed(futures):
                         diagnostics.extend(future.result())
             else:
-                # All backends are CPU-bound: run sequentially (no GIL contention)
+                # All backends are fast CPU-bound: run sequentially
                 for b in cpu_backends:
                     diagnostics.extend(_validate_single_backend(b, *validate_args))
         else:
@@ -238,8 +263,10 @@ def _validate_single_backend(
     """
     Validate document with a single backend.
 
-    This is a module-level function (not a method) for clarity and to keep
-    validation logic separate from the orchestration class.
+    This is a module-level function (not a method) so it can be submitted to
+    both ThreadPoolExecutor and ProcessPoolExecutor (picklable).  Backends
+    declaring ``execution_type() == "cpu-heavy"`` must be picklable since they
+    are dispatched to a ProcessPoolExecutor with the ``spawn`` start method.
 
     Note:
         This function may be called from multiple threads concurrently
