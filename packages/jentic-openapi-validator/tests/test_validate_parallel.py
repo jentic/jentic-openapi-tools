@@ -591,7 +591,15 @@ def test_cpu_heavy_backends_use_process_pool(valid_openapi_dict, use_fork_for_pr
 
 
 def test_cpu_heavy_backends_run_concurrently(valid_openapi_dict, use_fork_for_process_pool):
-    """Test that cpu-heavy backends achieve true parallelism via ProcessPoolExecutor."""
+    """Test that cpu-heavy backends are dispatched to ProcessPoolExecutor and
+    run concurrently rather than sequentially.
+
+    Note: the mock backends use time.sleep (which releases the GIL), so this
+    test verifies process-pool scheduling, not true GIL-free CPU parallelism.
+    True CPU-bound parallelism is validated by the structural test
+    test_cpu_heavy_backends_use_process_pool, which asserts the correct
+    ProcessPoolExecutor configuration (spawn context, bounded workers).
+    """
     delay = 0.5
 
     # Sequential baseline
@@ -605,7 +613,7 @@ def test_cpu_heavy_backends_run_concurrently(valid_openapi_dict, use_fork_for_pr
     result_seq = validator_seq.validate(valid_openapi_dict, parallel=False)
     sequential_time = time.monotonic() - start_time
 
-    # Parallel execution — cpu-heavy backends go into ProcessPoolExecutor
+    # Parallel — cpu-heavy backends dispatched to ProcessPoolExecutor
     validator_par = OpenAPIValidator(
         backends=[
             SlowMockCPUHeavyBackend(delay=delay),
@@ -627,7 +635,12 @@ def test_cpu_heavy_backends_run_concurrently(valid_openapi_dict, use_fork_for_pr
 
 
 def test_three_tier_mixed_execution(valid_openapi_dict, use_fork_for_process_pool):
-    """Test that all three tiers (io, cpu, cpu-heavy) execute simultaneously."""
+    """Test that all three tiers (io, cpu, cpu-heavy) are scheduled
+    concurrently rather than sequentially.
+
+    Note: mock backends use time.sleep, so this verifies scheduling overlap
+    across the three tiers, not GIL-bound CPU behavior.
+    """
     io_delay = 0.4
     cpu_delay = 0.1
     heavy_delay = 0.6
