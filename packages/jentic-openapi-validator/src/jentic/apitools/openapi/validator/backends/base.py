@@ -43,7 +43,9 @@ class BaseValidatorBackend(ABC):
           Run sequentially in the main thread to avoid GIL contention and
           cache thrashing.
         - ``"io"``: Backends that release the GIL during subprocess or network
-          waits. Run in parallel via ``ThreadPoolExecutor``.
+          waits. Run in parallel via ``ThreadPoolExecutor``. Backends in this
+          tier must ensure their ``validate()`` is thread-safe (no unsynchronized
+          mutation of shared instance state).
         - ``"cpu-heavy"``: Long-running pure-Python backends (tens of seconds
           or more). Run in separate processes via ``ProcessPoolExecutor`` with
           the ``spawn`` start method to achieve true multi-core parallelism
