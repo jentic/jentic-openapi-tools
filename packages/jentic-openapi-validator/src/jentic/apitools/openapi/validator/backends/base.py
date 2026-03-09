@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 
 if TYPE_CHECKING:
@@ -34,7 +34,7 @@ class BaseValidatorBackend(ABC):
         ...
 
     @staticmethod
-    def execution_type() -> str:
+    def execution_type() -> Literal["cpu", "io", "cpu-heavy"]:
         """Return the execution characteristic of this backend.
 
         Used by the orchestrator to schedule backends optimally in three tiers:

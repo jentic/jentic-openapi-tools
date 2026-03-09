@@ -1,6 +1,7 @@
 import importlib.metadata
 import json
 import multiprocessing
+import os
 import warnings
 from collections.abc import Sequence
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
@@ -89,6 +90,7 @@ class OpenAPIValidator:
         target: str | None = None,
         parallel: bool = False,
         max_workers: int | None = None,
+        max_process_workers: int | None = None,
     ) -> ValidationResult:
         """
         Validate an OpenAPI document using all configured backends.
@@ -114,8 +116,11 @@ class OpenAPIValidator:
                 All three tiers execute simultaneously. Defaults to False.
             max_workers: Maximum number of worker threads for I/O-bound backends.
                 If None, defaults to the ThreadPoolExecutor default.
-                Only used when parallel=True. The process pool for cpu-heavy
-                backends sizes itself to the number of cpu-heavy backends.
+                Only used when parallel=True.
+            max_process_workers: Maximum number of worker processes for
+                cpu-heavy backends. If None, defaults to
+                ``min(num_cpu_heavy_backends, os.cpu_count())``.
+                Only used when parallel=True.
 
         Returns:
             ValidationResult containing aggregated diagnostics from all backends.
@@ -166,9 +171,24 @@ class OpenAPIValidator:
             # - "io": release the GIL (subprocess/network) → ThreadPoolExecutor
             # - "cpu": fast pure Python → sequential in main thread
             # - "cpu-heavy": long-running pure Python → ProcessPoolExecutor (spawn)
-            io_backends = [b for b in self.backends if b.execution_type() == "io"]
-            cpu_backends = [b for b in self.backends if b.execution_type() == "cpu"]
-            cpu_heavy_backends = [b for b in self.backends if b.execution_type() == "cpu-heavy"]
+            io_backends: list[BaseValidatorBackend] = []
+            cpu_backends: list[BaseValidatorBackend] = []
+            cpu_heavy_backends: list[BaseValidatorBackend] = []
+            for b in self.backends:
+                et = b.execution_type()
+                if et == "io":
+                    io_backends.append(b)
+                elif et == "cpu":
+                    cpu_backends.append(b)
+                elif et == "cpu-heavy":
+                    cpu_heavy_backends.append(b)
+                else:
+                    warnings.warn(
+                        f"Unknown execution_type() {et!r} for backend {type(b).__name__}; "
+                        f"treating it as 'cpu'. Expected one of 'io', 'cpu', 'cpu-heavy'.",
+                        RuntimeWarning,
+                    )
+                    cpu_backends.append(b)
 
             if io_backends or cpu_heavy_backends:
                 with ExitStack() as stack:
@@ -184,9 +204,12 @@ class OpenAPIValidator:
                         )
 
                     if cpu_heavy_backends:
+                        process_workers = max_process_workers or min(
+                            len(cpu_heavy_backends), os.cpu_count() or 1
+                        )
                         process_exec = stack.enter_context(
                             ProcessPoolExecutor(
-                                max_workers=len(cpu_heavy_backends),
+                                max_workers=process_workers,
                                 mp_context=multiprocessing.get_context("spawn"),
                             )
                         )
