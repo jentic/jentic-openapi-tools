@@ -4,6 +4,7 @@ import multiprocessing
 import textwrap
 import time
 from collections.abc import Sequence
+from typing import Literal
 from unittest.mock import patch
 
 import pytest
@@ -37,7 +38,7 @@ class SlowMockIOBackend(SlowMockBackend):
     """Mock I/O-bound backend (simulates subprocess-based validators)."""
 
     @staticmethod
-    def execution_type() -> str:
+    def execution_type() -> Literal["cpu", "io", "cpu-heavy"]:
         return "io"
 
 
@@ -48,7 +49,7 @@ class SlowMockCPUHeavyBackend(SlowMockBackend):
     """
 
     @staticmethod
-    def execution_type() -> str:
+    def execution_type() -> Literal["cpu", "io", "cpu-heavy"]:
         return "cpu-heavy"
 
 
@@ -72,7 +73,7 @@ class MockIOBackendWithDiagnostics(MockBackendWithDiagnostics):
     """Mock I/O-bound backend that returns specific diagnostics."""
 
     @staticmethod
-    def execution_type() -> str:
+    def execution_type() -> Literal["cpu", "io", "cpu-heavy"]:
         return "io"
 
 
@@ -83,7 +84,7 @@ class MockCPUHeavyBackendWithDiagnostics(MockBackendWithDiagnostics):
     """
 
     @staticmethod
-    def execution_type() -> str:
+    def execution_type() -> Literal["cpu", "io", "cpu-heavy"]:
         return "cpu-heavy"
 
 
@@ -574,7 +575,11 @@ def test_cpu_heavy_backends_use_process_pool(valid_openapi_dict, use_fork_for_pr
         result = validator.validate(valid_openapi_dict, parallel=True)
 
     assert result.valid
-    assert ppe_init_kwargs.get("max_workers") == 2
+    # max_workers should be bounded: min(num_backends, cpu_count)
+    import os
+
+    expected_workers = min(2, os.cpu_count() or 1)
+    assert ppe_init_kwargs.get("max_workers") == expected_workers
     assert ppe_init_kwargs.get("mp_context") is not None
     # Verify the orchestrator requested "spawn" context (patched to fork for testability)
     use_fork_for_process_pool.assert_called_once_with("spawn")
