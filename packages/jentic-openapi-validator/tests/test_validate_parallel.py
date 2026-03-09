@@ -97,9 +97,14 @@ def use_fork_for_process_pool():
     non-installed test modules, so the spawned process fails to import them.
     Using fork context shares memory with the parent, avoiding the import issue.
 
+    Skips the test on platforms where fork is not available (e.g. Windows).
+
     Yields the mock so tests can assert get_context was called with "spawn".
     """
-    fork_context = multiprocessing.get_context("fork")
+    try:
+        fork_context = multiprocessing.get_context("fork")
+    except ValueError:
+        pytest.skip("fork start method not available on this platform")
     with patch(
         "jentic.apitools.openapi.validator.core.openapi_validator.multiprocessing.get_context",
         return_value=fork_context,
@@ -114,9 +119,9 @@ def test_parallel_false_runs_sequentially(valid_openapi_dict):
 
     validator = OpenAPIValidator(backends=[backend1, backend2])
 
-    start_time = time.time()
+    start_time = time.monotonic()
     result = validator.validate(valid_openapi_dict, parallel=False)
-    elapsed = time.time() - start_time
+    elapsed = time.monotonic() - start_time
 
     assert result.valid
     assert backend1.call_count == 1
@@ -134,17 +139,17 @@ def test_parallel_true_runs_io_backends_concurrently(valid_openapi_dict):
     validator_seq = OpenAPIValidator(
         backends=[SlowMockIOBackend(delay=delay), SlowMockIOBackend(delay=delay)]
     )
-    start_time = time.time()
+    start_time = time.monotonic()
     result_seq = validator_seq.validate(valid_openapi_dict, parallel=False)
-    sequential_time = time.time() - start_time
+    sequential_time = time.monotonic() - start_time
 
     # Run parallel — I/O backends go into ThreadPoolExecutor
     validator_par = OpenAPIValidator(
         backends=[SlowMockIOBackend(delay=delay), SlowMockIOBackend(delay=delay)]
     )
-    start_time = time.time()
+    start_time = time.monotonic()
     result_par = validator_par.validate(valid_openapi_dict, parallel=True)
-    parallel_time = time.time() - start_time
+    parallel_time = time.monotonic() - start_time
 
     assert result_seq.valid
     assert result_par.valid
@@ -211,20 +216,20 @@ def test_parallel_with_max_workers(valid_openapi_dict):
         SlowMockIOBackend(delay=delay, name=f"backend{i}") for i in range(num_backends)
     ]
     validator_seq = OpenAPIValidator(backends=backends_seq)
-    start_time = time.time()
+    start_time = time.monotonic()
     result_seq = validator_seq.validate(valid_openapi_dict, parallel=False)
-    sequential_time = time.time() - start_time
+    sequential_time = time.monotonic() - start_time
 
     # Run parallel with max_workers=2
     backends_par: list[BaseValidatorBackend] = [
         SlowMockIOBackend(delay=delay, name=f"backend{i}") for i in range(num_backends)
     ]
     validator_par = OpenAPIValidator(backends=backends_par)
-    start_time = time.time()
+    start_time = time.monotonic()
     # With max_workers=2, should process 4 I/O backends with 2 at a time
     # This means 2 batches of 0.2s each = ~0.4s total
     result_par = validator_par.validate(valid_openapi_dict, parallel=True, max_workers=2)
-    parallel_time = time.time() - start_time
+    parallel_time = time.monotonic() - start_time
 
     assert result_seq.valid
     assert result_par.valid
@@ -245,9 +250,9 @@ def test_default_parallel_is_false(valid_openapi_dict):
 
     validator = OpenAPIValidator(backends=[backend1, backend2])
 
-    start_time = time.time()
+    start_time = time.monotonic()
     result = validator.validate(valid_openapi_dict)  # No parallel argument
-    elapsed = time.time() - start_time
+    elapsed = time.monotonic() - start_time
 
     assert result.valid
     # Default is sequential, so should take at least 0.1s
@@ -263,17 +268,17 @@ def test_parallel_with_string_document(valid_openapi_string):
     validator_seq = OpenAPIValidator(
         backends=[SlowMockIOBackend(delay=delay), SlowMockIOBackend(delay=delay)]
     )
-    start_time = time.time()
+    start_time = time.monotonic()
     result_seq = validator_seq.validate(valid_openapi_string, parallel=False)
-    sequential_time = time.time() - start_time
+    sequential_time = time.monotonic() - start_time
 
     # Run parallel
     validator_par = OpenAPIValidator(
         backends=[SlowMockIOBackend(delay=delay), SlowMockIOBackend(delay=delay)]
     )
-    start_time = time.time()
+    start_time = time.monotonic()
     result_par = validator_par.validate(valid_openapi_string, parallel=True)
-    parallel_time = time.time() - start_time
+    parallel_time = time.monotonic() - start_time
 
     assert result_seq.valid
     assert result_par.valid
@@ -431,9 +436,9 @@ def test_cpu_backends_run_sequentially_when_parallel(valid_openapi_dict):
 
     validator = OpenAPIValidator(backends=[backend1, backend2])
 
-    start_time = time.time()
+    start_time = time.monotonic()
     result = validator.validate(valid_openapi_dict, parallel=True)
-    elapsed = time.time() - start_time
+    elapsed = time.monotonic() - start_time
 
     assert result.valid
     # CPU backends run sequentially: should take at least 2 × delay
@@ -454,9 +459,9 @@ def test_mixed_backends_concurrent_execution(valid_openapi_dict):
 
     validator = OpenAPIValidator(backends=[io_backend, cpu_backend1, cpu_backend2])
 
-    start_time = time.time()
+    start_time = time.monotonic()
     result = validator.validate(valid_openapi_dict, parallel=True)
-    elapsed = time.time() - start_time
+    elapsed = time.monotonic() - start_time
 
     assert result.valid
     # I/O backend (0.3s) runs in a thread while CPU backends (0.1+0.1=0.2s)
@@ -587,7 +592,7 @@ def test_cpu_heavy_backends_use_process_pool(valid_openapi_dict, use_fork_for_pr
 
 def test_cpu_heavy_backends_run_concurrently(valid_openapi_dict, use_fork_for_process_pool):
     """Test that cpu-heavy backends achieve true parallelism via ProcessPoolExecutor."""
-    delay = 1.5
+    delay = 0.5
 
     # Sequential baseline
     validator_seq = OpenAPIValidator(
@@ -596,9 +601,9 @@ def test_cpu_heavy_backends_run_concurrently(valid_openapi_dict, use_fork_for_pr
             SlowMockCPUHeavyBackend(delay=delay),
         ]
     )
-    start_time = time.time()
+    start_time = time.monotonic()
     result_seq = validator_seq.validate(valid_openapi_dict, parallel=False)
-    sequential_time = time.time() - start_time
+    sequential_time = time.monotonic() - start_time
 
     # Parallel execution — cpu-heavy backends go into ProcessPoolExecutor
     validator_par = OpenAPIValidator(
@@ -607,14 +612,14 @@ def test_cpu_heavy_backends_run_concurrently(valid_openapi_dict, use_fork_for_pr
             SlowMockCPUHeavyBackend(delay=delay),
         ]
     )
-    start_time = time.time()
+    start_time = time.monotonic()
     result_par = validator_par.validate(valid_openapi_dict, parallel=True)
-    parallel_time = time.time() - start_time
+    parallel_time = time.monotonic() - start_time
 
     assert result_seq.valid
     assert result_par.valid
-    # Sequential: ~3.0s (2 × 1.5s). Parallel: ~1.5s + spawn overhead (~1-2s).
-    # Parallel should still be faster than sequential.
+    # Sequential: ~1.0s (2 × 0.5s). Parallel: ~0.5s + fork overhead.
+    # Parallel should be faster than sequential.
     assert parallel_time < sequential_time * 0.9, (
         f"Parallel cpu-heavy ({parallel_time:.2f}s) should be faster than "
         f"sequential ({sequential_time:.2f}s)"
@@ -623,9 +628,9 @@ def test_cpu_heavy_backends_run_concurrently(valid_openapi_dict, use_fork_for_pr
 
 def test_three_tier_mixed_execution(valid_openapi_dict, use_fork_for_process_pool):
     """Test that all three tiers (io, cpu, cpu-heavy) execute simultaneously."""
-    io_delay = 1.0
-    cpu_delay = 0.2
-    heavy_delay = 2.0
+    io_delay = 0.4
+    cpu_delay = 0.1
+    heavy_delay = 0.6
 
     # Sequential baseline
     validator_seq = OpenAPIValidator(
@@ -635,9 +640,9 @@ def test_three_tier_mixed_execution(valid_openapi_dict, use_fork_for_process_poo
             SlowMockCPUHeavyBackend(delay=heavy_delay, name="heavy1"),
         ]
     )
-    start_time = time.time()
+    start_time = time.monotonic()
     result_seq = validator_seq.validate(valid_openapi_dict, parallel=False)
-    sequential_time = time.time() - start_time
+    sequential_time = time.monotonic() - start_time
 
     # Parallel — all three tiers execute simultaneously
     validator_par = OpenAPIValidator(
@@ -647,14 +652,14 @@ def test_three_tier_mixed_execution(valid_openapi_dict, use_fork_for_process_poo
             SlowMockCPUHeavyBackend(delay=heavy_delay, name="heavy1"),
         ]
     )
-    start_time = time.time()
+    start_time = time.monotonic()
     result_par = validator_par.validate(valid_openapi_dict, parallel=True)
-    parallel_time = time.time() - start_time
+    parallel_time = time.monotonic() - start_time
 
     assert result_seq.valid
     assert result_par.valid
-    # Sequential: io + cpu + heavy = 1.0 + 0.2 + 2.0 = 3.2s
-    # Parallel: max(io, cpu, heavy + spawn) ≈ 2.0 + spawn_overhead
+    # Sequential: io + cpu + heavy = 0.4 + 0.1 + 0.6 = 1.1s
+    # Parallel: max(io, cpu, heavy + fork_overhead) ≈ 0.6 + overhead
     # Parallel should be noticeably faster than sequential
     assert parallel_time < sequential_time * 0.9, (
         f"Three-tier parallel ({parallel_time:.2f}s) should be faster than "
