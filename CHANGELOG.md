@@ -2,6 +2,38 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.45 (2026-03-09)
+
+### Documentation
+
+- **tests**: Clarify cpu-heavy timing tests verify scheduling not GIL behavior
+  ([`1ac16b8`](https://github.com/jentic/jentic-openapi-tools/commit/1ac16b870fe7adee4ac801ef8a74657a5f8347c2))
+
+### Features
+
+- **validator**: Add cpu-heavy execution tier for long-running backends
+  ([`41f1e43`](https://github.com/jentic/jentic-openapi-tools/commit/41f1e43b781d2336cc9d3f1e8c8de6ee1bf9c12c))
+
+- **validator**: Bound process pool workers and add max_process_workers param
+  ([`f4227f3`](https://github.com/jentic/jentic-openapi-tools/commit/f4227f305bd982af16aa6cdb83f059f6b8eb88cc))
+
+- **validator**: Optimize parallel execution with GIL-aware backend scheduling
+  ([`5b8968c`](https://github.com/jentic/jentic-openapi-tools/commit/5b8968c40bd41720d6bfdb1e324100223213975a))
+
+### Refactoring
+
+- **traverse**: Optimize MergedVisitor with method caching and negative lookup cache
+  ([`c4a26e8`](https://github.com/jentic/jentic-openapi-tools/commit/c4a26e8a75a3e44f5448b4fa64718339cd4da700))
+
+### Testing
+
+- **validator**: Replace fork context with thread-based executor in tests
+  ([`119834d`](https://github.com/jentic/jentic-openapi-tools/commit/119834da8b938509548f8e0b38a03db9bdc387b1))
+
+- **validator**: Use monotonic clock and reduce timing test delays
+  ([`fdd70a0`](https://github.com/jentic/jentic-openapi-tools/commit/fdd70a0f79abd17454b01fafe083a63d7a468fab))
+
+
 ## v1.0.0-alpha.44 (2026-03-02)
 
 ### Features
