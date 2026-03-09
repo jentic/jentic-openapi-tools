@@ -128,7 +128,15 @@ class OpenAPIValidator:
 
         Raises:
             TypeError: If document is not a str or dict
+            ValueError: If max_workers or max_process_workers is not a
+                positive integer
         """
+        if max_workers is not None and max_workers < 1:
+            raise ValueError(f"max_workers must be a positive integer, got {max_workers}")
+        if max_process_workers is not None and max_process_workers < 1:
+            raise ValueError(
+                f"max_process_workers must be a positive integer, got {max_process_workers}"
+            )
 
         document_is_uri: bool = False
         document_text: str = ""
@@ -204,8 +212,10 @@ class OpenAPIValidator:
                         )
 
                     if cpu_heavy_backends:
-                        process_workers = max_process_workers or min(
-                            len(cpu_heavy_backends), os.cpu_count() or 1
+                        process_workers = (
+                            max_process_workers
+                            if max_process_workers is not None
+                            else min(len(cpu_heavy_backends), os.cpu_count() or 1)
                         )
                         process_exec = stack.enter_context(
                             ProcessPoolExecutor(
@@ -293,8 +303,11 @@ def _validate_single_backend(
 
     Note:
         This function may be called from multiple threads concurrently
-        (via ThreadPoolExecutor for I/O backends). Backends must not mutate
-        the shared ``document_dict``; treat all document arguments as read-only.
+        (via ThreadPoolExecutor for I/O backends). All document arguments
+        are shared across threads and must be treated as read-only.
+        Backends returning ``execution_type() == "io"`` must also ensure
+        their own ``validate()`` implementation is thread-safe (i.e. does
+        not mutate shared instance state without synchronization).
 
     Args:
         backend: The validator backend to use
