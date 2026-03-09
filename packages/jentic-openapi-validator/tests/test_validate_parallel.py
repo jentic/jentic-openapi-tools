@@ -1,9 +1,9 @@
 """Tests for parallel validation execution."""
 
-import multiprocessing
 import textwrap
 import time
 from collections.abc import Sequence
+from concurrent.futures import ThreadPoolExecutor
 from typing import Literal
 from unittest.mock import patch
 
@@ -88,27 +88,45 @@ class MockCPUHeavyBackendWithDiagnostics(MockBackendWithDiagnostics):
         return "cpu-heavy"
 
 
-@pytest.fixture
-def use_fork_for_process_pool():
-    """Patch multiprocessing.get_context in the orchestrator to return fork context.
+class _ThreadPoolAsProcessPool(ThreadPoolExecutor):
+    """Drop-in replacement for ProcessPoolExecutor that uses threads.
 
-    ProcessPoolExecutor with spawn context requires child processes to import the
-    backend class for unpickling. Test-defined mock backend classes live in
-    non-installed test modules, so the spawned process fails to import them.
-    Using fork context shares memory with the parent, avoiding the import issue.
-
-    Skips the test on platforms where fork is not available (e.g. Windows).
-
-    Yields the mock so tests can assert get_context was called with "spawn".
+    Accepts and ignores ``mp_context`` so the orchestrator's
+    ``ProcessPoolExecutor(max_workers=..., mp_context=...)`` call works
+    without modification.
     """
-    try:
-        fork_context = multiprocessing.get_context("fork")
-    except ValueError:
-        pytest.skip("fork start method not available on this platform")
-    with patch(
-        "jentic.apitools.openapi.validator.core.openapi_validator.multiprocessing.get_context",
-        return_value=fork_context,
-    ) as mock_get_context:
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop("mp_context", None)
+        super().__init__(*args, **kwargs)
+
+
+@pytest.fixture
+def process_pool_as_thread_pool():
+    """Replace ProcessPoolExecutor with a thread-based executor in the orchestrator.
+
+    ProcessPoolExecutor with spawn requires child processes to import the
+    backend class for unpickling. Test-defined mock classes live in
+    non-installed test modules, so spawned processes can't import them.
+    Using fork context would risk deadlocks when a ThreadPoolExecutor is
+    also active (multi-threaded fork).
+
+    Substituting a thread-based executor avoids both issues while
+    preserving the same concurrent.futures.Executor interface. The mock
+    backends use time.sleep (GIL-releasing), so concurrency is identical.
+
+    Also patches multiprocessing.get_context so the orchestrator's call
+    to get_context("spawn") is captured without side effects.
+    """
+    with (
+        patch(
+            "jentic.apitools.openapi.validator.core.openapi_validator.ProcessPoolExecutor",
+            _ThreadPoolAsProcessPool,
+        ),
+        patch(
+            "jentic.apitools.openapi.validator.core.openapi_validator.multiprocessing.get_context",
+        ) as mock_get_context,
+    ):
         yield mock_get_context
 
 
@@ -554,43 +572,47 @@ def test_all_cpu_backends_no_process_pool(valid_openapi_dict):
     mock_process_exec.assert_not_called()
 
 
-def test_cpu_heavy_backends_use_process_pool(valid_openapi_dict, use_fork_for_process_pool):
-    """Test that cpu-heavy backends are dispatched to ProcessPoolExecutor."""
+def test_cpu_heavy_backends_use_process_pool(valid_openapi_dict):
+    """Test that cpu-heavy backends are dispatched to ProcessPoolExecutor
+    with the correct configuration (spawn context, bounded workers)."""
+    import os
+
     heavy1 = SlowMockCPUHeavyBackend(delay=0.05, name="heavy1")
     heavy2 = SlowMockCPUHeavyBackend(delay=0.05, name="heavy2")
 
     validator = OpenAPIValidator(backends=[heavy1, heavy2])
 
-    # Verify ProcessPoolExecutor is created with correct kwargs
-    original_ppe = __import__(
-        "concurrent.futures", fromlist=["ProcessPoolExecutor"]
-    ).ProcessPoolExecutor
-
+    # Spy on ThreadPoolExecutor (standing in for ProcessPoolExecutor) to
+    # capture the kwargs the orchestrator passes.
     ppe_init_kwargs = {}
 
-    class SpyProcessPoolExecutor(original_ppe):
+    class SpyThreadPoolExecutor(ThreadPoolExecutor):
         def __init__(self, *args, **kwargs):
+            # Drop mp_context which ThreadPoolExecutor doesn't accept
+            kwargs.pop("mp_context", None)
             ppe_init_kwargs.update(kwargs)
             super().__init__(*args, **kwargs)
 
-    with patch(
-        "jentic.apitools.openapi.validator.core.openapi_validator.ProcessPoolExecutor",
-        SpyProcessPoolExecutor,
+    with (
+        patch(
+            "jentic.apitools.openapi.validator.core.openapi_validator.ProcessPoolExecutor",
+            SpyThreadPoolExecutor,
+        ),
+        patch(
+            "jentic.apitools.openapi.validator.core.openapi_validator.multiprocessing.get_context",
+        ) as mock_get_context,
     ):
         result = validator.validate(valid_openapi_dict, parallel=True)
 
     assert result.valid
     # max_workers should be bounded: min(num_backends, cpu_count)
-    import os
-
     expected_workers = min(2, os.cpu_count() or 1)
     assert ppe_init_kwargs.get("max_workers") == expected_workers
-    assert ppe_init_kwargs.get("mp_context") is not None
-    # Verify the orchestrator requested "spawn" context (patched to fork for testability)
-    use_fork_for_process_pool.assert_called_once_with("spawn")
+    # Verify the orchestrator requested "spawn" context
+    mock_get_context.assert_called_once_with("spawn")
 
 
-def test_cpu_heavy_backends_run_concurrently(valid_openapi_dict, use_fork_for_process_pool):
+def test_cpu_heavy_backends_run_concurrently(valid_openapi_dict, process_pool_as_thread_pool):
     """Test that cpu-heavy backends are dispatched to ProcessPoolExecutor and
     run concurrently rather than sequentially.
 
@@ -634,7 +656,7 @@ def test_cpu_heavy_backends_run_concurrently(valid_openapi_dict, use_fork_for_pr
     )
 
 
-def test_three_tier_mixed_execution(valid_openapi_dict, use_fork_for_process_pool):
+def test_three_tier_mixed_execution(valid_openapi_dict, process_pool_as_thread_pool):
     """Test that all three tiers (io, cpu, cpu-heavy) are scheduled
     concurrently rather than sequentially.
 
@@ -680,7 +702,7 @@ def test_three_tier_mixed_execution(valid_openapi_dict, use_fork_for_process_poo
     )
 
 
-def test_three_tier_aggregates_all_diagnostics(valid_openapi_dict, use_fork_for_process_pool):
+def test_three_tier_aggregates_all_diagnostics(valid_openapi_dict, process_pool_as_thread_pool):
     """Test that diagnostics from all three tiers are aggregated correctly."""
     from lsprotocol import types as lsp
 
