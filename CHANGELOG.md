@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.46 (2026-03-10)
+
+### Chores
+
+- **deps-dev**: Bump ruff from 0.15.4 to 0.15.5
+  ([#229](https://github.com/jentic/jentic-openapi-tools/pull/229),
+  [`0ac8dcd`](https://github.com/jentic/jentic-openapi-tools/commit/0ac8dcdd95e0400ba6091968e73d9848b1df0b3c))
+
+### Features
+
+- Integrate with SpecLynx ApiDOM v3
+  ([#231](https://github.com/jentic/jentic-openapi-tools/pull/231),
+  [`ac3f0c8`](https://github.com/jentic/jentic-openapi-tools/commit/ac3f0c895ba4e71b502879902ebbd771670ae8d7))
+
+
 ## v1.0.0-alpha.45 (2026-03-09)
 
 ### Documentation
