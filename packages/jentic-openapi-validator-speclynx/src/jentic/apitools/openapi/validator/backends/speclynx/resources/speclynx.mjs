@@ -53,13 +53,16 @@ function configureOptions(cliOptions) {
         })
     ];
 
+    const sourceMap = cliOptions.sourceMap !== false;
+    const strict = !sourceMap;
+
     options.parse.parsers = [
-        new OpenAPIJSON3_0Parser({allowEmpty: true, sourceMap: true, strict: false}),
-        new OpenAPIYAML3_0Parser({allowEmpty: true, sourceMap: true, strict: false}),
-        new OpenAPIJSON3_1Parser({allowEmpty: true, sourceMap: true, strict: false}),
-        new OpenAPIYAML3_1Parser({allowEmpty: true, sourceMap: true, strict: false}),
-        new JSONParser({allowEmpty: true, sourceMap: true, strict: false}),
-        new YAMLParser({allowEmpty: true, sourceMap: true, strict: false}),
+        new OpenAPIJSON3_0Parser({allowEmpty: true, sourceMap, strict}),
+        new OpenAPIYAML3_0Parser({allowEmpty: true, sourceMap, strict}),
+        new OpenAPIJSON3_1Parser({allowEmpty: true, sourceMap, strict}),
+        new OpenAPIYAML3_1Parser({allowEmpty: true, sourceMap, strict}),
+        new JSONParser({allowEmpty: true, sourceMap, strict}),
+        new YAMLParser({allowEmpty: true, sourceMap, strict}),
         new BinaryParser({allowEmpty: true})
     ];
 
@@ -199,6 +202,7 @@ program
     .option('--base-uri <uri>', 'base URI for resolving relative references')
     .option('--allowed-base-dir <path>', 'restrict file resolution to this directory')
     .option('--timeout <ms>', 'HTTP timeout in milliseconds', '5000')
+    .option('--no-source-map', 'disable source map tracking (enables strict parsing)')
     .action(async (document, cliOptions) => {
         try {
             const result = await validate(document, cliOptions);

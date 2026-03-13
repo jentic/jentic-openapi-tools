@@ -38,6 +38,7 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
         timeout: float = 600.0,
         allowed_base_dir: str | Path | None = None,
         plugins_dir: str | Path | None = None,
+        source_map: bool = True,
     ):
         """
         Initialize the SpeclynxValidatorBackend.
@@ -54,6 +55,8 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                 If None (default), only file extension validation is performed (no base directory
                 containment check). Extension validation ensures only .yaml, .yml, and .json files
                 are processed.
+            source_map: Enable source map tracking in the parser (default: True).
+                When disabled, strict parsing mode is enabled automatically.
             plugins_dir: Optional directory containing additional validation plugins (.mjs files).
                 Plugins are loaded automatically and used to validate the OpenAPI document.
                 When specified, custom plugins are merged with the built-in plugins (both are loaded).
@@ -71,6 +74,7 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
         self.timeout = timeout
         self.allowed_base_dir = allowed_base_dir
         self.plugins_dir = Path(plugins_dir) if plugins_dir else None
+        self.source_map = source_map
 
     @staticmethod
     def accepts() -> Sequence[Literal["uri", "dict"]]:
@@ -161,6 +165,8 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                     args.extend(["--plugins", str(self.plugins_dir)])
                 if self.allowed_base_dir:
                     args.extend(["--allowed-base-dir", str(self.allowed_base_dir)])
+                if not self.source_map:
+                    args.append("--no-source-map")
 
                 # npx with bundled tarball: pass absolute path so npm doesn't
                 # resolve the bare filename relative to its global prefix.

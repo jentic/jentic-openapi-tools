@@ -166,6 +166,16 @@ class TestSpeclynxValidatorIntegration:
             "order:no-prefix",
         ]
 
+    def test_validate_with_source_map_disabled(self, speclynx_validator_no_source_map):
+        """Test validation works with source maps disabled (strict parsing enabled)."""
+        document = {
+            "openapi": "3.0.0",
+            "info": {"title": "Test API", "version": "1.0.0"},
+            "paths": {},
+        }
+        result = speclynx_validator_no_source_map.validate(document)
+        assert result.valid is True
+
     def test_validate_empty_document_produces_error(self, speclynx_validator, tmp_path):
         """Test that empty documents produce validation errors.
 
@@ -222,6 +232,7 @@ class TestSpeclynxValidatorUnit:
         validator = SpeclynxValidatorBackend()
         assert validator.speclynx_path is None
         assert validator.timeout == 600.0
+        assert validator.source_map is True
 
     def test_initialization_with_custom_speclynx_path(self):
         """Test SpeclynxValidator with custom speclynx_path."""
@@ -247,6 +258,11 @@ class TestSpeclynxValidatorUnit:
         assert validator.timeout == 45.0
         assert validator.allowed_base_dir == str(tmp_path)
         assert validator.plugins_dir == plugins_path
+
+    def test_initialization_with_source_map_disabled(self):
+        """Test SpeclynxValidator with source_map disabled."""
+        validator = SpeclynxValidatorBackend(source_map=False)
+        assert validator.source_map is False
 
     def test_accepts_method(self):
         """Test the accepts method returns correct format identifiers."""

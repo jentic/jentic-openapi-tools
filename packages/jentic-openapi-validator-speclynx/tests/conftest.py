@@ -80,6 +80,12 @@ def speclynx_validator_with_ordered_plugins(ordered_plugins_dir: Path) -> Specly
     return SpeclynxValidatorBackend(plugins_dir=ordered_plugins_dir)
 
 
+@pytest.fixture
+def speclynx_validator_no_source_map() -> SpeclynxValidatorBackend:
+    """A SpeclynxValidatorBackend instance with source maps disabled."""
+    return SpeclynxValidatorBackend(source_map=False)
+
+
 def pytest_configure(config):
     """Configure pytest markers."""
     config.addinivalue_line(
