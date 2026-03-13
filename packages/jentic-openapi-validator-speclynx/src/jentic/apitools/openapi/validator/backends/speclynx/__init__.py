@@ -55,8 +55,6 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                 If None (default), only file extension validation is performed (no base directory
                 containment check). Extension validation ensures only .yaml, .yml, and .json files
                 are processed.
-            source_map: Enable source map tracking in the parser (default: True).
-                When disabled, strict parsing mode is enabled automatically.
             plugins_dir: Optional directory containing additional validation plugins (.mjs files).
                 Plugins are loaded automatically and used to validate the OpenAPI document.
                 When specified, custom plugins are merged with the built-in plugins (both are loaded).
@@ -69,6 +67,8 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                 - diagnostics: Array to collect validation diagnostics
                 - parseResult: The full ApiDOM parse result for accessing document metadata
                 See resources/plugins/example-plugin.mjs.sample for plugin format.
+            source_map: Enable source map tracking in the parser (default: True).
+                When disabled, strict parsing mode is enabled automatically.
         """
         self.speclynx_path = speclynx_path
         self.timeout = timeout
