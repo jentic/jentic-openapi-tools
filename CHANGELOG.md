@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.47 (2026-03-13)
+
+### Bug Fixes
+
+- **validator-speclynx**: Path.stop() in merged visitor no longer skips subsequent visitors for
+  current node ([#232](https://github.com/jentic/jentic-openapi-tools/pull/232),
+  [`cc89d7c`](https://github.com/jentic/jentic-openapi-tools/commit/cc89d7cbe53b603a445318eec991f8cb401a21bb))
+
+
 ## v1.0.0-alpha.46 (2026-03-10)
 
 ### Chores
