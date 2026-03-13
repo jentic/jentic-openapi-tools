@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.48 (2026-03-13)
+
+### Chores
+
+- **deps-dev**: Bump ruff from 0.15.5 to 0.15.6
+  ([#233](https://github.com/jentic/jentic-openapi-tools/pull/233),
+  [`6b55555`](https://github.com/jentic/jentic-openapi-tools/commit/6b55555fb7980ebd290e750e22fbfbec0e4c6287))
+
+### Features
+
+- **validator-speclynx**: Add support for disabling source maps
+  ([#234](https://github.com/jentic/jentic-openapi-tools/pull/234),
+  [`abba0ff`](https://github.com/jentic/jentic-openapi-tools/commit/abba0ff00fb810128ee0a9ecf8f3533195dec7b1))
+
+
 ## v1.0.0-alpha.47 (2026-03-13)
 
 ### Bug Fixes
