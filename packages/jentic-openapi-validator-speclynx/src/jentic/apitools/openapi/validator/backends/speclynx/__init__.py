@@ -38,6 +38,7 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
         timeout: float = 600.0,
         allowed_base_dir: str | Path | None = None,
         plugins_dir: str | Path | None = None,
+        source_map: bool = True,
     ):
         """
         Initialize the SpeclynxValidatorBackend.
@@ -66,11 +67,14 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                 - diagnostics: Array to collect validation diagnostics
                 - parseResult: The full ApiDOM parse result for accessing document metadata
                 See resources/plugins/example-plugin.mjs.sample for plugin format.
+            source_map: Enable source map tracking in the parser (default: True).
+                When disabled, strict parsing mode is enabled automatically.
         """
         self.speclynx_path = speclynx_path
         self.timeout = timeout
         self.allowed_base_dir = allowed_base_dir
         self.plugins_dir = Path(plugins_dir) if plugins_dir else None
+        self.source_map = source_map
 
     @staticmethod
     def accepts() -> Sequence[Literal["uri", "dict"]]:
@@ -161,6 +165,8 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                     args.extend(["--plugins", str(self.plugins_dir)])
                 if self.allowed_base_dir:
                     args.extend(["--allowed-base-dir", str(self.allowed_base_dir)])
+                if not self.source_map:
+                    args.append("--no-source-map")
 
                 # npx with bundled tarball: pass absolute path so npm doesn't
                 # resolve the bare filename relative to its global prefix.
