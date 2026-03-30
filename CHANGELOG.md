@@ -2,6 +2,30 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.49 (2026-03-30)
+
+### Bug Fixes
+
+- **security**: Update requests to v2.33.0
+  ([`67007e0`](https://github.com/jentic/jentic-openapi-tools/commit/67007e0dc6806b8c2bcbd58241f7997cd386ad84))
+
+### Chores
+
+- **deps**: Regenerate package-lock.json
+  ([`e51485b`](https://github.com/jentic/jentic-openapi-tools/commit/e51485b783c80f7eabc7ade00f24ae5080f97064))
+
+- **deps-dev**: Bump ruff from 0.15.6 to 0.15.7
+  ([#235](https://github.com/jentic/jentic-openapi-tools/pull/235),
+  [`f468b7a`](https://github.com/jentic/jentic-openapi-tools/commit/f468b7aa918fab03c4bcf00bb50d0556a11bb61b))
+
+- **deps-dev**: Bump ruff from 0.15.7 to 0.15.8
+  ([#236](https://github.com/jentic/jentic-openapi-tools/pull/236),
+  [`78a5776`](https://github.com/jentic/jentic-openapi-tools/commit/78a57767242690f23995308c7f55409033df7017))
+
+- **deps-dev**: Fix security issues in transitive deps
+  ([`36c6cb2`](https://github.com/jentic/jentic-openapi-tools/commit/36c6cb23ac7cdfddb88033219fa80bcb732b3463))
+
+
 ## v1.0.0-alpha.48 (2026-03-13)
 
 ### Chores
