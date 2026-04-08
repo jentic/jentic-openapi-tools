@@ -57,6 +57,7 @@ def sync_versions(root_dir: Path, new_version: str) -> None:
         "jentic-openapi-validator",
         "jentic-openapi-validator-redocly",
         "jentic-openapi-validator-spectral",
+        "jentic-openapi-validator-speclynx",
     ]
 
     # Update root pyproject.toml (both version and dependencies)
