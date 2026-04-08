@@ -2,6 +2,41 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.50 (2026-04-08)
+
+### Bug Fixes
+
+- **validator**: Address PR review feedback
+  ([`f7ff2c1`](https://github.com/jentic/jentic-openapi-tools/commit/f7ff2c165b2695897818b646bbf7948dbdf56a2f))
+
+### Chores
+
+- **deps**: Bump pygments from 2.19.2 to 2.20.0
+  ([#237](https://github.com/jentic/jentic-openapi-tools/pull/237),
+  [`d2150ed`](https://github.com/jentic/jentic-openapi-tools/commit/d2150ed215648c8ca2f72192d5cb9e1136a79df6))
+
+- **deps-dev**: Bump poethepoet from 0.42.1 to 0.43.0
+  ([#239](https://github.com/jentic/jentic-openapi-tools/pull/239),
+  [`af9c1f0`](https://github.com/jentic/jentic-openapi-tools/commit/af9c1f015bc928103684574d980418539f4d0dc6))
+
+- **deps-dev**: Bump ruff from 0.15.8 to 0.15.9
+  ([#238](https://github.com/jentic/jentic-openapi-tools/pull/238),
+  [`54ec0f0`](https://github.com/jentic/jentic-openapi-tools/commit/54ec0f0973c15859058ca2aac76f0002ffd48174))
+
+### Features
+
+- **validator**: Add -o/--output option to write results to file
+  ([`84171e1`](https://github.com/jentic/jentic-openapi-tools/commit/84171e1c9f41ce7407a1c7077440c80070ecd775))
+
+- **validator**: Add openapi-validate CLI
+  ([`72ef10a`](https://github.com/jentic/jentic-openapi-tools/commit/72ef10ad1eb42f10dc2c0d7a21dfdb4715fcfc8b))
+
+### Refactoring
+
+- **validator**: Restructure CLI with subcommands and update docs
+  ([`b4a33bd`](https://github.com/jentic/jentic-openapi-tools/commit/b4a33bda3c975cef5db4e2cdf8df7fe357f82213))
+
+
 ## v1.0.0-alpha.49 (2026-03-30)
 
 ### Bug Fixes
