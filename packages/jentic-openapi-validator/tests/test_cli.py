@@ -1,4 +1,4 @@
-"""Tests for the openapi-validate CLI."""
+"""Tests for the jentic-openapi-tools CLI."""
 
 from __future__ import annotations
 
@@ -48,42 +48,61 @@ def invalid_spec_file(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# Top-level parser
+# ---------------------------------------------------------------------------
+
+
+class TestTopLevel:
+    def test_no_subcommand_prints_help_and_exits_two(self, capsys):
+        exit_code = main([])
+        assert exit_code == 2
+        output = capsys.readouterr().out
+        assert "validate" in output
+
+    def test_version_flag(self):
+        with pytest.raises(SystemExit, match="0"):
+            main(["--version"])
+
+
+# ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------
 
 
 class TestBuildParser:
     def test_document_positional(self):
-        args = build_parser().parse_args(["spec.yaml"])
+        args = build_parser().parse_args(["validate", "spec.yaml"])
         assert args.document == "spec.yaml"
 
     def test_backend_single(self):
-        args = build_parser().parse_args(["-b", "spectral", "spec.yaml"])
+        args = build_parser().parse_args(["validate", "-b", "spectral", "spec.yaml"])
         assert args.backend == ["spectral"]
 
     def test_backend_multiple(self):
-        args = build_parser().parse_args(["-b", "spectral", "-b", "redocly", "spec.yaml"])
+        args = build_parser().parse_args(
+            ["validate", "-b", "spectral", "-b", "redocly", "spec.yaml"]
+        )
         assert args.backend == ["spectral", "redocly"]
 
     def test_format_choices(self):
         for fmt in ("text", "json", "github"):
-            args = build_parser().parse_args(["--format", fmt, "spec.yaml"])
+            args = build_parser().parse_args(["validate", "--format", fmt, "spec.yaml"])
             assert args.format == fmt
 
     def test_parallel_flag(self):
-        args = build_parser().parse_args(["--parallel", "spec.yaml"])
+        args = build_parser().parse_args(["validate", "--parallel", "spec.yaml"])
         assert args.parallel is True
 
     def test_all_backends_flag(self):
-        args = build_parser().parse_args(["-a", "spec.yaml"])
+        args = build_parser().parse_args(["validate", "-a", "spec.yaml"])
         assert args.all_backends is True
 
     def test_all_backends_long_flag(self):
-        args = build_parser().parse_args(["--all-backends", "spec.yaml"])
+        args = build_parser().parse_args(["validate", "--all-backends", "spec.yaml"])
         assert args.all_backends is True
 
     def test_defaults(self):
-        args = build_parser().parse_args(["spec.yaml"])
+        args = build_parser().parse_args(["validate", "spec.yaml"])
         assert args.backend is None
         assert args.all_backends is False
         assert args.format == "text"
@@ -96,11 +115,13 @@ class TestBuildParser:
         assert args.max_process_workers is None
 
     def test_base_url(self):
-        args = build_parser().parse_args(["--base-url", "https://example.com", "spec.yaml"])
+        args = build_parser().parse_args(
+            ["validate", "--base-url", "https://example.com", "spec.yaml"]
+        )
         assert args.base_url == "https://example.com"
 
     def test_target(self):
-        args = build_parser().parse_args(["--target", "my-target", "spec.yaml"])
+        args = build_parser().parse_args(["validate", "--target", "my-target", "spec.yaml"])
         assert args.target == "my-target"
 
 
@@ -111,14 +132,14 @@ class TestBuildParser:
 
 class TestListBackends:
     def test_prints_and_exits_zero(self, capsys):
-        exit_code = main(["--list-backends"])
+        exit_code = main(["validate", "--list-backends"])
         assert exit_code == 0
         output = capsys.readouterr().out
         assert "default" in output
         assert "openapi-spec" in output
 
     def test_works_without_document(self, capsys):
-        exit_code = main(["--list-backends"])
+        exit_code = main(["validate", "--list-backends"])
         assert exit_code == 0
 
 
@@ -129,45 +150,53 @@ class TestListBackends:
 
 class TestValidation:
     def test_valid_document_exits_zero(self, valid_spec_file, capsys):
-        exit_code = main(["--no-color", str(valid_spec_file)])
+        exit_code = main(["validate", "--no-color", str(valid_spec_file)])
         assert exit_code == 0
         output = capsys.readouterr().out
         assert "no problems found" in output
 
     def test_invalid_document_exits_one(self, invalid_spec_file, capsys):
-        exit_code = main(["--no-color", str(invalid_spec_file)])
+        exit_code = main(["validate", "--no-color", str(invalid_spec_file)])
         assert exit_code == 1
         output = capsys.readouterr().out
         assert "error" in output.lower()
 
     def test_file_not_found_exits_two(self, capsys):
-        exit_code = main(["/nonexistent/path/spec.yaml"])
+        exit_code = main(["validate", "/nonexistent/path/spec.yaml"])
         assert exit_code == 2
         err = capsys.readouterr().err
         assert "file not found" in err
 
     def test_invalid_backend_exits_two(self, valid_spec_file, capsys):
-        exit_code = main(["-b", "nonexistent-backend", str(valid_spec_file)])
+        exit_code = main(["validate", "-b", "nonexistent-backend", str(valid_spec_file)])
         assert exit_code == 2
         err = capsys.readouterr().err
         assert "nonexistent-backend" in err
         assert "available backends" in err
 
     def test_comma_separated_backends(self, valid_spec_file, capsys):
-        exit_code = main(["-b", "default,openapi-spec", str(valid_spec_file)])
+        exit_code = main(["validate", "-b", "default,openapi-spec", str(valid_spec_file)])
         assert exit_code == 0
 
     def test_specific_backend(self, valid_spec_file, capsys):
-        exit_code = main(["-b", "openapi-spec", str(valid_spec_file)])
+        exit_code = main(["validate", "-b", "openapi-spec", str(valid_spec_file)])
         assert exit_code == 0
 
     def test_all_backends(self, valid_spec_file, capsys):
-        exit_code = main(["-a", "--no-color", str(valid_spec_file)])
+        exit_code = main(["validate", "-a", "--no-color", str(valid_spec_file)])
         assert exit_code == 0
 
-    def test_all_backends_mutually_exclusive_with_backend(self, valid_spec_file):
-        with pytest.raises(SystemExit, match="2"):
-            main(["-a", "-b", "default", str(valid_spec_file)])
+    def test_all_backends_mutually_exclusive_with_backend(self, valid_spec_file, capsys):
+        exit_code = main(["validate", "-a", "-b", "default", str(valid_spec_file)])
+        assert exit_code == 2
+        err = capsys.readouterr().err
+        assert "mutually exclusive" in err
+
+    def test_missing_document_exits_two(self, capsys):
+        exit_code = main(["validate"])
+        assert exit_code == 2
+        err = capsys.readouterr().err
+        assert "document" in err
 
 
 # ---------------------------------------------------------------------------
@@ -177,7 +206,7 @@ class TestValidation:
 
 class TestOutputFormats:
     def test_json_format_valid(self, valid_spec_file, capsys):
-        main(["--format", "json", str(valid_spec_file)])
+        main(["validate", "--format", "json", str(valid_spec_file)])
         output = json.loads(capsys.readouterr().out)
         assert output["valid"] is True
         assert isinstance(output["diagnostics"], list)
@@ -185,30 +214,30 @@ class TestOutputFormats:
         assert "total" in output["summary"]
 
     def test_json_format_invalid(self, invalid_spec_file, capsys):
-        main(["--format", "json", str(invalid_spec_file)])
+        main(["validate", "--format", "json", str(invalid_spec_file)])
         output = json.loads(capsys.readouterr().out)
         assert output["valid"] is False
         assert output["summary"]["errors"] > 0
 
     def test_github_format(self, invalid_spec_file, capsys):
-        main(["--format", "github", str(invalid_spec_file)])
+        main(["validate", "--format", "github", str(invalid_spec_file)])
         output = capsys.readouterr().out
         for line in output.strip().splitlines():
             assert line.startswith("::")
 
     def test_github_format_valid_no_output(self, valid_spec_file, capsys):
-        main(["--format", "github", str(valid_spec_file)])
+        main(["validate", "--format", "github", str(valid_spec_file)])
         output = capsys.readouterr().out
         assert output == ""
 
     def test_quiet_suppresses_output(self, invalid_spec_file, capsys):
-        exit_code = main(["--quiet", str(invalid_spec_file)])
+        exit_code = main(["validate", "--quiet", str(invalid_spec_file)])
         assert exit_code == 1
         captured = capsys.readouterr()
         assert captured.out == ""
 
     def test_text_format_shows_diagnostics(self, invalid_spec_file, capsys):
-        main(["--no-color", str(invalid_spec_file)])
+        main(["validate", "--no-color", str(invalid_spec_file)])
         output = capsys.readouterr().out
         assert "problem" in output
 
@@ -221,19 +250,19 @@ class TestOutputFormats:
 class TestStdin:
     def test_stdin_valid_document(self, capsys):
         with patch("sys.stdin", StringIO(json.dumps(VALID_SPEC))):
-            exit_code = main(["--no-color", "-"])
+            exit_code = main(["validate", "--no-color", "-"])
         assert exit_code == 0
         output = capsys.readouterr().out
         assert "<stdin>" in output
 
     def test_stdin_invalid_document(self, capsys):
         with patch("sys.stdin", StringIO(json.dumps(INVALID_SPEC))):
-            exit_code = main(["--no-color", "-"])
+            exit_code = main(["validate", "--no-color", "-"])
         assert exit_code == 1
 
 
 # ---------------------------------------------------------------------------
-# Entry point integration
+# Text format positions
 # ---------------------------------------------------------------------------
 
 
@@ -285,7 +314,7 @@ class TestHttpUrl:
         mock_result = ValidationResult(diagnostics=[])
         with patch("jentic.apitools.openapi.validator.cli.OpenAPIValidator") as mock_cls:
             mock_cls.return_value.validate.return_value = mock_result
-            exit_code = main(["--no-color", url])
+            exit_code = main(["validate", "--no-color", url])
 
         assert exit_code == 0
         mock_cls.return_value.validate.assert_called_once()
@@ -297,7 +326,7 @@ class TestHttpUrl:
         mock_result = ValidationResult(diagnostics=[])
         with patch("jentic.apitools.openapi.validator.cli.OpenAPIValidator") as mock_cls:
             mock_cls.return_value.validate.return_value = mock_result
-            exit_code = main(["--no-color", url])
+            exit_code = main(["validate", "--no-color", url])
 
         # Should not fail with "file not found"
         assert exit_code == 0
@@ -311,10 +340,12 @@ class TestHttpUrl:
 
 
 class TestArgumentOrdering:
-    def test_mutual_exclusivity_before_document_check(self):
+    def test_mutual_exclusivity_before_document_check(self, capsys):
         """--all-backends + --backend should error even without a document."""
-        with pytest.raises(SystemExit, match="2"):
-            main(["-a", "-b", "default"])
+        exit_code = main(["validate", "-a", "-b", "default"])
+        assert exit_code == 2
+        err = capsys.readouterr().err
+        assert "mutually exclusive" in err
 
 
 # ---------------------------------------------------------------------------
@@ -325,7 +356,13 @@ class TestArgumentOrdering:
 class TestEntryPoint:
     def test_module_invocation(self):
         result = subprocess.run(
-            [sys.executable, "-m", "jentic.apitools.openapi.validator.cli", "--list-backends"],
+            [
+                sys.executable,
+                "-m",
+                "jentic.apitools.openapi.validator.cli",
+                "validate",
+                "--list-backends",
+            ],
             capture_output=True,
             text=True,
             timeout=30,

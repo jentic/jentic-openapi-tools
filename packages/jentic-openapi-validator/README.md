@@ -34,7 +34,73 @@ For validation with Redocly:
 pip install jentic-openapi-validator-redocly
 ```
 
-## Quick Start
+## Command-Line Interface
+
+The package includes the `jentic-openapi-tools` CLI with a `validate` subcommand for validating OpenAPI documents directly from the terminal.
+
+### Basic Usage
+
+```bash
+# Validate a local file
+jentic-openapi-tools validate openapi.yaml
+
+# Validate a remote URL
+jentic-openapi-tools validate https://petstore3.swagger.io/api/v3/openapi.json
+
+# Validate from stdin
+cat openapi.yaml | jentic-openapi-tools validate -
+
+# Use a specific backend
+jentic-openapi-tools validate -b spectral openapi.yaml
+
+# Use multiple backends
+jentic-openapi-tools validate -b spectral -b redocly openapi.yaml
+
+# Use all installed backends
+jentic-openapi-tools validate -a openapi.yaml
+```
+
+### Output Formats
+
+The CLI supports three output formats selected with `-f`/`--format`:
+
+```bash
+# Human-readable text (default)
+jentic-openapi-tools validate openapi.yaml
+
+# Machine-readable JSON with LSP diagnostics
+jentic-openapi-tools validate -f json openapi.yaml
+
+# GitHub Actions workflow annotations
+jentic-openapi-tools validate -f github openapi.yaml
+```
+
+The text format outputs one line per diagnostic with severity, position, message, rule code, and source backend. JSON output includes full LSP diagnostic objects and a summary with counts by severity. GitHub format emits `::error`, `::warning`, and `::notice` annotations that render inline in pull request diffs.
+
+### Exit Codes
+
+The CLI uses three exit codes: 0 when the document is valid, 1 when validation errors are found, and 2 for usage or runtime errors (missing file, unknown backend, etc.). This makes it straightforward to use in CI pipelines and shell scripts.
+
+### Additional Options
+
+```bash
+# Run backends in parallel
+jentic-openapi-tools validate --parallel -b spectral -b redocly openapi.yaml
+
+# Suppress output, only set exit code
+jentic-openapi-tools validate --quiet openapi.yaml
+
+# Disable colored output (also respects NO_COLOR env var)
+jentic-openapi-tools validate --no-color openapi.yaml
+
+# List available backends
+jentic-openapi-tools validate --list-backends
+
+# Show version
+jentic-openapi-tools --version
+```
+
+## Python API
 
 ### Basic Validation
 

@@ -84,6 +84,23 @@ else:
         print(f"Error: {diagnostic.message}")
 ```
 
+### Command-Line Interface
+
+The `jentic-openapi-validator` package includes the `jentic-openapi-tools` CLI for validating OpenAPI documents directly from the terminal:
+
+```bash
+# Validate a local file
+jentic-openapi-tools validate openapi.yaml
+
+# Use a specific backend and get JSON output
+jentic-openapi-tools validate -b spectral -f json openapi.yaml
+
+# Validate a remote URL
+jentic-openapi-tools validate https://petstore3.swagger.io/api/v3/openapi.json
+```
+
+The CLI supports text, JSON, and GitHub Actions annotation output formats, stdin input, parallel multi-backend execution, and standard exit codes for CI integration. See the [jentic-openapi-validator README](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator) for the full CLI reference.
+
 ### Transforming OpenAPI Documents
 
 ```bash

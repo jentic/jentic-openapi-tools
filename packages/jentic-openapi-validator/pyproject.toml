@@ -18,7 +18,7 @@ spectral = ["jentic-openapi-validator-spectral~=1.0.0-alpha.49"]
 redocly = ["jentic-openapi-validator-redocly~=1.0.0-alpha.49"]
 
 [project.scripts]
-openapi-validate = "jentic.apitools.openapi.validator.cli:main"
+jentic-openapi-tools = "jentic.apitools.openapi.validator.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
