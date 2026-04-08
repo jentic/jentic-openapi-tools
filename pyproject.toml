@@ -16,7 +16,7 @@ dependencies = [
   "jentic-openapi-validator~=1.0.0-alpha.50",
   "jentic-openapi-validator-redocly~=1.0.0-alpha.50",
   "jentic-openapi-validator-spectral~=1.0.0-alpha.50",
-  "jentic-openapi-validator-speclynx~=1.0.0-alpha.33"
+  "jentic-openapi-validator-speclynx~=1.0.0-alpha.50"
 ]
 
 [project.urls]
