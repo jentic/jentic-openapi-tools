@@ -11,7 +11,7 @@ from unittest.mock import patch
 import pytest
 from lsprotocol.types import DiagnosticSeverity, Position, Range
 
-from jentic.apitools.openapi.validator.cli import build_parser, format_text, main
+from jentic.apitools.openapi.validator.cli import build_parser, format_github, format_text, main
 from jentic.apitools.openapi.validator.core.diagnostics import JenticDiagnostic, ValidationResult
 
 
@@ -198,6 +198,12 @@ class TestValidation:
         err = capsys.readouterr().err
         assert "document" in err
 
+    def test_directory_exits_two(self, tmp_path, capsys):
+        exit_code = main(["validate", str(tmp_path)])
+        assert exit_code == 2
+        err = capsys.readouterr().err
+        assert "not a file" in err
+
 
 # ---------------------------------------------------------------------------
 # Output formats
@@ -301,6 +307,36 @@ class TestFormatText:
         result = ValidationResult(diagnostics=[diag])
         output = format_text(result, "spec.yaml")
         assert "1:1" in output
+
+
+# ---------------------------------------------------------------------------
+# GitHub format escaping
+# ---------------------------------------------------------------------------
+
+
+class TestFormatGithub:
+    def test_escapes_special_chars_in_message(self):
+        diag = JenticDiagnostic(
+            range=Range(start=Position(line=0, character=0), end=Position(line=0, character=1)),
+            message="line1\nline2",
+            severity=DiagnosticSeverity.Error,
+            source="test",
+        )
+        result = ValidationResult(diagnostics=[diag])
+        output = format_github(result, "spec.yaml")
+        assert "%0A" in output
+        assert "\n" not in output.split("::")[2]
+
+    def test_escapes_special_chars_in_file_label(self):
+        diag = JenticDiagnostic(
+            range=Range(start=Position(line=0, character=0), end=Position(line=0, character=1)),
+            message="test",
+            severity=DiagnosticSeverity.Warning,
+            source="test",
+        )
+        result = ValidationResult(diagnostics=[diag])
+        output = format_github(result, "path:with,special")
+        assert "path%3Awith%2Cspecial" in output
 
 
 # ---------------------------------------------------------------------------
