@@ -146,17 +146,23 @@ def format_github(result: ValidationResult, document_label: str) -> str:
     return "\n".join(lines)
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="openapi-validate",
+# ---------------------------------------------------------------------------
+# Argument parsing
+# ---------------------------------------------------------------------------
+
+
+def _build_validate_subparser(subparsers: argparse._SubParsersAction) -> None:
+    validate = subparsers.add_parser(
+        "validate",
+        help="Validate an OpenAPI document.",
         description="Validate OpenAPI documents using pluggable backends.",
     )
-    parser.add_argument(
+    validate.add_argument(
         "document",
         nargs="?",
         help="Path or URI to an OpenAPI document, or '-' to read from stdin.",
     )
-    parser.add_argument(
+    validate.add_argument(
         "-b",
         "--backend",
         action="append",
@@ -164,75 +170,87 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="NAME",
         help="Backend to use (repeatable, or comma-separated). Default: 'default'.",
     )
-    parser.add_argument(
+    validate.add_argument(
         "-a",
         "--all-backends",
         action="store_true",
         help="Use all available validator backends.",
     )
-    parser.add_argument(
+    validate.add_argument(
         "--list-backends",
         action="store_true",
         help="List available validator backends and exit.",
     )
-    parser.add_argument(
+    validate.add_argument(
         "--base-url",
         default=None,
         help="Base URL for resolving relative $ref references.",
     )
-    parser.add_argument(
+    validate.add_argument(
         "--target",
         default=None,
         help="Target identifier for validation context.",
     )
-    parser.add_argument(
+    validate.add_argument(
         "--parallel",
         action="store_true",
         help="Run backends in parallel.",
     )
-    parser.add_argument(
+    validate.add_argument(
         "--max-workers",
         type=int,
         default=None,
         help="Thread pool size for I/O backends (requires --parallel).",
     )
-    parser.add_argument(
+    validate.add_argument(
         "--max-process-workers",
         type=int,
         default=None,
         help="Process pool size for CPU-heavy backends (requires --parallel).",
     )
-    parser.add_argument(
+    validate.add_argument(
         "-f",
         "--format",
         choices=["text", "json", "github"],
         default="text",
         help="Output format (default: text).",
     )
-    parser.add_argument(
+    validate.add_argument(
         "-q",
         "--quiet",
         action="store_true",
         help="Suppress output; only set exit code.",
     )
-    parser.add_argument(
+    validate.add_argument(
         "--no-color",
         action="store_true",
         help="Disable colored output.",
+    )
+    validate.set_defaults(func=_run_validate)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="jentic-openapi-tools",
+        description="Jentic OpenAPI tooling CLI.",
     )
     parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {_get_version()}",
     )
+    subparsers = parser.add_subparsers(dest="command")
+    _build_validate_subparser(subparsers)
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
-    """CLI entry point. Returns exit code: 0=valid, 1=invalid, 2=error."""
-    parser = build_parser()
-    args = parser.parse_args(argv)
+# ---------------------------------------------------------------------------
+# Subcommand handlers
+# ---------------------------------------------------------------------------
 
+
+def _run_validate(args: argparse.Namespace) -> int:
+    """Run the validate subcommand. Returns exit code: 0=valid, 1=invalid, 2=error."""
     # --list-backends: print available backends and exit
     if args.list_backends:
         for name in sorted(OpenAPIValidator.list_backends()):
@@ -241,11 +259,16 @@ def main(argv: list[str] | None = None) -> int:
 
     # Check mutual exclusivity before document requirement
     if args.all_backends and args.backend:
-        parser.error("--all-backends/-a and --backend/-b are mutually exclusive")
+        print(
+            "error: --all-backends/-a and --backend/-b are mutually exclusive",
+            file=sys.stderr,
+        )
+        return 2
 
     # Require document when not using --list-backends
     if args.document is None:
-        parser.error("the following arguments are required: document")
+        print("error: the following arguments are required: document", file=sys.stderr)
+        return 2
 
     # Resolve document input
     document_label = args.document
@@ -302,6 +325,23 @@ def main(argv: list[str] | None = None) -> int:
             print(format_text(result, document_label, color=color))
 
     return 0 if result.valid else 1
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI entry point. Returns exit code: 0=success, 1=invalid, 2=error."""
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    if not args.command:
+        parser.print_help()
+        return 2
+
+    return args.func(args)
 
 
 if __name__ == "__main__":
