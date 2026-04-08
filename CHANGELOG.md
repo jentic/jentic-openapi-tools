@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.51 (2026-04-08)
+
+### Bug Fixes
+
+- **deps**: Add speclynx to sync-versions and fix stale dependency pin
+  ([`b4797ae`](https://github.com/jentic/jentic-openapi-tools/commit/b4797aed52067ef76295abc05d31b90a07a0e316))
+
+
 ## v1.0.0-alpha.50 (2026-04-08)
 
 ### Bug Fixes
