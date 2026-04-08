@@ -249,6 +249,50 @@ class TestOutputFormats:
 
 
 # ---------------------------------------------------------------------------
+# File output (-o/--output)
+# ---------------------------------------------------------------------------
+
+
+class TestFileOutput:
+    def test_writes_to_file(self, valid_spec_file, tmp_path, capsys):
+        out_file = tmp_path / "result.txt"
+        exit_code = main(["validate", "--no-color", "-o", str(out_file), str(valid_spec_file)])
+        assert exit_code == 0
+        content = out_file.read_text(encoding="utf-8")
+        assert "no problems found" in content
+
+    def test_also_prints_to_stdout(self, valid_spec_file, tmp_path, capsys):
+        out_file = tmp_path / "result.txt"
+        main(["validate", "--no-color", "-o", str(out_file), str(valid_spec_file)])
+        stdout = capsys.readouterr().out
+        assert "no problems found" in stdout
+
+    def test_quiet_suppresses_stdout_but_writes_file(self, valid_spec_file, tmp_path, capsys):
+        out_file = tmp_path / "result.txt"
+        exit_code = main(
+            ["validate", "--no-color", "-q", "-o", str(out_file), str(valid_spec_file)]
+        )
+        assert exit_code == 0
+        assert capsys.readouterr().out == ""
+        content = out_file.read_text(encoding="utf-8")
+        assert "no problems found" in content
+
+    def test_json_format_to_file(self, valid_spec_file, tmp_path, capsys):
+        out_file = tmp_path / "result.json"
+        main(["validate", "-f", "json", "-o", str(out_file), str(valid_spec_file)])
+        content = json.loads(out_file.read_text(encoding="utf-8"))
+        assert content["valid"] is True
+
+    def test_unwritable_path_exits_two(self, valid_spec_file, capsys):
+        exit_code = main(
+            ["validate", "--no-color", "-o", "/nonexistent/dir/out.txt", str(valid_spec_file)]
+        )
+        assert exit_code == 2
+        err = capsys.readouterr().err
+        assert "cannot write to" in err
+
+
+# ---------------------------------------------------------------------------
 # Stdin support
 # ---------------------------------------------------------------------------
 
