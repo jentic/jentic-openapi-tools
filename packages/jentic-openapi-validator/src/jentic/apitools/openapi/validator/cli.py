@@ -42,7 +42,10 @@ _RESET = "\033[0m"
 
 
 def _get_version() -> str:
-    return importlib.metadata.version("jentic-openapi-validator")
+    try:
+        return importlib.metadata.version("jentic-openapi-validator")
+    except importlib.metadata.PackageNotFoundError:
+        return "unknown"
 
 
 def _use_color(args: argparse.Namespace) -> bool:
@@ -132,17 +135,33 @@ def format_json(result: ValidationResult) -> str:
     return json.dumps(output, indent=2)
 
 
+def _escape_github_message(value: str) -> str:
+    """Escape special characters in GitHub Actions workflow command messages."""
+    return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+
+def _escape_github_property(value: str) -> str:
+    """Escape special characters in GitHub Actions workflow command property values."""
+    return (
+        value.replace("%", "%25")
+        .replace("\r", "%0D")
+        .replace("\n", "%0A")
+        .replace(":", "%3A")
+        .replace(",", "%2C")
+    )
+
+
 def format_github(result: ValidationResult, document_label: str) -> str:
     lines: list[str] = []
+    escaped_label = _escape_github_property(document_label)
     for d in result.diagnostics:
         severity = d.severity or DiagnosticSeverity.Error
         level = _GITHUB_LEVELS.get(severity, "notice")
         line = d.range.start.line + 1 if d.range else 1
         col = d.range.start.character + 1 if d.range else 1
         code_suffix = f" ({d.code})" if d.code else ""
-        lines.append(
-            f"::{level} file={document_label},line={line},col={col}::{d.message}{code_suffix}"
-        )
+        message = _escape_github_message(f"{d.message}{code_suffix}")
+        lines.append(f"::{level} file={escaped_label},line={line},col={col}::{message}")
     return "\n".join(lines)
 
 
@@ -200,13 +219,13 @@ def _build_validate_subparser(subparsers: argparse._SubParsersAction) -> None:
         "--max-workers",
         type=int,
         default=None,
-        help="Thread pool size for I/O backends (requires --parallel).",
+        help="Thread pool size for I/O backends (ignored unless --parallel is used).",
     )
     validate.add_argument(
         "--max-process-workers",
         type=int,
         default=None,
-        help="Process pool size for CPU-heavy backends (requires --parallel).",
+        help="Process pool size for CPU-heavy backends (ignored unless --parallel is used).",
     )
     validate.add_argument(
         "-f",
@@ -281,6 +300,9 @@ def _run_validate(args: argparse.Namespace) -> int:
         path = Path(args.document)
         if not path.exists():
             print(f"error: file not found: {args.document}", file=sys.stderr)
+            return 2
+        if not path.is_file():
+            print(f"error: not a file: {args.document}", file=sys.stderr)
             return 2
         document = path.resolve().as_uri()
 
