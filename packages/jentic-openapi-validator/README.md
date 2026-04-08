@@ -88,6 +88,12 @@ The CLI uses three exit codes: 0 when the document is valid, 1 when validation e
 ### Additional Options
 
 ```bash
+# Write output to a file instead of stdout
+jentic-openapi-tools validate -o results.json -f json openapi.yaml
+
+# Write to file only, suppress stdout
+jentic-openapi-tools validate -q -o results.txt openapi.yaml
+
 # Run backends in parallel
 jentic-openapi-tools validate --parallel -b spectral -b redocly openapi.yaml
 

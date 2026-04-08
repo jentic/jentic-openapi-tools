@@ -235,10 +235,17 @@ def _build_validate_subparser(subparsers: argparse._SubParsersAction) -> None:
         help="Output format (default: text).",
     )
     validate.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        metavar="FILE",
+        help="Write validation output to FILE instead of stdout.",
+    )
+    validate.add_argument(
         "-q",
         "--quiet",
         action="store_true",
-        help="Suppress output; only set exit code.",
+        help="Suppress stdout output; only set exit code. Can be combined with -o to write only to file.",
     )
     validate.add_argument(
         "--no-color",
@@ -334,17 +341,26 @@ def _run_validate(args: argparse.Namespace) -> int:
         print(f"error: validation failed: {exc}", file=sys.stderr)
         return 2
 
-    # Output
-    if not args.quiet:
-        if args.format == "json":
-            print(format_json(result))
-        elif args.format == "github":
-            output = format_github(result, document_label)
-            if output:
-                print(output)
-        else:
-            color = _use_color(args)
-            print(format_text(result, document_label, color=color))
+    # Format output
+    if args.format == "json":
+        formatted = format_json(result)
+    elif args.format == "github":
+        formatted = format_github(result, document_label)
+    else:
+        color = not args.output and _use_color(args)
+        formatted = format_text(result, document_label, color=color)
+
+    # Write to file
+    if args.output:
+        try:
+            Path(args.output).write_text(formatted + "\n", encoding="utf-8")
+        except OSError as exc:
+            print(f"error: cannot write to {args.output}: {exc}", file=sys.stderr)
+            return 2
+
+    # Write to stdout
+    if not args.quiet and formatted:
+        print(formatted)
 
     return 0 if result.valid else 1
 
