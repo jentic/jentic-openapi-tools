@@ -22,19 +22,23 @@ architecture.
 
 ## Installation
 
-Install all packages at once using the meta-package:
+The recommended way to install is via the meta-package, which includes all packages and backends (parser, validator, transformer, plus the Spectral, Redocly, and SpecLynx backends):
 
 ```bash
 pip install jentic-openapi-tools
 ```
 
-Or install individual packages as needed:
+This also installs the `jentic-openapi-tools` CLI. If you only need specific functionality, you can install individual packages instead:
 
 ```bash
-pip install jentic-openapi-parser
-pip install jentic-openapi-validator
-pip install jentic-openapi-transformer
+pip install jentic-openapi-validator                  # Core validator with default + openapi-spec backends
+pip install jentic-openapi-validator-spectral          # Add Spectral backend
+pip install jentic-openapi-validator-redocly           # Add Redocly backend
+pip install jentic-openapi-parser                      # Parser only
+pip install jentic-openapi-transformer[redocly]        # Transformer with Redocly bundler
 ```
+
+Note that the CLI and Python API only have access to backends whose packages are installed. Installing the meta-package is the easiest way to get everything working, especially for CI pipelines and AI agents.
 
 **Prerequisites:**
 
@@ -102,11 +106,6 @@ jentic-openapi-tools validate https://petstore3.swagger.io/api/v3/openapi.json
 The CLI supports text, JSON, and GitHub Actions annotation output formats, stdin input, parallel multi-backend execution, and standard exit codes for CI integration. See the [jentic-openapi-validator README](https://github.com/jentic/jentic-openapi-tools/tree/HEAD/packages/jentic-openapi-validator) for the full CLI reference.
 
 ### Transforming OpenAPI Documents
-
-```bash
-# Install with Redocly backend support
-pip install jentic-openapi-transformer[redocly]
-```
 
 ```python
 from jentic.apitools.openapi.transformer.bundler.core import OpenAPIBundler

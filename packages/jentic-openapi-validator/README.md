@@ -13,26 +13,30 @@ A Python library for validating OpenAPI documents using pluggable validator back
 
 ## Installation
 
+The easiest way to install the validator with all available backends is via the `jentic-openapi-tools` meta-package:
+
+```bash
+pip install jentic-openapi-tools
+```
+
+This installs the full toolkit including the Spectral, Redocly, and SpecLynx validator backends, the CLI, and all other packages. If you only need the validator, you can install it individually:
+
 ```bash
 pip install jentic-openapi-validator
 ```
 
+The core package ships with two built-in backends (`default` and `openapi-spec`). Additional backends are available as separate packages and are automatically discovered when installed:
+
+```bash
+pip install jentic-openapi-validator-spectral    # Spectral CLI backend
+pip install jentic-openapi-validator-redocly     # Redocly CLI backend
+```
+
+The CLI (`jentic-openapi-tools validate --list-backends`) shows which backends are currently available.
+
 **Prerequisites:**
 - Python 3.11+
-
-**Optional Backends:**
-
-For advanced validation with Spectral:
-
-```bash
-pip install jentic-openapi-validator-spectral
-```
-
-For validation with Redocly:
-
-```bash
-pip install jentic-openapi-validator-redocly
-```
+- Node.js >=20.19.0 and npm (required for Spectral and Redocly backends)
 
 ## Command-Line Interface
 
