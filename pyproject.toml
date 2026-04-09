@@ -72,13 +72,13 @@ jentic-openapi-validator-redocly = { workspace = true }
 jentic-openapi-validator-spectral = { workspace = true }
 jentic-openapi-validator-speclynx = { workspace = true }
 
-[build-system]
-requires = ["setuptools>=75.8,<82.1"]
-build-backend = "setuptools.build_meta"
+[tool.uv.build-backend]
+namespace = true
+module-name = "jentic_openapi_tools"
 
-[tool.setuptools]
-packages = []
-license-files = ["LICENSE", "NOTICE"]
+[build-system]
+requires = ["uv_build~=0.8.15"]
+build-backend = "uv_build"
 
 [tool.ruff]
 target-version = "py311"
