@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.52 (2026-04-10)
+
+### Bug Fixes
+
+- **build**: Switch root meta-package to uv_build for pip compatibility
+  ([`f0deec8`](https://github.com/jentic/jentic-openapi-tools/commit/f0deec8390536ef7062d79a93002d7b92fed0f95))
+
+
 ## v1.0.0-alpha.51 (2026-04-08)
 
 ### Bug Fixes
