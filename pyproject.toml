@@ -19,6 +19,9 @@ dependencies = [
   "jentic-openapi-validator-speclynx~=1.0.0-alpha.52"
 ]
 
+[project.scripts]
+jentic-openapi-tools = "jentic.apitools.openapi.validator.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/jentic/jentic-openapi-tools"
 
