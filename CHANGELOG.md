@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.53 (2026-04-10)
+
+### Bug Fixes
+
+- **build**: Add console script entry point to root meta-package
+  ([`14fb09c`](https://github.com/jentic/jentic-openapi-tools/commit/14fb09ce7994a16a9af33ce5a4bbe49d7718bc72))
+
+
 ## v1.0.0-alpha.52 (2026-04-10)
 
 ### Bug Fixes
