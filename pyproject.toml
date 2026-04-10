@@ -80,7 +80,7 @@ namespace = true
 module-name = "jentic_openapi_tools"
 
 [build-system]
-requires = ["uv_build~=0.8.15"]
+requires = ["uv_build>=0.8.15,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.ruff]
