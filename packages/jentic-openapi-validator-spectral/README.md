@@ -72,7 +72,7 @@ print(f"Document is valid: {result.valid}")
 validator = SpectralValidatorBackend(spectral_path="/usr/local/bin/spectral")
 
 # Use specific version via npx
-validator = SpectralValidatorBackend(spectral_path="npx --yes @stoplight/spectral-cli@6.15.0")
+validator = SpectralValidatorBackend(spectral_path="npx --yes @stoplight/spectral-cli@6.15.1")
 ```
 
 ### Custom Rulesets
@@ -247,7 +247,7 @@ uv run --package jentic-openapi-validator-spectral pytest packages/jentic-openap
 class SpectralValidatorBackend(BaseValidatorBackend):
     def __init__(
             self,
-            spectral_path: str = "npx --yes @stoplight/spectral-cli@6.15.0",
+            spectral_path: str = "npx --yes @stoplight/spectral-cli@6.15.1",
             ruleset_path: str | None = None,
             timeout: float = 600.0,
             allowed_base_dir: str | Path | None = None,

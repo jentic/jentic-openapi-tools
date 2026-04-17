@@ -164,7 +164,7 @@ def spectral_cli_available() -> bool:
     """Check if Spectral CLI is available on the system."""
     try:
         result = subprocess.run(
-            ["npx", "--yes", "@stoplight/spectral-cli@6.15.0", "--version"],
+            ["npx", "--yes", "@stoplight/spectral-cli@6.15.1", "--version"],
             capture_output=True,
             timeout=10,
         )
@@ -188,7 +188,7 @@ def pytest_runtest_setup(item):
     if item.get_closest_marker("requires_spectral_cli"):
         try:
             result = subprocess.run(
-                ["npx", "--yes", "@stoplight/spectral-cli@6.15.0", "--version"],
+                ["npx", "--yes", "@stoplight/spectral-cli@6.15.1", "--version"],
                 capture_output=True,
                 timeout=10,
             )
@@ -200,7 +200,7 @@ def pytest_runtest_setup(item):
     if item.get_closest_marker("requires_redocly_cli"):
         try:
             result = subprocess.run(
-                ["npx", "--yes", "@redocly/cli@2.19.0", "--version"],
+                ["npx", "--yes", "@redocly/cli@2.28.0", "--version"],
                 capture_output=True,
                 timeout=10,
             )

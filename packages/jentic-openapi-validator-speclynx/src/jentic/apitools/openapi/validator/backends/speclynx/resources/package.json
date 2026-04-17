@@ -14,13 +14,13 @@
   "dependencies": {
     "commander": "^14.0.2",
     "vscode-languageserver-types": "^3.17.5",
-    "@speclynx/apidom-core": "4.0.5",
-    "@speclynx/apidom-datamodel": "4.0.5",
-    "@speclynx/apidom-json-path": "4.0.5",
-    "@speclynx/apidom-json-pointer": "4.0.5",
-    "@speclynx/apidom-ns-openapi-3-0": "4.0.5",
-    "@speclynx/apidom-ns-openapi-3-1": "4.0.5",
-    "@speclynx/apidom-reference": "4.0.5",
-    "@speclynx/apidom-traverse": "4.0.5"
+    "@speclynx/apidom-core": "4.7.1",
+    "@speclynx/apidom-datamodel": "4.7.1",
+    "@speclynx/apidom-json-path": "4.7.1",
+    "@speclynx/apidom-json-pointer": "4.7.1",
+    "@speclynx/apidom-ns-openapi-3-0": "4.7.1",
+    "@speclynx/apidom-ns-openapi-3-1": "4.7.1",
+    "@speclynx/apidom-reference": "4.7.1",
+    "@speclynx/apidom-traverse": "4.7.1"
   }
 }
