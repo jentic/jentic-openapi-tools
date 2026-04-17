@@ -2,6 +2,32 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.54 (2026-04-17)
+
+### Bug Fixes
+
+- **validator-speclynx**: Prevent exponential tree growth on deref
+  ([`b350e88`](https://github.com/jentic/jentic-openapi-tools/commit/b350e884a844aa580ab5fafa209efb6f552cb106))
+
+### Chores
+
+- **deps-dev**: Bump poethepoet from 0.43.0 to 0.44.0
+  ([#240](https://github.com/jentic/jentic-openapi-tools/pull/240),
+  [`a00ab23`](https://github.com/jentic/jentic-openapi-tools/commit/a00ab23d5e70a473206d96095bcf01015010f4a5))
+
+- **deps-dev**: Bump pytest from 9.0.2 to 9.0.3
+  ([#241](https://github.com/jentic/jentic-openapi-tools/pull/241),
+  [`79940d5`](https://github.com/jentic/jentic-openapi-tools/commit/79940d53d80987c66282bd2e6d9c41421f305502))
+
+- **deps-dev**: Bump ruff from 0.15.9 to 0.15.11
+  ([#248](https://github.com/jentic/jentic-openapi-tools/pull/248),
+  [`50e7d63`](https://github.com/jentic/jentic-openapi-tools/commit/50e7d63366252b234f60c9adfc7863515a829f94))
+
+- **deps-dev**: Update uv-build requirement
+  ([#247](https://github.com/jentic/jentic-openapi-tools/pull/247),
+  [`5064eae`](https://github.com/jentic/jentic-openapi-tools/commit/5064eaebbf645b6a10975f0dbc279a2046a92394))
+
+
 ## v1.0.0-alpha.53 (2026-04-10)
 
 ### Bug Fixes
