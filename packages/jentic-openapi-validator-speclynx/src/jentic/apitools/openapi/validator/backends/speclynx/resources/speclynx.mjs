@@ -121,7 +121,7 @@ async function loadPlugins(pluginsPath) {
 }
 
 // Main validation function
-async function validate(document, cliOptions) {
+async function validate(document, cliOptions = {}) {
     configureOptions(cliOptions);
 
     // Always load default plugins
@@ -178,8 +178,10 @@ async function validate(document, cliOptions) {
     // When it doesn't exist (e.g., Swagger 2.0), traverse parseResult so ParseResultElement visitor runs
     const elementToTraverse = parseResult.api ?? parseResult;
     const dispatchRefractorPluginsAsync = promisify(dispatchRefractorPlugins);
+    const traverseOptions = cliOptions.skipVisited ? {skipVisited: true} : {};
     await dispatchRefractorPluginsAsync(elementToTraverse, plugins, {
         toolboxCreator: createToolbox,
+        traverseOptions
     });
 
     // Check if there are any errors or warnings
@@ -203,6 +205,7 @@ program
     .option('--allowed-base-dir <path>', 'restrict file resolution to this directory')
     .option('--timeout <ms>', 'HTTP timeout in milliseconds', '5000')
     .option('--no-source-map', 'disable source map tracking (enables strict parsing)')
+    .option('--skip-visited', 'enable skipVisited traversal optimization to prevent exponential tree growth on $ref cycles')
     .action(async (document, cliOptions) => {
         try {
             const result = await validate(document, cliOptions);

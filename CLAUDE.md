@@ -6,10 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Python monorepo managed with [uv](https://docs.astral.sh/uv/) and [poethepoet](https://poethepoet.naez.io/).
 
+**Prerequisites:** Python 3.11+, Node.js >=20.19.0 and npm.
+
 ```bash
 # Install dependencies
 uv sync --all-packages
-npm install  # Required for Redocly and Spectral backends
+npm install  # Required for Redocly, Spectral, and SpecLynx backends
 
 # Run all tests
 uv run poe test
@@ -37,6 +39,12 @@ uv build --all-packages
 uv build --package jentic-openapi-validator
 ```
 
+## Code Style
+
+- Ruff with line-length=100, target-version=py311
+- Ruff enforces import sorting (isort) with 2 blank lines after imports
+- Pyright in `standard` type checking mode
+
 ## Architecture
 
 ### Package Structure
@@ -46,15 +54,24 @@ The monorepo contains these namespace packages under `jentic.apitools.openapi.*`
 | Package | Purpose |
 |---------|---------|
 | `jentic-openapi-common` | Shared utilities: path security, subprocess handling, URI parsing, version detection |
-| `jentic-openapi-datamodels` | OpenAPI data models and structures |
+| `jentic-openapi-datamodels` | OpenAPI data models with source tracking (YAML node locations) |
 | `jentic-openapi-parser` | Document parsing with pluggable backends |
-| `jentic-openapi-traverse` | Document traversal utilities |
+| `jentic-openapi-traverse` | Document traversal (visitor pattern for datamodels, generic JSON traversal) |
 | `jentic-openapi-transformer` | Document transformation/bundling core |
 | `jentic-openapi-transformer-redocly` | Redocly bundler backend |
-| `jentic-openapi-validator` | Document validation core |
+| `jentic-openapi-validator` | Document validation core + CLI (`jentic-openapi-tools` command) |
 | `jentic-openapi-validator-spectral` | Spectral validation backend |
 | `jentic-openapi-validator-redocly` | Redocly validation backend |
 | `jentic-openapi-validator-speclynx` | SpecLynx ApiDOM validation backend |
+
+### Dependencies Between Packages
+
+```
+common <- datamodels <- parser <- validator <- validator-spectral
+                  ^          \            \<- validator-redocly
+                  |                        \<- validator-speclynx
+                  +-- traverse <- transformer <- transformer-redocly
+```
 
 ### Plugin-Based Backend System
 
@@ -68,28 +85,15 @@ Core packages (parser, validator, transformer) use Python entry points for backe
 **Pattern:**
 1. Base classes define the interface (e.g., `BaseValidatorBackend` in `backends/base.py`)
 2. Backends implement the interface and declare `accepts()` for supported input formats: `"uri"`, `"text"`, `"dict"`
-3. Backends register via entry points in `pyproject.toml`
+3. Backends register via entry points in their package's `pyproject.toml`
 4. Core classes discover backends at runtime via `importlib.metadata.entry_points()`
 
-**Example - Validator backend registration (`pyproject.toml`):**
-```toml
-[project.entry-points."jentic.apitools.openapi.validator.backends"]
-spectral = "jentic.apitools.openapi.validator.backends.spectral:SpectralValidatorBackend"
-```
+**Backend execution tiering** (validator-specific, used when `parallel=True`):
+- `"cpu"` (default): Fast pure-Python backends. Run sequentially in main thread.
+- `"io"`: Backends that release the GIL (subprocess/network). Run in `ThreadPoolExecutor`. Must be thread-safe.
+- `"cpu-heavy"`: Long-running pure-Python backends. Run in `ProcessPoolExecutor` with `spawn`. Must be picklable.
 
-**Example - Using backends:**
-```python
-from jentic.apitools.openapi.validator.core import OpenAPIValidator
-
-# Use default backend
-validator = OpenAPIValidator()
-
-# Use specific backend(s)
-validator = OpenAPIValidator(backends=["spectral", "redocly"])
-
-# List available backends
-OpenAPIValidator.list_backends()
-```
+All three tiers execute simultaneously when parallel mode is enabled.
 
 ### Key Conventions
 
@@ -97,41 +101,28 @@ OpenAPIValidator.list_backends()
 - Build system uses `uv_build` with `namespace = true`
 - Source code lives in `packages/<name>/src/jentic/apitools/openapi/<module>/`
 - Tests live in `packages/<name>/tests/`
-- Commits follow [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning
+- ValidationResult uses LSP diagnostics format (via `lsprotocol`)
 
-### Dependencies Between Packages
+### Commit Conventions
 
-```
-common ← datamodels ← parser ← validator ← validator-spectral
-                  ↑         ↘            ↖ validator-redocly
-                  │                      ↖ validator-speclynx
-                  └─ traverse ← transformer ← transformer-redocly
-```
+Commits follow [Conventional Commits](https://www.conventionalcommits.org/) (enforced by pre-commit hook in `--strict` mode).
+
+**Scopes** (from `.gitmessage`): `parser`, `transformer`, `validator`, `validator-spectral`, `tools` (for root package changes).
+
+**Branch naming**: `feature/<description>` or `fix/<description>`. Include issue number after the slash if applicable (e.g., `fix/1234-fix-parsing`).
+
+**PR merging**: Squash and merge with conventional commit format.
+
+### Pre-commit Hooks
+
+Configured hooks: conventional-commit validation (strict), ruff check, ruff format, uv lock sync, pyright. Install with `uv run pre-commit install`.
 
 ## Common Utilities (`jentic-openapi-common`)
 
-**Path Security** - Defense against path traversal attacks:
-```python
-from jentic.apitools.openapi.common.path_security import validate_path
-safe_path = validate_path(user_input, allowed_base="/workspace", allowed_extensions=('.yaml', '.json'))
-# Raises: PathTraversalError, InvalidExtensionError, SymlinkSecurityError
-```
-
-**URI Utilities** - Detection and resolution:
-```python
-from jentic.apitools.openapi.common.uri import is_uri_like, is_http_https_url, resolve_to_absolute, file_uri_to_path
-```
-
-**Subprocess Execution** - Standardized external tool calls:
-```python
-from jentic.apitools.openapi.common.subproc import run_subprocess
-result = run_subprocess(["spectral", "lint", "spec.yaml"], fail_on_error=True, timeout=30.0)
-```
-
-**Version Detection** - OpenAPI/Swagger version checks:
-```python
-from jentic.apitools.openapi.common.version_detection import get_version, is_openapi_30, is_openapi_31
-```
+- **Path Security**: `validate_path()` — defense against path traversal attacks. Raises `PathTraversalError`, `InvalidExtensionError`, `SymlinkSecurityError`.
+- **URI Utilities**: `is_uri_like()`, `is_http_https_url()`, `resolve_to_absolute()`, `file_uri_to_path()`
+- **Subprocess Execution**: `run_subprocess()` — standardized external tool calls with timeout support
+- **Version Detection**: `get_version()`, `is_openapi_30()`, `is_openapi_31()`
 
 ## Parser Backends
 
@@ -143,27 +134,7 @@ from jentic.apitools.openapi.common.version_detection import get_version, is_ope
 | `ruamel-ast` | `MappingNode` | Full YAML AST with source positions |
 | `datamodel-low` | `OpenAPI30`/`OpenAPI31` | Typed datamodels with source tracking |
 
-```python
-from jentic.apitools.openapi.parser.core import OpenAPIParser
-
-parser = OpenAPIParser("ruamel-roundtrip")
-doc = parser.parse("spec.yaml", return_type=CommentedMap)
-```
-
-## Validator System
-
-**ValidationResult** uses LSP diagnostics format:
-```python
-from jentic.apitools.openapi.validator.core import OpenAPIValidator
-
-validator = OpenAPIValidator(backends=["spectral", "redocly"])
-result = validator.validate("spec.yaml", parallel=True)  # Run backends in parallel
-
-if not result.valid:
-    for diagnostic in result.diagnostics:
-        print(f"{diagnostic.source}: {diagnostic.message}")
-        print(f"  Path: {diagnostic.data['path']}")  # JSON path to issue
-```
+## Validator Backends
 
 | Backend | Type | Accepts | Notes |
 |---------|------|---------|-------|
@@ -172,52 +143,3 @@ if not result.valid:
 | `spectral` | External CLI | uri, dict | Requires Node.js |
 | `redocly` | External CLI | uri, dict | Requires Node.js |
 | `speclynx` | External CLI | uri, dict | Requires Node.js, uses SpecLynx ApiDOM |
-
-## Bundler/Transformer
-
-```python
-from jentic.apitools.openapi.transformer.bundler.core import OpenAPIBundler
-
-bundler = OpenAPIBundler("redocly")  # Full $ref resolution
-result = bundler.bundle("spec.yaml", return_type=dict)
-```
-
-## Datamodels (`jentic-openapi-datamodels`)
-
-Low-level models with **source tracking** - every field wraps YAML node locations:
-- `FieldSource[T]` - OpenAPI fields with key+value nodes
-- `KeySource[T]` - Dictionary keys (extension names, schema names)
-- `ValueSource[T]` - Dictionary values and array items
-
-```python
-from jentic.apitools.openapi.parser.core import OpenAPIParser
-from jentic.apitools.openapi.datamodels.low.v31 import build
-
-parser = OpenAPIParser("ruamel-ast")
-doc = build(parser.parse("spec.yaml"))
-print(doc.info.value.title.key_node.start_mark.line)  # Source line number
-```
-
-## Traversal (`jentic-openapi-traverse`)
-
-**Datamodel traversal** with visitor pattern:
-```python
-from jentic.apitools.openapi.traverse.datamodels.low import traverse, BREAK
-
-class OperationCollector:
-    def __init__(self):
-        self.operations = []
-
-    def visit_Operation(self, path):
-        self.operations.append(path.format_path("jsonpointer"))  # /paths/~1users/get
-        # Return None=continue, False=skip children, BREAK=stop traversal
-
-collector = OperationCollector()
-traverse(doc, collector)
-```
-
-**JSON traversal** for generic dict/list structures:
-```python
-from jentic.apitools.openapi.traverse.json import traverse
-for node in traverse(openapi_dict):
-    print(f"{node.format_path()}: {node.value}")
