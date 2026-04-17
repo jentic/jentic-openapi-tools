@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.55 (2026-04-17)
+
+### Bug Fixes
+
+- **validator-speclynx**: Update @speclynx/apidom to v4.9.0 and enable skipVisited traversal
+  ([#250](https://github.com/jentic/jentic-openapi-tools/pull/250),
+  [`64bf23b`](https://github.com/jentic/jentic-openapi-tools/commit/64bf23b979ccfd9f0c90e6179da698d83204a478))
+
+
 ## v1.0.0-alpha.54 (2026-04-17)
 
 ### Bug Fixes
