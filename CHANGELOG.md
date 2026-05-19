@@ -2,6 +2,32 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.56 (2026-05-19)
+
+### Chores
+
+- **deps**: Bump js and python dependencies
+  ([#270](https://github.com/jentic/jentic-openapi-tools/pull/270),
+  [`63027af`](https://github.com/jentic/jentic-openapi-tools/commit/63027afabcdd0aa540031fa063ff729bfbb072b9))
+
+- **deps-dev**: Bump poethepoet from 0.45.0 to 0.46.0
+  ([#256](https://github.com/jentic/jentic-openapi-tools/pull/256),
+  [`bcf7e59`](https://github.com/jentic/jentic-openapi-tools/commit/bcf7e592ccb8e7e3a1452c06f7b0815f68857822))
+
+### Continuous Integration
+
+- **dependabot**: Remove auto-merge workflow
+  ([`670abb5`](https://github.com/jentic/jentic-openapi-tools/commit/670abb5e1f60b1b7a3c1e956f367f614644fe5cd))
+
+- **tools**: Add Dependabot auto-merge workflow
+  ([#266](https://github.com/jentic/jentic-openapi-tools/pull/266),
+  [`147f04a`](https://github.com/jentic/jentic-openapi-tools/commit/147f04a997d30de88ba305403b4b6883640378aa))
+
+- **tools**: Use GitHub App token in release workflow
+  ([#269](https://github.com/jentic/jentic-openapi-tools/pull/269),
+  [`a2d4d91`](https://github.com/jentic/jentic-openapi-tools/commit/a2d4d917e045b47e1afd5ead1c61c2d6e79c3662))
+
+
 ## v1.0.0-alpha.55 (2026-04-17)
 
 ### Bug Fixes
