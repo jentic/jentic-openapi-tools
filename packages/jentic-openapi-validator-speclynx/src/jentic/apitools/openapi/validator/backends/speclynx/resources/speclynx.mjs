@@ -3,7 +3,7 @@ import {promisify} from 'node:util';
 import {readdir, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL, fileURLToPath} from 'node:url';
-import {Command} from 'commander';
+import {Command, Option} from 'commander';
 import * as vscodeLanguageServerTypes from 'vscode-languageserver-types';
 import {Diagnostic, DiagnosticSeverity, Range} from 'vscode-languageserver-types';
 import * as apidomCore from '@speclynx/apidom-core';
@@ -178,7 +178,7 @@ async function validate(document, cliOptions = {}) {
     // When it doesn't exist (e.g., Swagger 2.0), traverse parseResult so ParseResultElement visitor runs
     const elementToTraverse = parseResult.api ?? parseResult;
     const dispatchRefractorPluginsAsync = promisify(dispatchRefractorPlugins);
-    const traverseOptions = cliOptions.skipVisited ? {skipVisited: true} : {};
+    const traverseOptions = cliOptions.skipVisited ? {skipVisited: cliOptions.skipVisited} : {};
     await dispatchRefractorPluginsAsync(elementToTraverse, plugins, {
         toolboxCreator: createToolbox,
         traverseOptions
@@ -205,7 +205,7 @@ program
     .option('--allowed-base-dir <path>', 'restrict file resolution to this directory')
     .option('--timeout <ms>', 'HTTP timeout in milliseconds', '5000')
     .option('--no-source-map', 'disable source map tracking (enables strict parsing)')
-    .option('--skip-visited', 'enable skipVisited traversal optimization to prevent exponential tree growth on $ref cycles')
+    .addOption(new Option('--skip-visited <mode>', 'skipVisited traversal mode controlling how already-visited elements are handled on $ref cycles to prevent exponential tree growth').choices(['never', 'skip', 'enter-only']))
     .action(async (document, cliOptions) => {
         try {
             const result = await validate(document, cliOptions);

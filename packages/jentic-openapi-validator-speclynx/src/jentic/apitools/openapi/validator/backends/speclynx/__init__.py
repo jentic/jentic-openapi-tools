@@ -39,7 +39,7 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
         allowed_base_dir: str | Path | None = None,
         plugins_dir: str | Path | None = None,
         source_map: bool = True,
-        skip_visited: bool = False,
+        skip_visited: Literal["never", "skip", "enter-only"] = "never",
     ):
         """
         Initialize the SpeclynxValidatorBackend.
@@ -70,8 +70,13 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                 See resources/plugins/example-plugin.mjs.sample for plugin format.
             source_map: Enable source map tracking in the parser (default: True).
                 When disabled, strict parsing mode is enabled automatically.
-            skip_visited: Skip already-visited elements during plugin traversal (default: False).
-                Enable to prevent exponential tree growth on documents with many $ref cycles.
+            skip_visited: Traversal mode controlling how already-visited elements are handled
+                during plugin traversal (default: "never"). Used to prevent exponential tree
+                growth on documents with many $ref cycles:
+                - "never": never skip; traverse every occurrence (no cycle protection).
+                - "skip": skip already-visited elements entirely (no enter/leave, no descent).
+                - "enter-only": still fire enter/leave for each occurrence of a shared element,
+                  but do not descend into the already-walked subtree.
         """
         self.speclynx_path = speclynx_path
         self.timeout = timeout
@@ -171,8 +176,8 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                     args.extend(["--allowed-base-dir", str(self.allowed_base_dir)])
                 if not self.source_map:
                     args.append("--no-source-map")
-                if self.skip_visited:
-                    args.append("--skip-visited")
+                if self.skip_visited != "never":
+                    args.extend(["--skip-visited", self.skip_visited])
 
                 # npx with bundled tarball: pass absolute path so npm doesn't
                 # resolve the bare filename relative to its global prefix.
