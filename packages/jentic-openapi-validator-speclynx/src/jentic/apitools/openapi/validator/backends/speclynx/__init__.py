@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 _TARBALL_NAME = "jentic-openapi-validator-speclynx-0.1.0.tgz"
 
+_SKIP_VISITED_MODES = ("never", "skip", "enter-only")
+
 resources_dir = files("jentic.apitools.openapi.validator.backends.speclynx.resources")
 tarball_file = resources_dir.joinpath(_TARBALL_NAME)
 
@@ -77,7 +79,16 @@ class SpeclynxValidatorBackend(BaseValidatorBackend):
                 - "skip": skip already-visited elements entirely (no enter/leave, no descent).
                 - "enter-only": still fire enter/leave for each occurrence of a shared element,
                   but do not descend into the already-walked subtree.
+
+        Raises:
+            ValueError: If skip_visited is not one of "never", "skip", or "enter-only".
         """
+        if skip_visited not in _SKIP_VISITED_MODES:
+            raise ValueError(
+                f"Invalid skip_visited value {skip_visited!r}; "
+                f"expected one of {_SKIP_VISITED_MODES}"
+            )
+
         self.speclynx_path = speclynx_path
         self.timeout = timeout
         self.allowed_base_dir = allowed_base_dir

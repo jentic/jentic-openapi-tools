@@ -241,6 +241,16 @@ class TestSpeclynxValidatorUnit:
             validator = SpeclynxValidatorBackend(skip_visited=mode)
             assert validator.skip_visited == mode
 
+    def test_initialization_with_invalid_skip_visited_raises(self):
+        """Test SpeclynxValidator rejects invalid skip_visited values eagerly."""
+        # Invalid string mode
+        with pytest.raises(ValueError, match="Invalid skip_visited value"):
+            SpeclynxValidatorBackend(skip_visited="bogus")  # type: ignore[arg-type]
+
+        # Legacy boolean values are no longer accepted
+        with pytest.raises(ValueError, match="Invalid skip_visited value"):
+            SpeclynxValidatorBackend(skip_visited=True)  # type: ignore[arg-type]
+
     def test_initialization_with_custom_speclynx_path(self):
         """Test SpeclynxValidator with custom speclynx_path."""
         validator = SpeclynxValidatorBackend(speclynx_path="/custom/path/to/speclynx")
