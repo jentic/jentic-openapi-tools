@@ -2,6 +2,267 @@
 
 <!-- version list -->
 
+## v1.0.0-alpha.57 (2026-06-10)
+
+### Chores
+
+- **deps**: Bump actions/create-github-app-token from 2 to 3
+  ([#278](https://github.com/jentic/jentic-openapi-tools/pull/278),
+  [`3845627`](https://github.com/jentic/jentic-openapi-tools/commit/38456277f97c20bf387b21b0db367d599122fd01))
+
+- **deps**: Bump actions/create-github-app-token from 2 to 3
+  ([#272](https://github.com/jentic/jentic-openapi-tools/pull/272),
+  [`dc929e8`](https://github.com/jentic/jentic-openapi-tools/commit/dc929e89c05bc5df95cb7bd4d8b63f016171612c))
+
+- **deps**: Bump attrs from 25.4.0 to 26.1.0
+  ([#293](https://github.com/jentic/jentic-openapi-tools/pull/293),
+  [`9b5c829`](https://github.com/jentic/jentic-openapi-tools/commit/9b5c829e1817aace7091272a4b921d2addf3d1b2))
+
+- **deps**: Bump attrs from 25.4.0 to 26.1.0
+  ([#281](https://github.com/jentic/jentic-openapi-tools/pull/281),
+  [`595bc65`](https://github.com/jentic/jentic-openapi-tools/commit/595bc654d8ba52fe965c1fa2190e695d7545a318))
+
+- **deps**: Bump attrs from 25.4.0 to 26.1.0
+  ([#276](https://github.com/jentic/jentic-openapi-tools/pull/276),
+  [`75f8161`](https://github.com/jentic/jentic-openapi-tools/commit/75f81618d24bb64cc4a4a10fc485e16aebf137f7))
+
+- **deps**: Bump idna from 3.11 to 3.15
+  ([#271](https://github.com/jentic/jentic-openapi-tools/pull/271),
+  [`0f909cf`](https://github.com/jentic/jentic-openapi-tools/commit/0f909cff7fcbc4315a3c3a694d48d662eb6b4d84))
+
+- **deps**: Bump jsonpointer from 3.0.0 to 3.1.1
+  ([#334](https://github.com/jentic/jentic-openapi-tools/pull/334),
+  [`fffe15e`](https://github.com/jentic/jentic-openapi-tools/commit/fffe15ed05084e717acc1619cac85b974decbf95))
+
+- **deps**: Bump jsonpointer from 3.0.0 to 3.1.1
+  ([#327](https://github.com/jentic/jentic-openapi-tools/pull/327),
+  [`4e40abe`](https://github.com/jentic/jentic-openapi-tools/commit/4e40abe2bf8a880fac3b7b794bd7ef01b192e5f4))
+
+- **deps**: Bump jsonpointer from 3.0.0 to 3.1.1
+  ([#317](https://github.com/jentic/jentic-openapi-tools/pull/317),
+  [`f856093`](https://github.com/jentic/jentic-openapi-tools/commit/f856093224ad76a1ccf7a3ee3864821301680348))
+
+- **deps**: Bump jsonpointer from 3.0.0 to 3.1.1
+  ([#312](https://github.com/jentic/jentic-openapi-tools/pull/312),
+  [`aaa4065`](https://github.com/jentic/jentic-openapi-tools/commit/aaa4065f415cbbbff551abee34e37e2964924da3))
+
+- **deps**: Bump jsonpointer from 3.0.0 to 3.1.1
+  ([#303](https://github.com/jentic/jentic-openapi-tools/pull/303),
+  [`939b304`](https://github.com/jentic/jentic-openapi-tools/commit/939b304e9edbf07c69e4afb5d3ece9ec858c39ae))
+
+- **deps**: Bump jsonpointer from 3.0.0 to 3.1.1
+  ([#295](https://github.com/jentic/jentic-openapi-tools/pull/295),
+  [`02ca42f`](https://github.com/jentic/jentic-openapi-tools/commit/02ca42f2ea996626104920eeb8f577884ab3ee30))
+
+- **deps**: Bump jsonpointer from 3.0.0 to 3.1.1
+  ([#289](https://github.com/jentic/jentic-openapi-tools/pull/289),
+  [`f4ebdd4`](https://github.com/jentic/jentic-openapi-tools/commit/f4ebdd4d6edc81b4d7e79017491a8219de5d8a1f))
+
+- **deps**: Bump jsonpointer from 3.0.0 to 3.1.1
+  ([#283](https://github.com/jentic/jentic-openapi-tools/pull/283),
+  [`f4f0278`](https://github.com/jentic/jentic-openapi-tools/commit/f4f0278c8e4cafdc55544c5edec9bd7ca6016e16))
+
+- **deps**: Bump jsonpointer from 3.0.0 to 3.1.1
+  ([#275](https://github.com/jentic/jentic-openapi-tools/pull/275),
+  [`6406576`](https://github.com/jentic/jentic-openapi-tools/commit/6406576beb60a734941d57ba5d7a8c6e5137b0f3))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#332](https://github.com/jentic/jentic-openapi-tools/pull/332),
+  [`83a143c`](https://github.com/jentic/jentic-openapi-tools/commit/83a143ce2ad26f46847c9b23a5bd02f692d7aedd))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#329](https://github.com/jentic/jentic-openapi-tools/pull/329),
+  [`cf065ca`](https://github.com/jentic/jentic-openapi-tools/commit/cf065cabd6c75c8792a949345f248ae0008a0c4a))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#325](https://github.com/jentic/jentic-openapi-tools/pull/325),
+  [`bf59113`](https://github.com/jentic/jentic-openapi-tools/commit/bf5911366d4424a083979132404046a87189c7f9))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#321](https://github.com/jentic/jentic-openapi-tools/pull/321),
+  [`e1763bc`](https://github.com/jentic/jentic-openapi-tools/commit/e1763bceff80a268937de4387dc7ee88748463e4))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#320](https://github.com/jentic/jentic-openapi-tools/pull/320),
+  [`c3892a2`](https://github.com/jentic/jentic-openapi-tools/commit/c3892a2a915ac5d4b15cd0af3e766a99fbcedd51))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#314](https://github.com/jentic/jentic-openapi-tools/pull/314),
+  [`a4ac3b8`](https://github.com/jentic/jentic-openapi-tools/commit/a4ac3b8272ef8d378a69026d7563745277d4123c))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#310](https://github.com/jentic/jentic-openapi-tools/pull/310),
+  [`f54a473`](https://github.com/jentic/jentic-openapi-tools/commit/f54a47314f50190119873c51b1769ea574328153))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#305](https://github.com/jentic/jentic-openapi-tools/pull/305),
+  [`39aaab2`](https://github.com/jentic/jentic-openapi-tools/commit/39aaab28cc78077a8bc1014b54bf2bf3d22d16f2))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#301](https://github.com/jentic/jentic-openapi-tools/pull/301),
+  [`cfbfe48`](https://github.com/jentic/jentic-openapi-tools/commit/cfbfe483fe51029d834072292d011f820f813542))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#299](https://github.com/jentic/jentic-openapi-tools/pull/299),
+  [`36a4514`](https://github.com/jentic/jentic-openapi-tools/commit/36a4514da073989034a88df087b1200bce84f35a))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#296](https://github.com/jentic/jentic-openapi-tools/pull/296),
+  [`09f2b13`](https://github.com/jentic/jentic-openapi-tools/commit/09f2b13cc15e541be21c0332cbf1407211177d8f))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#292](https://github.com/jentic/jentic-openapi-tools/pull/292),
+  [`76d0b21`](https://github.com/jentic/jentic-openapi-tools/commit/76d0b21045f3f94d08a7da174499c94b11372185))
+
+- **deps**: Bump openapi-spec-validator from 0.7.2 to 0.9.0
+  ([#280](https://github.com/jentic/jentic-openapi-tools/pull/280),
+  [`3d019fc`](https://github.com/jentic/jentic-openapi-tools/commit/3d019fcb1e4d1c9297e24e247ccbb0d3c2df4d76))
+
+- **deps**: Bump requests from 2.33.0 to 2.34.2
+  ([#274](https://github.com/jentic/jentic-openapi-tools/pull/274),
+  [`fcb3a18`](https://github.com/jentic/jentic-openapi-tools/commit/fcb3a18771d4d654b3a267ce7bb4fe4801722aa3))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#333](https://github.com/jentic/jentic-openapi-tools/pull/333),
+  [`5a4e9f4`](https://github.com/jentic/jentic-openapi-tools/commit/5a4e9f4ca2a90f876d4b7d03e773e15e47fbc791))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#330](https://github.com/jentic/jentic-openapi-tools/pull/330),
+  [`38ef092`](https://github.com/jentic/jentic-openapi-tools/commit/38ef092532149b5aa2670f3af6192cf3cb0f9b62))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#328](https://github.com/jentic/jentic-openapi-tools/pull/328),
+  [`af2a521`](https://github.com/jentic/jentic-openapi-tools/commit/af2a52125b75a081e76c50481380dc042e59f8d7))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#324](https://github.com/jentic/jentic-openapi-tools/pull/324),
+  [`080f100`](https://github.com/jentic/jentic-openapi-tools/commit/080f100f84da4e433edc4ec79024a91867985204))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#319](https://github.com/jentic/jentic-openapi-tools/pull/319),
+  [`1367f2b`](https://github.com/jentic/jentic-openapi-tools/commit/1367f2bcae2b59915d8c1e9f88112aa889203a34))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#313](https://github.com/jentic/jentic-openapi-tools/pull/313),
+  [`c1b8fab`](https://github.com/jentic/jentic-openapi-tools/commit/c1b8fab5af20ad4f08ebeff957d8a86975c866a9))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#311](https://github.com/jentic/jentic-openapi-tools/pull/311),
+  [`4121a01`](https://github.com/jentic/jentic-openapi-tools/commit/4121a01cb2e8e6a50c0fdec4b9935a53deee8b99))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#308](https://github.com/jentic/jentic-openapi-tools/pull/308),
+  [`d73dec1`](https://github.com/jentic/jentic-openapi-tools/commit/d73dec1c79907fec4a363fed77e32964ee136986))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#302](https://github.com/jentic/jentic-openapi-tools/pull/302),
+  [`1d0c688`](https://github.com/jentic/jentic-openapi-tools/commit/1d0c68847593fb995f74570838165929557914cf))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#297](https://github.com/jentic/jentic-openapi-tools/pull/297),
+  [`2ae15b8`](https://github.com/jentic/jentic-openapi-tools/commit/2ae15b85ee4175502b419610461a010956f7ea15))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#290](https://github.com/jentic/jentic-openapi-tools/pull/290),
+  [`39853b6`](https://github.com/jentic/jentic-openapi-tools/commit/39853b68d00be19c1da0bb1f47b59b21af48e57a))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#285](https://github.com/jentic/jentic-openapi-tools/pull/285),
+  [`b8402e5`](https://github.com/jentic/jentic-openapi-tools/commit/b8402e52f664af11c408fbe838452b36fc36cdf6))
+
+- **deps**: Bump requests from 2.33.1 to 2.34.2
+  ([#282](https://github.com/jentic/jentic-openapi-tools/pull/282),
+  [`9e49dce`](https://github.com/jentic/jentic-openapi-tools/commit/9e49dce9a3748cdf0106a18fd4974f7970c88624))
+
+- **deps**: Bump ruamel-yaml from 0.18.15 to 0.19.1
+  ([#273](https://github.com/jentic/jentic-openapi-tools/pull/273),
+  [`95cfeec`](https://github.com/jentic/jentic-openapi-tools/commit/95cfeecb16ff6ed861bade08d8e1007e832379f8))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#331](https://github.com/jentic/jentic-openapi-tools/pull/331),
+  [`b7be763`](https://github.com/jentic/jentic-openapi-tools/commit/b7be763bcfa65f338621130cf046c18077a0019b))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#326](https://github.com/jentic/jentic-openapi-tools/pull/326),
+  [`0cc520f`](https://github.com/jentic/jentic-openapi-tools/commit/0cc520f3b7d49f15843c657c7ae01bab5cf40deb))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#322](https://github.com/jentic/jentic-openapi-tools/pull/322),
+  [`31ab9b2`](https://github.com/jentic/jentic-openapi-tools/commit/31ab9b27256e112cef001e2b9f01d3dfbd4176f3))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#318](https://github.com/jentic/jentic-openapi-tools/pull/318),
+  [`a340b32`](https://github.com/jentic/jentic-openapi-tools/commit/a340b322533e4367c32c4b3a5218a09192931fc5))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#316](https://github.com/jentic/jentic-openapi-tools/pull/316),
+  [`3c2a600`](https://github.com/jentic/jentic-openapi-tools/commit/3c2a6001ed0fc13c774ff9b1b4cdc7f414fb2ec3))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#309](https://github.com/jentic/jentic-openapi-tools/pull/309),
+  [`9d883eb`](https://github.com/jentic/jentic-openapi-tools/commit/9d883ebef3d7d8a636d9d6511c84c661307a5e66))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#304](https://github.com/jentic/jentic-openapi-tools/pull/304),
+  [`aaa8f04`](https://github.com/jentic/jentic-openapi-tools/commit/aaa8f042e75bf34bc71c7aa7e9f52e3cf584b26a))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#300](https://github.com/jentic/jentic-openapi-tools/pull/300),
+  [`598597b`](https://github.com/jentic/jentic-openapi-tools/commit/598597b8e5fba504a2542ae862a53bd96c32c386))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#298](https://github.com/jentic/jentic-openapi-tools/pull/298),
+  [`e20cfb4`](https://github.com/jentic/jentic-openapi-tools/commit/e20cfb49ae3d3a7f3a6612fce11ebeaffd0510c2))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#294](https://github.com/jentic/jentic-openapi-tools/pull/294),
+  [`a699db8`](https://github.com/jentic/jentic-openapi-tools/commit/a699db8296cef930cf9dd74daf74eca494f78a32))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#291](https://github.com/jentic/jentic-openapi-tools/pull/291),
+  [`0e99deb`](https://github.com/jentic/jentic-openapi-tools/commit/0e99deb39ca1b76ea0c041288511ee9b978152af))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#286](https://github.com/jentic/jentic-openapi-tools/pull/286),
+  [`0d420eb`](https://github.com/jentic/jentic-openapi-tools/commit/0d420eb44e241ae6837a8b3778ba05ebf08bf2ac))
+
+- **deps**: Bump ruamel-yaml from 0.18.17 to 0.19.1
+  ([#279](https://github.com/jentic/jentic-openapi-tools/pull/279),
+  [`1b1ca0f`](https://github.com/jentic/jentic-openapi-tools/commit/1b1ca0f133016fdd23137b015e13a89a3299cdec))
+
+- **deps**: Relax minor-version pins and bump attrs/requests/jsonpointer
+  ([#335](https://github.com/jentic/jentic-openapi-tools/pull/335),
+  [`d3d5996`](https://github.com/jentic/jentic-openapi-tools/commit/d3d599661e19a8a2a408d615c4399c4f85d22215))
+
+- **deps-dev**: Bump pyright from 1.1.409 to 1.1.410
+  ([#315](https://github.com/jentic/jentic-openapi-tools/pull/315),
+  [`fdbff37`](https://github.com/jentic/jentic-openapi-tools/commit/fdbff373186eff80a21fb07a41802d2009045082))
+
+- **deps-dev**: Bump ruff from 0.15.13 to 0.15.14
+  ([#284](https://github.com/jentic/jentic-openapi-tools/pull/284),
+  [`c942457`](https://github.com/jentic/jentic-openapi-tools/commit/c9424570f22e191532748b62ae44ed2aa729b508))
+
+- **deps-dev**: Bump ruff from 0.15.14 to 0.15.15
+  ([#307](https://github.com/jentic/jentic-openapi-tools/pull/307),
+  [`c381ba5`](https://github.com/jentic/jentic-openapi-tools/commit/c381ba5f3bc367b7acceec1418e8d80449e776db))
+
+- **deps-dev**: Bump ruff from 0.15.15 to 0.15.16
+  ([#323](https://github.com/jentic/jentic-openapi-tools/pull/323),
+  [`8dbb832`](https://github.com/jentic/jentic-openapi-tools/commit/8dbb832af5bfc194c8fe4c856ee59bee7774331e))
+
+### Continuous Integration
+
+- **tools**: Restore Dependabot auto-merge workflow
+  ([#277](https://github.com/jentic/jentic-openapi-tools/pull/277),
+  [`e8fd533`](https://github.com/jentic/jentic-openapi-tools/commit/e8fd5332bf3f33c7724b6245ad2105dfad26775a))
+
+### Features
+
+- **validator-speclynx**: Integrate apidom 4.11.1
+  ([#336](https://github.com/jentic/jentic-openapi-tools/pull/336),
+  [`813a8a5`](https://github.com/jentic/jentic-openapi-tools/commit/813a8a5ac6ebeca4fa316600aec0c1711e1f21d1))
+
+
 ## v1.0.0-alpha.56 (2026-05-19)
 
 ### Chores
