@@ -43,6 +43,31 @@ def test_build_with_api_key_in_header(parse_yaml):
     assert result.openid_connect_url is None
 
 
+def test_build_with_lowercase_api_key_header(parse_yaml):
+    """Test building SecurityScheme with a lower-case apiKey header name."""
+    yaml_content = textwrap.dedent(
+        """
+        type: apiKey
+        name: x-api-key
+        in: header
+        description: Xquik API key authentication
+        """
+    )
+    root = parse_yaml(yaml_content)
+
+    result = security_scheme.build(root)
+    assert isinstance(result, security_scheme.SecurityScheme)
+
+    assert result.type is not None
+    assert result.name is not None
+    assert result.in_ is not None
+    assert result.description is not None
+    assert result.type.value == "apiKey"
+    assert result.name.value == "x-api-key"
+    assert result.in_.value == "header"
+    assert result.description.value == "Xquik API key authentication"
+
+
 def test_build_with_api_key_in_query(parse_yaml):
     """Test building SecurityScheme with apiKey type in query parameter."""
     yaml_content = textwrap.dedent(
