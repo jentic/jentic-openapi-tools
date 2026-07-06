@@ -33,7 +33,7 @@ dev = [
   "ruff>=0.14.1,<0.16.0",
   "pyright~=1.1.409",
   "pytest>=8.4.2,<9.2.0",
-  "python-semantic-release>=10.4.1,<10.6.0",
+  "python-semantic-release>=10.4.1,<10.7.0",
   "poethepoet>=0.37,<0.49",
 ]
 
