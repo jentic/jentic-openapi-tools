@@ -185,9 +185,7 @@ def test_fake_response_reproduces_latin1_default():
 
 def test_declared_utf8_charset_decodes_cleanly_in_fake():
     """When the server declares charset=utf-8, .text is already correct."""
-    resp = FakeResponse(
-        _spec_with(EM_DASH).encode("utf-8"), "text/yaml; charset=utf-8"
-    )
+    resp = FakeResponse(_spec_with(EM_DASH).encode("utf-8"), "text/yaml; charset=utf-8")
     assert resp.encoding == "utf-8"
     assert resp.text == _spec_with(EM_DASH)
 
