@@ -32,14 +32,21 @@ import logging
 
 import pytest
 import requests
+from requests.structures import CaseInsensitiveDict
 from requests.utils import get_encoding_from_headers
 
 from jentic.apitools.openapi.parser.core import OpenAPIParser, load_uri
-from jentic.apitools.openapi.parser.core import loader as loader_module
 from jentic.apitools.openapi.parser.core.exceptions import (
     DocumentLoadError,
     DocumentParseError,
 )
+
+
+# Patch target: the ``requests`` name as bound inside the loader module. Using
+# the string form (rather than importing the module and touching its attribute)
+# keeps this pyright-clean — the loader imports ``requests`` for internal use
+# and does not re-export it.
+_LOADER_REQUESTS_GET = "jentic.apitools.openapi.parser.core.loader.requests.get"
 
 
 # --------------------------------------------------------------------------- #
@@ -115,7 +122,9 @@ class FakeResponse:
     def __init__(self, body: bytes, content_type: str, status_code: int = 200):
         self._content = body
         self.status_code = status_code
-        self.headers = {"content-type": content_type} if content_type else {}
+        self.headers: CaseInsensitiveDict = CaseInsensitiveDict(
+            {"content-type": content_type} if content_type else {}
+        )
         # Mirror requests.Response.encoding resolution.
         self.encoding = get_encoding_from_headers(self.headers)
 
@@ -154,7 +163,7 @@ def http_body(monkeypatch: pytest.MonkeyPatch):
             state.get("status", 200),
         )
 
-    monkeypatch.setattr(loader_module.requests, "get", _fake_get)
+    monkeypatch.setattr(_LOADER_REQUESTS_GET, _fake_get)
 
     def set_body(body: bytes, content_type: str = "text/yaml", status: int = 200):
         state["body"] = body
@@ -403,7 +412,7 @@ def test_load_uri_network_error_wrapped(monkeypatch):
     def _boom(*a, **k):  # noqa: ANN002, ANN003
         raise requests.ConnectionError("dns failure")
 
-    monkeypatch.setattr(loader_module.requests, "get", _boom)
+    monkeypatch.setattr(_LOADER_REQUESTS_GET, _boom)
     with pytest.raises(DocumentLoadError):
         load_uri(TEST_URL, 5, 10)
 
@@ -466,7 +475,7 @@ def test_loader_reads_content_not_text(http_body, monkeypatch):
     def _fake_get(url, *a, **k):  # noqa: ANN001, ANN002, ANN003
         return TrackingResponse(_spec_with(EM_DASH).encode("utf-8"), "text/yaml")
 
-    monkeypatch.setattr(loader_module.requests, "get", _fake_get)
+    monkeypatch.setattr(_LOADER_REQUESTS_GET, _fake_get)
     load_uri(TEST_URL, 5, 10)
     assert "content" in accessed
     assert "text" not in accessed, "loader must not read resp.text (charset trap)"
