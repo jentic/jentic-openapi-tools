@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 
 [manifest]
@@ -517,11 +517,11 @@ wheels = [
 
 [[package]]
 name = "jsonpointer"
-version = "3.2.1"
+version = "3.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/33/a2/c92f0a7ed439c490d2c8ad712fdb074c311afa4f77870987826a3b1483ba/jsonpointer-3.2.1.tar.gz", hash = "sha256:47c846513b3a4ec46eecef1105207fba075e2a3659048e362bd7daff0fc33342", size = 11309, upload-time = "2026-10-10T21:11:06.988Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/52/77/9be5cce647fa4d7afa9047c0c1029bc73292c27430e64fc9d2393ccf6727/jsonpointer-3.4.tar.gz", hash = "sha256:e57015ae65af3821c6a3976069860789cf326103f38b22b2178d41d021adad25", size = 13113, upload-time = "2026-10-19T10:33:24.436Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/29/accef8eea16670b88f3a23102c35dee62c6f159db30d9628908043b3e21b/jsonpointer-3.2.1-py3-none-any.whl", hash = "sha256:b19ee68644e9ffb51440448d8f7811af2b7406eea1db90603e93f5849323119a", size = 8332, upload-time = "2026-10-10T21:11:05.648Z" },
+    { url = "https://files.pythonhosted.org/packages/10/d0/3d41544018b879e9c608c32bd5fb468fd87669d53c2dbf5ae67c1bad9882/jsonpointer-3.4-py3-none-any.whl", hash = "sha256:136e2e3273fd82a1502274f56ec172f331b6a1703d86a1824d503af4d9a96142", size = 9047, upload-time = "2026-10-19T10:33:22.963Z" },
 ]
 
 [[package]]
